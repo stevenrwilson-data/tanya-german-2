@@ -21,7 +21,13 @@ GH.theme = (function(){
     { id:'lagoon', label:'Lagoon' },
     { id:'tobacco', label:'Tobacco' },
     { id:'citrus', label:'Citrus' },
-    { id:'grove', label:'Grove' }
+    { id:'grove', label:'Grove' },
+    /* dark-page themes. Light ink on a dark ground, for reading at night.
+       Nothing in the stylesheet is conditional on them — they redefine
+       the same tokens the light themes do. */
+    { id:'midnight', label:'Midnight' },
+    { id:'ember', label:'Ember' },
+    { id:'pine', label:'Pine' }
   ];
 
   var KEY = 'gh-theme';
@@ -94,4 +100,105 @@ GH.theme = (function(){
   }
 
   return { set:set, list:THEMES, current:function(){ return current; } };
+})();
+
+
+/* Type variants.
+
+   A second axis, independent of colour. A variant redefines
+   --ff-display, --ff-ui and the root font size — which every type
+   declaration in the stylesheet already reads — so it changes every
+   screen without touching a single component, and without moving any
+   size relative to any other.
+
+   Four variants against twelve palettes is forty-eight combinations,
+   and none of them can produce unreadable text: the ink is contextual
+   (see the surface block in style.css) and the variant only moves
+   family and scale, never colour.
+
+   Editorial is the :root default and carries no attribute, the same
+   way Sand does.
+
+   Runs from <head>, before first paint, for the same reason. */
+
+GH.type = (function(){
+
+  var TYPES = [
+    { id:'editorial', label:'Editorial', mark:'Aa' },
+    { id:'plain',     label:'Plain',     mark:'Aa' },
+    { id:'large',     label:'Large',     mark:'Aa' },
+    { id:'loud',      label:'Loud',      mark:'Aa' }
+  ];
+
+  var KEY = 'gh-type';
+  var current = 'editorial';
+
+  function known(id){
+    for (var i = 0; i < TYPES.length; i++) if (TYPES[i].id === id) return true;
+    return false;
+  }
+
+  function stored(){
+    try { return window.localStorage.getItem(KEY); } catch (e){ return null; }
+  }
+  function remember(id){
+    try { window.localStorage.setItem(KEY, id); } catch (e){}
+  }
+
+  function apply(id){
+    if (!known(id)) id = 'editorial';
+    current = id;
+    if (id === 'editorial') document.documentElement.removeAttribute('data-type');
+    else document.documentElement.setAttribute('data-type', id);
+  }
+
+  function set(id){
+    apply(id);
+    remember(current);
+    mark();
+  }
+
+  var bar = null;
+
+  function mark(){
+    if (!bar) return;
+    var b = bar.querySelectorAll('button');
+    for (var i = 0; i < b.length; i++){
+      b[i].setAttribute('aria-pressed',
+        b[i].getAttribute('data-type') === current ? 'true' : 'false');
+    }
+  }
+
+  /* Built here rather than in index.html, so the markup stays a shell
+     and adding a variant needs one edit, not two. */
+  function init(){
+    var host = document.querySelector('.topbar-controls');
+    if (!host) return;
+    bar = document.createElement('nav');
+    bar.className = 'typeswitch';
+    bar.id = 'typeswitch';
+    bar.setAttribute('aria-label', 'Type style');
+    TYPES.forEach(function(t){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('data-type', t.id);
+      b.setAttribute('title', t.label);
+      b.setAttribute('aria-label', t.label);
+      b.textContent = t.mark;
+      b.addEventListener('click', function(){ set(t.id); });
+      bar.appendChild(b);
+    });
+    host.appendChild(bar);
+    mark();
+  }
+
+  apply(stored() || 'editorial');
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  return { set:set, list:TYPES, current:function(){ return current; } };
 })();

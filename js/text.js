@@ -230,6 +230,34 @@ GH.text = (function(){
     return distance(a, b) <= limit ? 'close' : 'no';
   }
 
+  /* SPELLING IS EXACT OR IT IS NOTHING.
+
+     `compare()` accepts `close` — normalised umlauts, wrong case, up to two
+     characters out — and that is right everywhere else, because a game
+     about meaning should not fail her on a typo.
+
+     It is exactly wrong for a copying drill. `Strasse` for `Straße`,
+     `apfel` for `Apfel`, `schon` for `schön`: every one of those is the
+     thing the exercise exists to teach, and every one of them passes
+     `compare()` as 'close'.
+
+     So this is character for character, with only surrounding whitespace
+     forgiven. */
+  function spelled(input, target){
+    return String(input).trim() === String(target).trim();
+  }
+
+  /* Where it first went wrong, or -1 if it did not.
+
+     Enough to show her the word was right up to the sixth character, which
+     is a different piece of information from being told to try again. */
+  function firstDiff(input, target){
+    var a = String(input).trim(), b = String(target).trim();
+    var n = Math.min(a.length, b.length), i;
+    for (i = 0; i < n; i++) if (a[i] !== b[i]) return i;
+    return a.length === b.length ? -1 : n;
+  }
+
   function shuffle(arr){
     var a = arr.slice(), i, j, tmp;
     for (i = a.length - 1; i > 0; i--){
@@ -246,6 +274,8 @@ GH.text = (function(){
     allUnits:allUnits,
     blankUnits:blankUnits,
     normalize:normalize,
+    spelled:spelled,
+    firstDiff:firstDiff,
     distance:distance,
     compare:compare,
     shuffle:shuffle

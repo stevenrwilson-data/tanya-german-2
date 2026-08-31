@@ -55,12 +55,17 @@ GH.fillBlank = (function(){
 
   /* ---------- rounds ---------- */
 
-  function buildRounds(sentences){
-    var rounds = [];
-    sentences.forEach(function(s){
+  /* Rounds are interleaved by pass, not grouped by sentence: every
+     sentence's first blank, then every sentence's second, and so on.
+     Grouping them put the same sentence on screen three times in a
+     row. Stories pass ordered:true so their narrative sequence
+     survives; topic lists get each pass shuffled separately so the
+     three passes aren't in identical order. */
+  function buildRounds(sentences, ordered){
+    var perSentence = sentences.map(function(s){
       var tokens = GH.text.tokenize(s.de);
-      GH.text.blankUnits(s.de, s.blanks).forEach(function(u){
-        rounds.push({
+      return GH.text.blankUnits(s.de, s.blanks).map(function(u){
+        return {
           sentence:s,
           tokens:tokens,
           start:u.start,
@@ -68,9 +73,38 @@ GH.fillBlank = (function(){
           words:u.wordCount,
           answer:u.text.trim(),
           options:null
-        });
+        };
       });
     });
+
+    var most = 0, i;
+    for (i = 0; i < perSentence.length; i++){
+      if (perSentence[i].length > most) most = perSentence[i].length;
+    }
+
+    var rounds = [], pass, group;
+    for (pass = 0; pass < most; pass++){
+      group = [];
+      for (i = 0; i < perSentence.length; i++){
+        if (perSentence[i][pass]) group.push(perSentence[i][pass]);
+      }
+      if (!ordered) group = GH.text.shuffle(group);
+      rounds = rounds.concat(group);
+    }
+
+    /* A pass can end and the next begin on the same sentence when only
+       one sentence carries that many blanks. Nudge those apart. */
+    for (i = 1; i < rounds.length; i++){
+      if (rounds[i].sentence !== rounds[i - 1].sentence) continue;
+      var j;
+      for (j = i + 1; j < rounds.length; j++){
+        if (rounds[j].sentence !== rounds[i - 1].sentence &&
+            (j + 1 >= rounds.length || rounds[j + 1].sentence !== rounds[i].sentence)){
+          var tmp = rounds[i]; rounds[i] = rounds[j]; rounds[j] = tmp;
+          break;
+        }
+      }
+    }
     return rounds;
   }
 
@@ -89,9 +123,39 @@ GH.fillBlank = (function(){
     return s[lang] || '';
   }
 
+  /* A topic can yield fifty-seven rounds, because every sentence has two or
+     three blanks. Fifty-seven of anything without a pause is a slog and
+     nothing about it feels like progress — she cannot see the end and gets
+     no verdict until she reaches it. So the rounds are served in sets, with
+     a short report between them and the option to stop. */
+  var SET = 12;
+
+  function setEnd(){ return Math.min(state.setStart + SET, state.rounds.length); }
+  function inSet(){ return state.i - state.setStart; }
+  function setSize(){ return setEnd() - state.setStart; }
+  function lastSet(){ return setEnd() >= state.rounds.length; }
+
   function round(){ return state.rounds[state.i]; }
 
   /* ---------- speaking ---------- */
+
+  /* Auto-play is the German spoken BEFORE she answers. It is a crutch,
+     so it can be switched off; the sentence is still spoken after a
+     correct answer either way, and the Listen button always works.
+     Remembered between visits — a preference that resets every session
+     is no preference at all. Private browsing on iOS throws rather
+     than returning null, hence the try/catch. */
+  var AUTO_KEY = 'gh-autoplay';
+
+  function autoOn(){
+    try {
+      return window.localStorage.getItem(AUTO_KEY) !== 'off';
+    } catch (e){ return true; }
+  }
+
+  function setAuto(on){
+    try { window.localStorage.setItem(AUTO_KEY, on ? 'on' : 'off'); } catch (e){}
+  }
 
   function speakSentence(){
     var r = round();
@@ -109,6 +173,7 @@ GH.fillBlank = (function(){
   function paint(){
     var r = round();
     if (!r){ paintDone(); return; }
+    if (state.i >= setEnd()){ paintSetBreak(); return; }
 
     host.textContent = '';
 
@@ -130,11 +195,19 @@ GH.fillBlank = (function(){
     var prog = el('div', 'progress');
     var track = el('span', 'progress-track');
     var fill = el('span', 'progress-fill');
-    fill.style.width = Math.round((state.i / state.rounds.length) * 100) + '%';
+    fill.style.width = Math.round((inSet() / setSize()) * 100) + '%';
     track.appendChild(fill);
     prog.appendChild(track);
-    prog.appendChild(el('span', null, t('progress', { i:state.i + 1, n:state.rounds.length })));
+    prog.appendChild(el('span', null, t('progress', { i:inSet() + 1, n:setSize() })));
     top.appendChild(prog);
+
+    var run = GH.run.header(state.run);
+    if (state.rounds.length > SET){
+      run.appendChild(el('span', 'run-best',
+        t('fbSetOf', { i:Math.floor(state.setStart / SET) + 1,
+                       n:Math.ceil(state.rounds.length / SET) })));
+    }
+    top.appendChild(run);
     host.appendChild(top);
 
     /* card */
@@ -148,6 +221,16 @@ GH.fillBlank = (function(){
       speak.appendChild(el('span', null, state.solved ? t('listenAgain') : t('listen')));
       speak.addEventListener('click', speakSentence);
       tools.appendChild(speak);
+
+      var auto = el('button', 'autotoggle', t('autoPlay'));
+      auto.type = 'button';
+      auto.setAttribute('aria-pressed', autoOn() ? 'true' : 'false');
+      auto.setAttribute('title', t(autoOn() ? 'autoPlayOn' : 'autoPlayOff'));
+      auto.addEventListener('click', function(){
+        setAuto(!autoOn());
+        paint();
+      });
+      tools.appendChild(auto);
     }
 
     var modes = el('div', 'mode-toggle');
@@ -200,6 +283,50 @@ GH.fillBlank = (function(){
     var tr = translationOf(r.sentence);
     if (tr) card.appendChild(el('p', 'translation', tr));
 
+    /* What the word she just filled in actually means.
+
+       Only after she has answered. Before, it is the answer — `das Hemd ·
+       shirt` above a blank whose answer is Hemd is not a hint, it is the
+       solution.
+
+       And only when there is something to say. An article, a question
+       word or a name resolves to nothing and shows nothing, rather than a
+       hedged line: `Das` has a grammatical job, not a meaning.
+
+       This is the gap the exercise had. She read `Das ___ ist sehr
+       billig` with `That is very cheap` underneath, typed the right word,
+       and was told she was right — without ever being shown which word
+       she had translated. */
+    if (state.solved){
+      var said = GH.wordlook ? GH.wordlook.explain(r.answer) : null;
+      if (said){
+        var w = el('p', 'fb-word');
+        var deb = el('button', 'fb-word-de', said.de);
+        deb.type = 'button';
+        deb.setAttribute('aria-label', said.de);
+        deb.addEventListener('click', function(){ GH.speech.say(said.de); });
+        w.appendChild(deb);
+        w.appendChild(el('span', 'fb-word-gloss',
+          said.senses ? '' : said.gloss));
+        card.appendChild(w);
+
+        /* A word with more than one meaning gets all of them. Showing the
+           first would teach her that `Fuß` is ступня and quietly hide
+           подножие, which is worse than the gap this block was written to
+           close. */
+        if (said.senses){
+          var list = el('ul', 'fb-senses');
+          said.senses.forEach(function(sn){
+            var li = el('li', 'fb-sense');
+            li.appendChild(el('span', 'fb-sense-gloss', sn.gloss));
+            if (sn.def) li.appendChild(el('span', 'fb-sense-def', sn.def));
+            list.appendChild(li);
+          });
+          card.appendChild(list);
+        }
+      }
+    }
+
     /* answers */
     var answers = el('div', 'answers');
 
@@ -210,8 +337,18 @@ GH.fillBlank = (function(){
         );
       }
       var opts = el('div', 'options');
+      /* Two per row unless one of them is long. The blanks are usually a
+         single word — `Haben`, `Das`, `Kleid` — and four of those down the
+         whole screen is three quarters of a phone spent on four words. But
+         a multi-word blank in a two-column track wraps to three lines, so
+         the longest option in the set decides for all of them: mixed
+         widths in a grid look like a mistake. */
+      var longest = 0;
+      r.options.forEach(function(w){ if (w.length > longest) longest = w.length; });
+      var wide = longest > 14;
+
       r.options.forEach(function(word){
-        var b = el('button', 'option', word);
+        var b = el('button', 'option' + (wide ? ' is-wide' : ''), word);
         b.type = 'button';
         if (state.ruledOut[GH.text.normalize(word)]){
           b.classList.add('is-wrong');
@@ -260,7 +397,9 @@ GH.fillBlank = (function(){
     foot.appendChild(el('span', 'spacer'));
     if (state.solved){
       var last = state.i === state.rounds.length - 1;
-      var next = el('button', 'btn btn-primary', last ? t('finish') : t('next'));
+      var endsSet = state.i === setEnd() - 1;
+      var next = el('button', 'btn btn-primary js-advance',
+        last ? t('finish') : (endsSet ? t('fbSetDone') : t('next')));
       next.type = 'button';
       next.addEventListener('click', function(){ goTo(state.i + 1); });
       foot.appendChild(next);
@@ -268,29 +407,96 @@ GH.fillBlank = (function(){
     card.appendChild(foot);
 
     host.appendChild(card);
+    if (state.solved) GH.nav.ready();
+  }
+
+  /* Between sets: how she did, and a genuine choice about carrying on.
+     A learner who has to abandon a round to stop learns to avoid starting
+     one. Offering the exit is what makes the next set voluntary. */
+  function paintSetBreak(){
+    host.textContent = '';
+    var done = state.setStart + SET;
+    var left = state.rounds.length - done;
+    GH.endScreen.render(host, {
+      tone: state.run.streak >= SET ? 'perfect' : 'done',
+      glyph: state.run.streak >= SET ? '\ud83c\udfc6' : '\u2713',
+      title: t('fbSetTitle', { i:Math.floor(state.setStart / SET) + 1 }),
+      stats: GH.run.stats(state.run),
+      /* Say why there are no Kronen here.
+
+         A set break is a pause inside one round, not the end of it, and
+         paying twelve at a time would make a fifty-question topic worth
+         four exercises instead of one. So nothing is paid until the topic
+         is finished — which is fine as a rule and was invisible as a
+         screen: it showed the score, the misses and no coins, which reads
+         exactly like a round that earned nothing. */
+      note: t('fbLeftN', { n:left }) + ' ' + t('fbPayAtEnd'),
+      reviews: [{
+        head: t('fbMissedHead'),
+        tone: 'missed',
+        items: state.missed.slice(-8).map(function(m){
+          var lang = GH.i18n.lang();
+          return { n:m.sentence.img, de:m.answer, gloss:m.sentence.de,
+                   flag: lang !== 'de' ? (m.sentence[lang] || '') : '' };
+        }),
+        onTap: function(x){ GH.speech.say(x.gloss); }
+      }],
+      actions: [
+        { label:t('fbKeepGoing'), kind:'primary', onClick:function(){
+            state.setStart = done;
+            state.missed = [];
+            goTo(done);
+          } },
+        { label:t('toHub'), onClick:function(){ state.onExit(); } }
+      ]
+    });
   }
 
   function paintDone(){
     host.textContent = '';
-    var box = el('div', 'done');
-    box.appendChild(el('span', 'done-badge', t('doneBadge')));
-    box.appendChild(el('h2', null, t('doneTitle')));
-    box.appendChild(el('p', null, t('doneLede', { n:state.rounds.length })));
-    var acts = el('div', 'done-actions');
-    var again = el('button', 'btn btn-primary', t('again'));
-    again.type = 'button';
-    again.addEventListener('click', function(){
-      state.rounds.forEach(function(r){ r.options = null; });
-      state.rounds = GH.text.shuffle(state.rounds);
-      goTo(0);
+    var total = state.rounds.length;
+    var wrong = state.missed.length;
+    var right = total - wrong;
+    var lang = GH.i18n.lang();
+
+    /* pay for the round before drawing the screen that reports it.
+       Ten Kronen an exercise, and a longer round counts as more than
+       one — coins.unitsFor() reads the answer count. */
+    var paid = GH.coins ? GH.coins.award('fillblank', state.run, {}) : null;
+    var won = GH.awards ? GH.awards.afterRound('fillblank', state.run) : [];
+
+    GH.endScreen.render(host, {
+      coins: paid,
+      won: won,
+      tone: wrong === 0 ? 'perfect' : 'done',
+      title: wrong === 0 ? t('cwPerfect') : t('doneTitle'),
+      stats: [
+        { n:right, label:t('fbRight'), kind:'good' },
+        { n:wrong, label:t('fbWrong'), kind:'bad' }
+      ],
+      note: t('doneLede', { n:total }),
+      reviews: [{
+        head: t('fbMissedHead'),
+        tone: 'missed',
+        items: state.missed.map(function(m){
+          return {
+            n: m.sentence.img,
+            de: m.answer,
+            gloss: m.sentence.de,
+            flag: lang !== 'de' ? (m.sentence[lang] || '') : ''
+          };
+        }),
+        onTap: function(item){ GH.speech.say(item.gloss); }
+      }],
+      actions: [
+        { label:t('again'), kind:'primary', onClick:function(){
+            state.rounds = buildRounds(state.sentences, state.ordered);
+            state.missed = [];
+            goTo(0);
+          } },
+        { label:t('toHub'), onClick:function(){ state.onExit(); } }
+      ]
     });
-    var hub = el('button', 'btn btn-ghost', t('toHub'));
-    hub.type = 'button';
-    hub.addEventListener('click', function(){ state.onExit(); });
-    acts.appendChild(again);
-    acts.appendChild(hub);
-    box.appendChild(acts);
-    host.appendChild(box);
   }
 
   /* ---------- answering ---------- */
@@ -309,9 +515,23 @@ GH.fillBlank = (function(){
     }
   }
 
+  function reportRound(r, ok){
+    if (!GH.tutor) return;
+    var cat = (r.sentence && r.sentence.cat) || state.cat;
+    if (cat) GH.tutor.grade('topic:' + cat, ok);
+    if (r.sentence && r.sentence.img) GH.tutor.grade('word:' + r.sentence.img, ok);
+    GH.tutor.grade('skill:cloze', ok);
+  }
+
+  /* The shared run holds the once-per-item guard, the streak and the
+     percentage. The round index is the item id. */
+  function tally(ok){ state.run.saw('r' + state.i, ok); }
+
   function pickOption(word, btn){
     var r = round();
     if (word === r.answer){
+      tally(!state.missedHere);
+      reportRound(r, !state.missedHere);
       state.feedback = t('right');
       state.feedbackKind = 'right';
       btn.classList.add('is-right');
@@ -319,6 +539,14 @@ GH.fillBlank = (function(){
       return;
     }
     state.ruledOut[GH.text.normalize(word)] = true;
+    /* only the first wrong answer on a round counts against her — the
+       retries after it are her working it out, not fresh mistakes */
+    if (!state.missedHere){
+      state.missedHere = true;
+      tally(false);
+      state.missed.push({ answer:r.answer, sentence:r.sentence });
+      reportRound(r, false);
+    }
     state.feedback = t('wrong');
     state.feedbackKind = 'wrong';
     btn.classList.add('is-wrong');
@@ -329,15 +557,20 @@ GH.fillBlank = (function(){
   function checkTyped(value){
     var r = round();
     var verdict = GH.text.compare(value, r.answer);
-    if (verdict === 'exact'){
-      state.feedback = t('right');
-      state.feedbackKind = 'right';
-      solve();
-    } else if (verdict === 'close'){
-      state.feedback = t('closeSpelling', { word:r.answer });
-      state.feedbackKind = 'close';
+    if (verdict === 'exact' || verdict === 'close'){
+      /* a near-miss on spelling still counts as knowing the word */
+      tally(!state.missedHere);
+      reportRound(r, !state.missedHere);
+      state.feedback = verdict === 'exact' ? t('right') : t('closeSpelling', { word:r.answer });
+      state.feedbackKind = verdict === 'exact' ? 'right' : 'close';
       solve();
     } else {
+      if (!state.missedHere){
+        state.missedHere = true;
+        tally(false);
+        state.missed.push({ answer:r.answer, sentence:r.sentence });
+        reportRound(r, false);
+      }
       state.feedback = t('wrong');
       state.feedbackKind = 'wrong';
       showFeedback();
@@ -360,8 +593,9 @@ GH.fillBlank = (function(){
     state.feedbackKind = '';
     state.typed = '';
     state.ruledOut = {};
+    state.missedHere = false;   /* fresh round, fresh slate for scoring */
     paint();
-    if (state.i < state.rounds.length) speakSentence();
+    if (state.i < state.rounds.length && autoOn()) speakSentence();
   }
 
   function mount(container, config){
@@ -370,8 +604,13 @@ GH.fillBlank = (function(){
       title:config.title,
       subtitle:config.subtitle || '',
       cat:config.cat || null,
-      rounds:buildRounds(config.sentences),
+      sentences:config.sentences,
+      ordered:!!config.ordered,
+      rounds:buildRounds(config.sentences, !!config.ordered),
       i:0,
+      setStart:0,
+      run:GH.run.create(),
+      missed:[],
       mode:'choose',
       solved:false,
       feedback:'',

@@ -1,0 +1,63 @@
+# Cache headers for Cloudflare Pages.
+#
+# A plain text file called `_headers`, no extension, in the site root. Pages
+# reads it and overrides the defaults it would otherwise send.
+#
+# ---------------------------------------------------------------------------
+# WHY THIS EXISTS
+#
+# Pages already defaults to `public, max-age=0, must-revalidate`, which is
+# safe: the browser checks with the server before reusing anything. So the
+# site was never going to serve a stale build for long.
+#
+# But it means EVERY file is revalidated on EVERY load. Seventy-two image
+# sheets, forty-odd scripts, the audio — that is a round trip each, and on a
+# phone in Berlin the round trips are the slow part, not the bytes.
+#
+# Now that every asset URL carries `?v=NNN` — scripts and stylesheets from
+# index.html, images, faces and audio from js/build.js — a changed file is a
+# changed URL. So they can be cached hard and never revalidated, and a deploy
+# still reaches her immediately.
+#
+# ---------------------------------------------------------------------------
+# THE ONE FILE THAT MUST NOT BE CACHED
+#
+# index.html is what names all the other versions. If it is stale, every
+# version it names is stale too, and nothing else can rescue that. It is the
+# single point where a bad cache rule breaks everything, which is why it gets
+# an explicit rule rather than relying on a default.
+#
+# ---------------------------------------------------------------------------
+# IF THIS IS EVER HOSTED SOMEWHERE ELSE
+#
+# Netlify reads the same file and the same syntax. Anything else — nginx,
+# Apache, GitHub Pages — needs its own equivalent, and GitHub Pages in
+# particular gives no control over headers at all. The defaults there cache
+# HTML for ten minutes, which is survivable but not what this describes.
+
+# ---------------------------------------------------------------------------
+# index.html — always revalidate. Everything depends on this being fresh.
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+# ---------------------------------------------------------------------------
+# Versioned assets. `immutable` tells the browser not to revalidate even on
+# an explicit refresh, which is only safe BECAUSE the URL changes when the
+# file does. One year, which is the conventional maximum.
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/audio/*
+  Cache-Control: public, max-age=31536000, immutable
