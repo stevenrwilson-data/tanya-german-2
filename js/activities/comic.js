@@ -127,9 +127,39 @@ GH.comic = (function(){
      depends on the language she is reading the app in. In German there is
      nothing to reveal. */
 
-  function german(line){ return line.de || ''; }
+  /* THE TEXT FOLLOWS THE EDITION.
+
+     This used to return `line.de` whatever was on screen, so the button
+     marked "English edition" swapped the DRAWING to English and left the
+     reader in German. Half the screen changed language and the other half
+     did not, which is not a translation aid, it is a mismatch.
+
+     It was defensible once: German was the only text in comics.js and the
+     German simply WAS the line. All 520 lines now carry all three
+     languages, so the edition can mean what it says.
+
+     German edition  -> the line is German, the reveal is her language
+     English edition -> the line is English, and the reveal is the GERMAN,
+                        because on an English page the German is the thing
+                        worth uncovering rather than the thing already read
+
+     The narrator is deliberately NOT tied to this. She can read the English
+     page and still hear the German, which is a good way round; the DEU /
+     РУС / ENG picker says which, and says so on screen. */
+  function lineText(line){
+    if (!line) return '';
+    if (state && state.edition === 'deu') return line.de || line.en || '';
+    return line.en || line.de || '';
+  }
+
+  /* Kept under its old name so the two call sites read unchanged; it is the
+     line in whichever edition is showing. */
+  function german(line){ return lineText(line); }
 
   function meaning(line){
+    if (!line) return '';
+    /* On the English page the German is the reveal. */
+    if (state && state.edition !== 'deu') return line.de || '';
     var l = lang();
     if (l === 'de') return '';
     if (l === 'ru') return line.ru || line.en || '';
@@ -142,23 +172,140 @@ GH.comic = (function(){
   }
   function speaker(who){ return who.split(',')[0].trim(); }
 
-  /* ---------- the list of comics ---------- */
+  /* ---------- what she has already read ----------
+
+     Per profile and per target language, the same slot key reader.js uses,
+     so Tanya and Nazar on one iPad do not inherit each other's progress.
+
+     A comic counts as read when she reaches its LAST line and presses
+     Done. Leaving early does not count — she did not finish it, and a
+     tick against a comic she abandoned is a tick that means nothing.
+
+     Not read off the event log. That log is capped and pruned, so it
+     forgets, and a unit that quietly un-reads itself after a few hundred
+     events is worse than no marker at all. */
+  var READ_KEY = 'gh-comic-read';
+
+  function readSlot(){
+    return (GH.player ? GH.player.id() + ':' + GH.player.target() : 'solo');
+  }
+
+  function readAll(){
+    try {
+      var raw = window.localStorage.getItem(READ_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e){ return {}; }
+  }
+
+  /* comics.js gives a comic no id of its own, so its identity is the pair
+     that does identify it. */
+  function keyOf(c){ return c.unit + '-' + c.comic; }
+
+  function hasRead(c){
+    var d = readAll()[readSlot()] || {};
+    return !!d[keyOf(c)];
+  }
+
+  function markRead(c){
+    if (!c) return;
+    try {
+      var all = readAll();
+      if (!all[readSlot()]) all[readSlot()] = {};
+      all[readSlot()][keyOf(c)] = 1;
+      window.localStorage.setItem(READ_KEY, JSON.stringify(all));
+    } catch (e){}
+  }
+
+  function readIn(u){
+    var n = 0;
+    u.comics.forEach(function(c){ if (hasRead(c)) n++; });
+    return n;
+  }
+
+  function unitDone(u){ return readIn(u) === u.comics.length; }
+
+  /* The one unit to draw her eye to: the first she has not finished. All
+     of them finished means nothing is highlighted, which is the right
+     answer — there is nothing left to point at. */
+  function nextUnit(){
+    var us = units(), i;
+    for (i = 0; i < us.length; i++) if (!unitDone(us[i])) return us[i].n;
+    return null;
+  }
+
+  /* ---------- the list of comics ----------
+
+     ONE UNIT AT A TIME, AND NEVER ON ARRIVAL.
+
+     This used to build all forty-six cards in five sections in one pass.
+     Two things were wrong with that and they are separate faults.
+
+     The first is the pile itself: five units of thumbnails is a screen she
+     has to scroll through to find anything, and it opened wherever the
+     last screen happened to be scrolled to rather than at the top.
+
+     The second is the jitter, which was not scrolling at all. Forty-six
+     lazy images with no declared dimensions each reflow the page as they
+     land, so the list moved under her thumb for as long as it took them
+     all to arrive. Opening one unit cuts that to seven or ten, and the
+     aspect-ratio now on .cm-thumb img stops the reflow entirely.
+
+     So: the units are the arrival screen. One expands, the others stay
+     closed, and the open one is scrolled to the top of the view. */
 
   function paintIndex(){
     var host = state.host;
     host.textContent = '';
+    /* Back on the index she is not in a comic any more. Without this the
+       language switch sent her straight back into the last one she opened,
+       because GH.app.redraw asks `state.comic` which was never cleared. */
+    state.comic = null;
 
     var head = el('div', 'card cm-intro');
     head.appendChild(el('h1', null, t('cmTitle')));
     head.appendChild(el('p', 'cm-lede', t('cmLede')));
     host.appendChild(head);
 
-    units().forEach(function(u){
+    var us = units();
+    var suggest = nextUnit();
+
+    /* The units. `.tile` is the app's own selectable card, so this looks
+       and behaves like every other chooser in the app and is already in
+       nav.js's KEEP list — a tap here cannot also advance something. */
+    var picker = el('div', 'tiles');
+    us.forEach(function(u){
+      var isOpen = state.unit === u.n;
+      var done = unitDone(u);
+      var b = el('button', 'tile' +
+        (done ? ' is-done' : '') +
+        (!done && u.n === suggest ? ' is-next' : ''));
+      b.type = 'button';
+      b.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      b.appendChild(el('span', 'tile-glyph', done ? '\u2713' : '\ud83d\udcd6'));
+      b.appendChild(el('span', 'tile-name', t('cmUnitN', { n:u.n })));
+      b.appendChild(el('span', 'tile-sub', t('cmComicsN', { n:u.comics.length })));
+      /* How far through it she is. Digits, so it needs no translating. */
+      b.appendChild(el('span', 'tile-foot', readIn(u) + '/' + u.comics.length));
+      b.addEventListener('click', function(){
+        /* Tapping the open one closes it, so she can get back to a screen
+           of nothing but the five choices without leaving and returning. */
+        state.unit = isOpen ? null : u.n;
+        state.scrollUnit = !isOpen;
+        paintIndex();
+      });
+      picker.appendChild(b);
+    });
+    host.appendChild(picker);
+
+    /* ONE unit's comics, or none. */
+    var open = null;
+    us.forEach(function(u){ if (u.n === state.unit) open = u; });
+    if (open){
       var sec = el('section', 'cm-unit');
       sec.appendChild(el('h2', 'cm-unit-h',
-        t('cmUnitN', { n:u.n }) + ' \u00b7 ' + t('cmComicsN', { n:u.comics.length })));
+        t('cmUnitN', { n:open.n }) + ' \u00b7 ' + t('cmComicsN', { n:open.comics.length })));
       var grid = el('div', 'cm-grid');
-      u.comics.forEach(function(c){
+      open.comics.forEach(function(c){
         var b = el('button', 'cm-card');
         b.type = 'button';
 
@@ -179,8 +326,10 @@ GH.comic = (function(){
         cap.appendChild(el('span', 'cm-card-n', t('cmComicN', { n:c.comic })));
         var sc = c.scene && (c.scene[lang()] || c.scene.en || '');
         if (sc) cap.appendChild(el('span', 'cm-card-scene', sc));
+        /* The tick rather than a word, so no new string has to exist in
+           three languages for it. */
         cap.appendChild(el('span', 'cm-card-meta',
-          t('cmPanelsN', { n:c.panels.length })));
+          t('cmPanelsN', { n:c.panels.length }) + (hasRead(c) ? '  \u2713' : '')));
         b.appendChild(cap);
 
         b.addEventListener('click', function(){ openComic(c); });
@@ -188,7 +337,25 @@ GH.comic = (function(){
       });
       sec.appendChild(grid);
       host.appendChild(sec);
-    });
+
+      /* The unit she just opened goes to the top of the view. Only when
+         she opened it — a language switch repaints this screen too, and
+         being scrolled somewhere else for that would be its own bug.
+
+         After the append, so there is a laid-out element to scroll to. */
+      if (state.scrollUnit){
+        state.scrollUnit = false;
+        window.setTimeout(function(){
+          try { sec.scrollIntoView(true); } catch (e){}
+        }, 0);
+      }
+    } else {
+      /* Nothing open: she is at the top of the list of five, which is
+         where arriving should always put her. */
+      window.setTimeout(function(){
+        try { window.scrollTo(0, 0); } catch (e){}
+      }, 0);
+    }
 
     /* `.backlink`, not `js-back`.
 
@@ -204,6 +371,88 @@ GH.comic = (function(){
 
   /* ---------- one comic ---------- */
 
+  /* ---------- the two views ----------
+
+     One line at a time is the teaching view and stays the default. The
+     whole text is the reference view: everything the comic says, on one
+     screen, for reading it through or checking a line she half remembers.
+
+     It shows the German AND the translation together, which the line view
+     deliberately does not. That is the trade she makes by choosing it, and
+     it is her choice — a reference she has to reveal thirteen times is not
+     a reference. Remembered, so it is a decision made once. */
+  var VIEW_KEY = 'gh-comic-view';
+
+  function view(){
+    try { return window.localStorage.getItem(VIEW_KEY) === 'all' ? 'all' : 'line'; }
+    catch (e){ return 'line'; }
+  }
+  function setView(v){
+    try { window.localStorage.setItem(VIEW_KEY, v === 'all' ? 'all' : 'line'); }
+    catch (e){}
+  }
+
+  /* ---------- the narrator ----------
+
+     THE COMICS HAVE ALMOST NO GERMAN. Thirteen lines of four hundred and
+     forty-six, all of them in unit one. Play and Auto were built inside
+     `if (de)`, so on the other four hundred and thirty-three there was no
+     speech control at all — which is why the section reads as having no
+     voice. It has one; there was nothing for it to say.
+
+     So the narrator takes a language. German first wherever German
+     exists, because that is what she is here to learn. Where it does not
+     exist yet the German button is DISABLED rather than silent, which
+     says plainly that the text is missing instead of looking broken, and
+     her own language reads the comic in the meantime.
+
+     Remembered as a preference, but checked against each comic: a saved
+     choice of German is not honoured in a comic that has none. */
+  var VOICE_KEY = 'gh-comic-voice';
+  var VOICES = ['de', 'ru', 'en'];
+  /* Their own names, as in the header switch, so no string has to exist
+     in three languages for a button that says РУС. */
+  var VOICE_LABEL = { de:'DEU', ru:'\u0420\u0423\u0421', en:'ENG' };
+
+  function textIn(line, code){
+    if (!line) return '';
+    return (code === 'de' ? line.de : code === 'ru' ? line.ru : line.en) || '';
+  }
+
+  /* How many of this comic's lines exist in that language. Zero means the
+     button is dead and has to look it. */
+  function linesIn(c, code){
+    var n = 0;
+    flat(c).forEach(function(x){ if (textIn(x.line, code)) n++; });
+    return n;
+  }
+
+  function savedVoice(){
+    try {
+      var v = window.localStorage.getItem(VOICE_KEY);
+      return VOICES.indexOf(v) >= 0 ? v : null;
+    } catch (e){ return null; }
+  }
+  function setSavedVoice(v){
+    try { window.localStorage.setItem(VOICE_KEY, v); } catch (e){}
+  }
+
+  /* German unless this comic has none of it. Then her own interface
+     language, then English — the only two things left that can speak. */
+  function voiceForComic(c){
+    var saved = savedVoice();
+    if (saved && linesIn(c, saved)) return saved;
+    if (linesIn(c, 'de')) return 'de';
+    if (lang() !== 'de' && linesIn(c, lang())) return lang();
+    return 'en';
+  }
+
+  function speak(text){
+    if (!text) return;
+    if (GH.speech && GH.speech.sayIn) GH.speech.sayIn(text, state.voice);
+    else if (GH.speech) GH.speech.say(text);
+  }
+
   function openComic(c){
     /* WHICH comic. The log had an open and a leave for this screen, so all
        forty-six looked like one activity. */
@@ -213,6 +462,9 @@ GH.comic = (function(){
     state.line = 0;
     state.shown = false;
     state.edition = preferred();
+    state.view = view();
+    state.voice = voiceForComic(c);
+    state.playing = false;
     paintComic();
   }
 
@@ -235,7 +487,10 @@ GH.comic = (function(){
        nav.js clicks the button rather than calling the hub itself. */
     var back = el('button', 'backlink cm-back', '\u2039 ' + t('back'));
     back.type = 'button';
-    back.addEventListener('click', function(){ GH.speech.stop(); paintIndex(); });
+    /* stopAll(), not just speech.stop(): a Read-it-all chain keeps going
+       on its callback, so cancelling the current utterance would only
+       start the next one and follow her out of the comic. */
+    back.addEventListener('click', function(){ stopAll(); paintIndex(); });
     bar.appendChild(back);
     bar.appendChild(el('span', 'cm-bar-t',
       t('cmUnitN', { n:c.unit }) + ' \u00b7 ' + t('cmComicN', { n:c.comic })));
@@ -280,7 +535,177 @@ GH.comic = (function(){
     frame.appendChild(img);
     host.appendChild(frame);
 
-    host.appendChild(readerBox());
+    host.appendChild(tools());
+    host.appendChild(state.view === 'all' ? allBox() : readerBox());
+    armNav();
+  }
+
+  /* The two controls that belong to the whole comic rather than to one
+     line: which view, and which language the narrator reads in. */
+  function tools(){
+    var c = state.comic;
+    var row = el('div', 'card-tools cm-tools');
+
+    var v = el('div', 'mode-toggle');
+    [['line', 'cmViewLine'], ['all', 'cmViewAll']].forEach(function(pair){
+      var b = el('button', null, t(pair[1]));
+      b.type = 'button';
+      b.setAttribute('aria-pressed', state.view === pair[0] ? 'true' : 'false');
+      b.addEventListener('click', function(){
+        if (state.view === pair[0]) return;
+        stopAll();
+        state.view = pair[0];
+        setView(pair[0]);
+        paintComic();
+      });
+      v.appendChild(b);
+    });
+    row.appendChild(v);
+
+    /* The narrator's language. A language with nothing written in this
+       comic is disabled, not hidden: she should be able to see that the
+       German exists as an option and has not been filled in, rather than
+       wonder why the app has three buttons here and two there. */
+    var pick = el('div', 'mode-toggle cm-voice');
+    pick.setAttribute('aria-label', '\ud83d\udd0a');
+    VOICES.forEach(function(code){
+      var n = linesIn(c, code);
+      var b = el('button', null, VOICE_LABEL[code]);
+      b.type = 'button';
+      b.disabled = !n;
+      b.setAttribute('aria-pressed', state.voice === code ? 'true' : 'false');
+      if (!n) b.setAttribute('title', t('cmNoGerman'));
+      b.addEventListener('click', function(){
+        if (!n || state.voice === code) return;
+        stopAll();
+        state.voice = code;
+        setSavedVoice(code);
+        paintComic();
+      });
+      pick.appendChild(b);
+    });
+    row.appendChild(pick);
+
+    return row;
+  }
+
+  /* ---------- the whole text, on one screen ---------- */
+
+  function allBox(){
+    var c = state.comic;
+    var box = el('div', 'card cm-read');
+
+    /* One button, two states. A Play-all with no way to interrupt it is a
+       button that commits her to forty seconds of audio. */
+    var acts = el('div', 'cm-acts');
+    var pa = el('button', 'cm-btn cm-playall',
+      state.playing ? ('\u25a0 ' + t('cmStop')) : ('\ud83d\udd0a ' + t('cmPlayAll')));
+    pa.type = 'button';
+    pa.disabled = !linesIn(c, state.voice);
+    pa.addEventListener('click', function(){
+      if (state.playing) stopAll(); else playAll();
+    });
+    acts.appendChild(pa);
+    box.appendChild(acts);
+
+    var wrap = el('div', 'cm-all');
+    c.panels.forEach(function(p){
+      var pan = el('div', 'cm-all-panel');
+      pan.appendChild(el('p', 'cm-where', t('cmPanelN', { n:p.n })));
+
+      p.lines.forEach(function(line){
+        var row = el('div', 'cm-all-line');
+
+        if (!isNarration(line.who)){
+          var who = el('p', 'cm-who', speaker(line.who));
+          if (line.who.indexOf('thought') >= 0) who.className = 'cm-who is-thought';
+          row.appendChild(who);
+        } else {
+          row.appendChild(el('p', 'cm-who is-narr', t('cmNarration')));
+        }
+
+        /* The German is the line where it exists, and tapping it speaks
+           it in whichever language the narrator is set to — so a tap is
+           the same action as Play, on one line.
+
+           `.cm-de` and not a new class, so nav.js's KEEP list already
+           protects the tap from also advancing the screen. */
+        var de = german(line);
+        var heard = textIn(line, state.voice);
+        if (de){
+          var deBtn = el('button', 'cm-de', de);
+          deBtn.type = 'button';
+          deBtn.disabled = !heard;
+          deBtn.addEventListener('click', function(){ speak(heard); });
+          row.appendChild(deBtn);
+        } else {
+          /* No German yet: the English carries the line, and says which
+             it is rather than passing itself off as the German. */
+          var en = el('button', 'cm-de is-pending', line.en || '');
+          en.type = 'button';
+          en.disabled = !heard;
+          en.addEventListener('click', function(){ speak(heard); });
+          row.appendChild(en);
+        }
+
+        /* Both at once, which is the point of this view. */
+        var mean = meaning(line);
+        if (mean && mean !== (de || line.en)){
+          row.appendChild(el('p', 'cm-mean', mean));
+        }
+
+        pan.appendChild(row);
+      });
+
+      wrap.appendChild(pan);
+    });
+    box.appendChild(wrap);
+
+    /* Said once, at the foot, rather than against every line it is true
+       of — which in unit two would be ten copies of the same sentence. */
+    if (!linesIn(c, 'de')) box.appendChild(el('p', 'cm-pending-note', t('cmNoGerman')));
+
+    return box;
+  }
+
+  /* Read the comic through, in the chosen language, skipping the lines
+     that language has nothing for. Chained on the callback rather than a
+     timer, so it follows the actual audio. */
+  function playAll(){
+    var c = state.comic;
+    var seq = [];
+    flat(c).forEach(function(x){
+      var s = textIn(x.line, state.voice);
+      if (s) seq.push(s);
+    });
+    if (!seq.length) return;
+
+    state.playing = true;
+    var i = 0;
+    (function step(){
+      if (!state.playing || i >= seq.length){
+        state.playing = false;
+        repaint();
+        return;
+      }
+      var txt = seq[i++];
+      if (GH.speech && GH.speech.sayIn) GH.speech.sayIn(txt, state.voice, step);
+      else step();
+    })();
+    repaint();
+  }
+
+  function stopAll(){
+    state.playing = false;
+    if (GH.speech) GH.speech.stop();
+  }
+
+  /* Swap the reader in place, so the picture above it does not reload. */
+  function repaint(){
+    if (!state.comic) return;
+    var old = state.host.querySelector('.cm-read');
+    if (!old || !old.parentNode) return;
+    old.parentNode.replaceChild(state.view === 'all' ? allBox() : readerBox(), old);
     armNav();
   }
 
@@ -308,17 +733,27 @@ GH.comic = (function(){
     }
 
     var de = german(line);
+    /* What the narrator can say for THIS line, in the language she chose.
+       Not necessarily the German: on four hundred and thirty-three of the
+       lines there is no German to say. */
+    var heard = textIn(line, state.voice);
 
     if (de){
-      /* the German, and tapping it says it again */
+      /* the German, and tapping it reads the line aloud */
       var deBtn = el('button', 'cm-de', de);
       deBtn.type = 'button';
-      deBtn.addEventListener('click', function(){ say(de); });
+      deBtn.disabled = !heard;
+      deBtn.addEventListener('click', function(){ say(heard); });
       box.appendChild(deBtn);
     } else {
-      /* no German yet: show the English so the reader still works, and be
-         plain about which it is rather than passing it off as the line */
-      box.appendChild(el('p', 'cm-de is-pending', line.en || ''));
+      /* No German yet: the English carries the line and is still
+         tappable, so the reader works and is plain about which it is
+         rather than passing it off as the German. */
+      var enBtn = el('button', 'cm-de is-pending', line.en || '');
+      enBtn.type = 'button';
+      enBtn.disabled = !heard;
+      enBtn.addEventListener('click', function(){ say(heard); });
+      box.appendChild(enBtn);
       box.appendChild(el('p', 'cm-pending-note', t('cmNoGerman')));
     }
 
@@ -335,11 +770,18 @@ GH.comic = (function(){
        Auto is a switch. It decides whether the next line speaks by itself,
        it is remembered across comics, and it is off until she turns it on.
        aria-pressed and the filled style both carry that, because a switch
-       that looks like the action button beside it is not a switch. */
-    if (de){
+       that looks like the action button beside it is not a switch.
+
+       BOTH USED TO BE INSIDE `if (de)`. Thirteen of the comics' four
+       hundred and forty-six lines have German, so on the rest there was no
+       Play button, no Auto, and no way to hear anything — which is why the
+       section reads as having no voice at all. The gate is now on whether
+       the NARRATOR has something to say, which it does on every line in at
+       least one language. */
+    if (heard){
       var play = el('button', 'cm-btn', '\ud83d\udd0a ' + t('cmPlay'));
       play.type = 'button';
-      play.addEventListener('click', function(){ say(de); });
+      play.addEventListener('click', function(){ say(heard); });
       acts.appendChild(play);
 
       var auto = el('button', 'cm-btn cm-auto', t('cmAuto'));
@@ -351,21 +793,23 @@ GH.comic = (function(){
         auto.setAttribute('aria-pressed', on ? 'true' : 'false');
         /* Turning it on speaks this line rather than waiting for the next
            one. She pressed a sound button; silence would read as broken. */
-        if (on) say(de);
+        if (on) say(heard);
       });
       acts.appendChild(auto);
     }
 
     var mean = meaning(line);
-    if (mean && de){
-      /* The reveal waits for the audio.
-
-         She should hear the German before she is allowed to read what it
+    /* The reveal is gated on hearing it only when the German is what she
+       is being read. With the narrator on her own language the line and
+       its meaning are the same sentence, and making her hear Russian
+       before she may read Russian is a lock on nothing. */
+    if (mean && de && state.voice === 'de'){
+      /* She should hear the German before she is allowed to read what it
          means, or the translation is simply the line and the German is
-         decoration. speech.say() calls back whether it finished or failed,
-         so the button cannot stick — and on iOS, where nothing speaks
-         until a tap has unlocked audio, it enables at once rather than
-         locking her out. */
+         decoration. The callback fires whether it finished or failed, so
+         the button cannot stick — and on iOS, where nothing speaks until a
+         tap has unlocked audio, it enables at once rather than locking her
+         out. */
       var show = el('button', 'cm-btn');
       show.type = 'button';
       show.textContent = t('cmShowMeaning');
@@ -377,7 +821,7 @@ GH.comic = (function(){
       });
       acts.appendChild(show);
       state.showBtn = show;
-    } else if (mean){
+    } else if (mean && mean !== (de || line.en)){
       box.appendChild(el('p', 'cm-mean', mean));
     }
 
@@ -399,7 +843,14 @@ GH.comic = (function(){
                   at === lines.length - 1 ? t('cmDone') : t('cmNext'));
     next.type = 'button';
     next.addEventListener('click', function(){
-      if (at === lines.length - 1){ GH.speech.stop(); paintIndex(); return; }
+      if (at === lines.length - 1){
+        /* The last line, pressed Done: that is what finishing a comic
+           means, and it is the only thing that ticks one. */
+        markRead(state.comic);
+        stopAll();
+        paintIndex();
+        return;
+      }
       step(1);
     });
     nav.appendChild(next);
@@ -408,7 +859,9 @@ GH.comic = (function(){
     /* Say it on arrival only if she has asked for that. Off by default:
        pressing Hear is one tap, and a line that speaks itself cannot be
        un-spoken. */
-    if (de && autoRead()) say(de);
+    /* Say it on arrival only if she has asked for that, and in whichever
+       language the narrator is set to. */
+    if (heard && autoRead()) say(heard);
 
     return box;
   }
@@ -422,13 +875,20 @@ GH.comic = (function(){
     if (GH.nav && GH.nav.ready) GH.nav.ready();
   }
 
+  /* One line, in the narrator's language, with the reveal button following
+     the audio. sayIn() rather than say(): say() is hardcoded to a German
+     voice reading de-DE, which is right everywhere else in the app and
+     wrong for a comic being read in Russian. */
   function say(text){
+    if (!text) return;
     state.heard = false;
     if (state.showBtn) state.showBtn.disabled = true;
-    GH.speech.say(text, function(){
+    function done(){
       state.heard = true;
       if (state.showBtn) state.showBtn.disabled = false;
-    });
+    }
+    if (GH.speech && GH.speech.sayIn) GH.speech.sayIn(text, state.voice, done);
+    else GH.speech.say(text, done);
   }
 
   function step(d){
@@ -451,8 +911,11 @@ GH.comic = (function(){
   /* ---------- entry ---------- */
 
   function open(host, onExit){
+    /* `unit:null` — she arrives at the five choices with none of them
+       opened, which is the whole point of the change. */
     state = { host:host, onExit:onExit, comic:null, panel:0, line:0,
-              edition:DEFAULT_EDITION, heard:false, showBtn:null };
+              edition:DEFAULT_EDITION, heard:false, showBtn:null,
+              unit:null, scrollUnit:false };
     GH.app.redraw = function(){ if (state.comic) paintComic(); else paintIndex(); };
     paintIndex();
   }

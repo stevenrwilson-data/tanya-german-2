@@ -107,7 +107,7 @@ GH.coins = (function(){
     if (!d[id]) d[id] = { n:0, lifetime:0, log:[], spends:[], lost:0,
                           day:'', done:0, gotBonus:false,
                           spends:[], lost:0,
-              fullDays:0, fullRun:0, bestRun:0, lastFull:'',
+              fullDays:0, fullRun:0, bestRun:0, lastFull:'', passes:0,
                           dueDay:'', duePaid:{}, dueN:0 };
     var p = d[id];
     if (!p.duePaid) { p.duePaid = {}; p.dueN = 0; p.dueDay = ''; }
@@ -189,10 +189,16 @@ GH.coins = (function(){
       /* a day that reached the target is the day that counts towards pets
          and achievements. Opening the app is not practising. */
       p.fullDays = (p.fullDays || 0) + 1;
+      /* settle() has already charged for any gap and moved `lastFull` to
+         today, so a run that survived a decay CONTINUES from where the
+         decay left it rather than starting again at 1. That is the whole
+         point: 87 after a long weekend, not 1. */
+      settle();
       p.fullRun = (p.lastFull && sameOrNextDay(p.lastFull, today()))
         ? (p.fullRun || 0) + 1 : 1;
       if (p.fullRun > (p.bestRun || 0)) p.bestRun = p.fullRun;
       p.lastFull = today();
+      maybePass(p);
     }
 
     /* what the due items in this round were worth, already banked by
@@ -247,10 +253,12 @@ GH.coins = (function(){
         total += DAILY_BONUS;
         lines.push({ key:'coDailyBonus', n:DAILY_BONUS });
         p.fullDays = (p.fullDays || 0) + 1;
+        settle();
         p.fullRun = (p.lastFull && sameOrNextDay(p.lastFull, today()))
           ? (p.fullRun || 0) + 1 : 1;
         if (p.fullRun > (p.bestRun || 0)) p.bestRun = p.fullRun;
         p.lastFull = today();
+        maybePass(p);
       }
     }
 
@@ -271,6 +279,133 @@ GH.coins = (function(){
     return diff === 0 || diff === 1;
   }
 
+  /* ================= THE STREAK, AND WHAT A MISSED DAY COSTS =============
+
+     IT USED TO RESET TO 1. Miss one day at day eighty-nine and three
+     months were gone. `bestRun` banked the peak so the pets stayed
+     reachable, but the number she looks at every day went to zero, and
+     that number is the one that makes her open the app.
+
+     So it decays instead, and the rate SLOWS the longer she is away —
+     which is the opposite of a punishment curve and deliberate. The first
+     days off cost least, because the first days off are the ones that
+     happen to everyone: a bad week, a trip, flu.
+
+         days 1 to 3      1 a day
+         days 4 to 11     2 a day
+         day 12 onward    3 a day, and never more
+
+     A 90-day run survives a long weekend at 87, a fortnight at 68, and a
+     month at 14. It cannot be wiped out by one bad patch, and it cannot be
+     kept for ever by disappearing either.
+
+     ---------------------------------------------------------------------
+     THE FREE PASS
+
+     One earned every ten consecutive days, and spent automatically on the
+     first day she misses — before any decay is worked out. So a ten-day
+     habit buys one guilt-free day, and a hundred-day habit has ten of them
+     banked against a bad fortnight.
+
+     Spent silently rather than asked about. A dialog that says "use a pass?"
+     on the morning she already feels bad about missing is a dialog that
+     makes her feel worse. She is told afterwards, on the hub. */
+  var DECAY = [
+    { upTo: 3,        perDay: 1 },
+    { upTo: 11,       perDay: 2 },
+    { upTo: Infinity, perDay: 3 }
+  ];
+  var PASS_EVERY = 10;      /* one earned per this many consecutive days */
+  var PASS_COVERS = 3;      /* days of absence ONE pass absorbs */
+  var PASS_CAP    = 5;      /* how many she can bank */
+  var PASS_CASH   = 300;    /* what an eleventh pass is worth instead */
+
+  /* What n missed days costs, as the sum of each day's own rate. */
+  function decayFor(n){
+    var lost = 0, i, b;
+    for (i = 1; i <= n; i++){
+      for (b = 0; b < DECAY.length; b++){
+        if (i <= DECAY[b].upTo){ lost += DECAY[b].perDay; break; }
+      }
+    }
+    return lost;
+  }
+
+  function daysBetween(then, now){
+    var a = new Date(then), b = new Date(now);
+    return Math.round((b - a) / 86400000);
+  }
+
+  /* Bring the run up to date. Called before anything READS or WRITES it, so
+     the number is never stale — a streak that only decays when she opens a
+     game would sit there looking healthy for a month.
+
+     Returns what happened, so the hub can say so once. */
+  function settle(){
+    var p = purse();
+    if (!p.lastFull) return null;
+    var gap = daysBetween(p.lastFull, today());
+    /* 0 is today, 1 is yesterday — the run is intact either way. */
+    if (gap <= 1) return null;
+
+    var missed = gap - 1;
+    var used = 0;
+    /* ONE PASS COVERS UP TO THREE DAYS, not one. So a long weekend costs a
+       single pass, and the five she can bank are worth a fortnight rather
+       than five days — which is what makes them feel like protection rather
+       than small change.
+
+       Spent whole: a pass used on one day off is the same pass used on
+       three. Not hoarded on her behalf, because deciding for her that one
+       day "is not worth a pass" would let the streak fall while she had
+       protection sitting unused, and she would be right to be annoyed. */
+    while (missed > 0 && (p.passes || 0) > 0){
+      p.passes--;
+      missed -= PASS_COVERS;
+      used++;
+    }
+    if (missed < 0) missed = 0;
+
+    var lost = decayFor(missed);
+    var was = p.fullRun || 0;
+    p.fullRun = Math.max(0, was - lost);
+    /* The clock restarts from today whatever happened, so the same absence
+       is never charged for twice. */
+    p.lastFull = today();
+    save();
+    return { missed:missed, used:used, lost:Math.min(lost, was),
+             was:was, now:p.fullRun };
+  }
+
+  /* One pass per ten consecutive days. Checked when the run grows. */
+  /* Earned on every tenth consecutive day. Over the cap it becomes money
+     instead, so a long unbroken run is never wasted — she cannot bank a
+     sixth pass, and reaching day sixty should still be worth something.
+
+     Returns what she got, so the end screen can say which it was. */
+  function maybePass(p){
+    if (!p.fullRun || p.fullRun % PASS_EVERY !== 0) return null;
+    if ((p.passes || 0) < PASS_CAP){
+      p.passes = (p.passes || 0) + 1;
+      return { pass:true, n:p.passes };
+    }
+    /* Full. Paid as Kronen rather than dropped on the floor.
+
+       `p.n` IS THE BALANCE. My first version credited `p.coins`, which does
+       not exist on the purse — it would have added 300 to a field nothing
+       reads and she would never have seen the money. Checked against the
+       shape rather than assumed.
+
+       `note()` so it appears in her history like every other credit; a
+       silent 300 looks like a bug to the person receiving it. */
+    p.n += PASS_CASH;
+    p.lifetime += PASS_CASH;
+    note(p, { t:Date.now(), game:'streak-pass', n:PASS_CASH });
+    return { pass:false, coins:PASS_CASH };
+  }
+
+  function passes(){ return purse().passes || 0; }
+
   function dayCount(){
     var p = purse();
     return p.day === today() ? (p.done || 0) : 0;
@@ -282,12 +417,17 @@ GH.coins = (function(){
      opened. A day is a day when five exercises were done. */
   function fullDays(){ return purse().fullDays || 0; }
   function bestRun(){
+    settle();
     var p = purse();
     /* a run that ended yesterday still stands; one older than that is over */
     var live = p.lastFull && sameOrNextDay(p.lastFull, today()) ? (p.fullRun || 0) : 0;
     return Math.max(p.bestRun || 0, live);
   }
+  /* Settled first, so what she is shown is what she has — a run that decayed
+     while she was away must not look healthy until she happens to finish a
+     round. */
   function runToday(){
+    settle();
     var p = purse();
     return p.lastFull && sameOrNextDay(p.lastFull, today()) ? (p.fullRun || 0) : 0;
   }
@@ -401,7 +541,7 @@ GH.coins = (function(){
     var id = (GH.player ? GH.player.id() : 'solo');
     d[id] = { n:0, lifetime:0, log:[], day:'', done:0, gotBonus:false,
               spends:[], lost:0,
-              fullDays:0, fullRun:0, bestRun:0, lastFull:'',
+              fullDays:0, fullRun:0, bestRun:0, lastFull:'', passes:0,
               dueDay:'', duePaid:{}, dueN:0 };
     pending = 0;
     write();
@@ -419,6 +559,9 @@ GH.coins = (function(){
     balance: balance, lifetime: lifetime, label: label,
     dayCount: dayCount, fullDays: fullDays,
     bestRun: bestRun, runToday: runToday,
+    passes: passes, settle: settle, decayFor: decayFor,
+    passRules: function(){ return { every:PASS_EVERY, covers:PASS_COVERS,
+                                    cap:PASS_CAP, cash:PASS_CASH }; },
     award: award, awardPart: awardPart, earn: earn, spend: spend, afford: afford,
     dueEarn: dueEarn, dueToday: dueToday,
     offer: offer, shop: shop, owns: owns, keep: keep,

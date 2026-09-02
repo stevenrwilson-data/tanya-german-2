@@ -188,6 +188,27 @@ GH.store = (function(){
     if (n.run){
       if (!GH.coins || GH.coins.bestRun() < n.run) return false;
     }
+    /* AND THE RUN SHE IS ON RIGHT NOW.
+
+       `now` was in the data from the day the legendaries were written and
+       nothing read it, so `{now:30, run:90}` enforced only the 90. The two
+       ask different questions on purpose: `run` is whether she has EVER
+       sustained it, banked so illness at day eighty-nine does not destroy
+       three months — and `now` is whether she is sustaining it at the
+       moment of buying.
+
+       Without it the walk-away hole this file's own comment describes was
+       open: bank a ninety-day run, disappear for three months, come back
+       and spend saved Kronen on the rarest thing in the app. The whole
+       point of a legendary is that it is evidence of a habit, and a habit
+       is present tense.
+
+       The store panel has been HONESTLY DISPLAYING `Run right now: 0 of 30`
+       while letting the purchase through, which is worse than either
+       enforcing it or not showing it. */
+    if (n.now){
+      if (!GH.coins || !GH.coins.runToday || GH.coins.runToday() < n.now) return false;
+    }
     if (n.legendaries){
       var got = 0;
       petsOf().forEach(function(x){
@@ -220,6 +241,14 @@ GH.store = (function(){
     var bits = [];
 
     if (n.run) bits.push(t('stNeedRun', { at:GH.coins ? GH.coins.bestRun() : 0, n:n.run }));
+    /* Now that `now` is enforced it has to be SAID, or the shelf refuses for
+       a reason it never gave. Its own line, not folded into `run`: they are
+       different questions and she should be able to see which one she is
+       short on. */
+    if (n.now){
+      bits.push(t('stNeedNow', {
+        at:(GH.coins && GH.coins.runToday) ? GH.coins.runToday() : 0, n:n.now }));
+    }
     if (n.days) bits.push(t('stNeedDays', { n:n.days }));
     if (n.allPets){
       var ord = ordinary();

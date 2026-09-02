@@ -238,13 +238,19 @@ GH.conveyor = (function(){
     }
 
     if (GH.tutor){
-      GH.tutor.grade('tense:' + c.verb, ok);
-      GH.tutor.grade('skill:tense', ok);
+      /* WHICH BIN SHE CHOSE. The key already says which bin it belonged in,
+         so `ok:false` on a past card tells us she missed a past. It does not
+         say whether she called it present or future — and calling a past a
+         present is a different confusion from calling it a future. With both
+         halves the log can name the pair: past mistaken for present, over
+         and over, is a finding. */
+      GH.tutor.grade('tense:' + c.verb, ok, null, bin);
+      GH.tutor.grade('skill:tense', ok, null, bin);
       /* which bin it belonged in, so 'she cannot spot the future' is
          distinguishable from 'she cannot spot the past' */
-      GH.tutor.grade('tense-bin:' + c.bin, ok);
+      GH.tutor.grade('tense-bin:' + c.bin, ok, null, bin);
       /* and the hard case specifically: a future wearing a present verb */
-      if (c.plain) GH.tutor.grade('tense:plain-future', ok);
+      if (c.plain) GH.tutor.grade('tense:plain-future', ok, null, bin);
     }
 
     state.i++;

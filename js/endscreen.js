@@ -358,14 +358,38 @@ GH.endScreen = (function(){
     }
 
     var acts = el('div', 'done-actions');
-    (spec.actions || []).forEach(function(a){
-      /* The primary action — always 'again' — becomes the screen's one
+
+    /* THE COACH'S OFFERS COME FIRST.
+
+       When a round has gone badly the coach says so mid-round and promises
+       to help at the end — this is where it keeps that promise. Asked here
+       rather than in each game, so every activity gets it by declaring
+       nothing: eleven games, one edit.
+
+       First in the row, because on the left is where the default sits, and
+       the words offer is the one she is likeliest to need. */
+    var list = (spec.actions || []).slice();
+    if (GH.coach && GH.coach.endActions){
+      try {
+        var offers = GH.coach.endActions();
+        if (offers && offers.length) list = offers.concat(list);
+      } catch (e){}
+    }
+
+    list.forEach(function(a){
+      /* The primary action — normally 'again' — becomes the screen's one
          thing to do, so a tap anywhere, space or Enter starts another
          round. Back and Escape still leave, and the other buttons keep
-         their own taps. Same rule as every other screen. */
+         their own taps. Same rule as every other screen.
+
+         `advance:false` lets a button LOOK primary without claiming that
+         tap. The coach's words offer is highlighted because it is the
+         default choice, but a stray tap must still replay the round rather
+         than launch Word Matching — two js-advance buttons and the first
+         one wins, which would be the wrong one. */
       var primary = (a.kind === 'primary');
       var b = el('button', 'btn btn-' + (a.kind || 'ghost') +
-                 (primary ? ' js-advance' : ''), a.label);
+                 (primary && a.advance !== false ? ' js-advance' : ''), a.label);
       b.type = 'button';
       b.addEventListener('click', a.onClick);
       acts.appendChild(b);

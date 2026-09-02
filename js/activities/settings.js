@@ -402,12 +402,108 @@ GH.settings = (function(){
       card.appendChild(rb);
     }
 
+    /* ---------- SEEING THE ONBOARDING AGAIN ----------
+
+       `GH.welcome.reset()` has always existed — its own comment says "for
+       testing without clearing storage by hand" — but nothing could reach
+       it, so it meant opening the console.
+
+       It clears the welcome flag ONLY. That is not a fresh install: the
+       name, the target language and everything she has earned survive, so
+       the onboarding runs with her answers already filled in. Which is the
+       right default for testing the SCREENS, and the wrong one for testing
+       what a new person sees. So both, said plainly, with the harder one
+       behind its own confirmation.
+
+       Same two-step shape as the progress reset above, deliberately: a
+       destructive button in this app is never one tap. */
+    card.appendChild(el('h2', 'gr-group', t('stWelcomeHead')));
+    card.appendChild(el('p', 'gr-note', t('stWelcomeNote')));
+
+    if (state.wiping === 'soft'){
+      var sw = el('div', 'st-warn');
+      sw.appendChild(el('p', null, t('stWelcomeSoftWarn')));
+      var sy = el('button', 'btn btn-primary', t('stWelcomeGo'));
+      sy.type = 'button';
+      sy.addEventListener('click', function(){
+        /* `force()`, NOT `reset()`. reset() clears the flag and `due()` then
+           refuses anyway, because a profile with a name or any Kronen is by
+           definition not a fresh install — which is every account that
+           exists. This button was built on reset() and did nothing at all.
+
+           Opened right here rather than after a reload: the welcome is an
+           overlay on the body, so it does not need the hub underneath it,
+           and reloading would hand control back to `due()` which would
+           refuse again. */
+        if (GH.welcome && GH.welcome.force){
+          state.wiping = null;
+          GH.welcome.force(function(){
+            /* Finished or dismissed — back to Settings, where she was. */
+            try { paint(); } catch (e){}
+          });
+          return;
+        }
+        try { window.location.reload(); } catch (e){}
+      });
+      var sn = el('button', 'btn btn-ghost', t('stCancel'));
+      sn.type = 'button';
+      sn.addEventListener('click', function(){ state.wiping = null; paint(); });
+      sw.appendChild(sy); sw.appendChild(sn);
+      card.appendChild(sw);
+    } else if (state.wiping === 'hard'){
+      var hw = el('div', 'st-warn');
+      /* The loud one. It says what goes, item by item, because "everything"
+         is not a list and she cannot judge it. */
+      hw.appendChild(el('p', 'st-warn-big', t('stWipeWarn')));
+      hw.appendChild(el('p', null, t('stWipeList')));
+      var hy = el('button', 'btn btn-primary', t('stWipeGo'));
+      hy.type = 'button';
+      hy.addEventListener('click', function(){ wipeAll(); });
+      var hn = el('button', 'btn btn-ghost', t('stCancel'));
+      hn.type = 'button';
+      hn.addEventListener('click', function(){ state.wiping = null; paint(); });
+      hw.appendChild(hy); hw.appendChild(hn);
+      card.appendChild(hw);
+    } else {
+      var sb = el('button', 'btn btn-ghost', t('stWelcomeAgain'));
+      sb.type = 'button';
+      sb.addEventListener('click', function(){ state.wiping = 'soft'; paint(); });
+      card.appendChild(sb);
+
+      var hb = el('button', 'btn btn-ghost st-danger', t('stWipe'));
+      hb.type = 'button';
+      hb.addEventListener('click', function(){ state.wiping = 'hard'; paint(); });
+      card.appendChild(hb);
+    }
+
     host.appendChild(card);
+  }
+
+  /* EVERYTHING THIS DEVICE KNOWS ABOUT HER, GONE.
+
+     Every key the app owns, by prefix rather than by list — a list would go
+     stale the first time a new feature adds a key, and a stale list is
+     worse than none because it looks complete.
+
+     `gh-` is the app's own prefix and nothing else on the origin uses it,
+     so the sweep is safe. Collected first and removed after, because
+     removing while iterating skips entries. */
+  function wipeAll(){
+    var keys = [], i, k;
+    try {
+      for (i = 0; i < window.localStorage.length; i++){
+        k = window.localStorage.key(i);
+        if (k && k.indexOf('gh-') === 0) keys.push(k);
+      }
+      keys.forEach(function(x){ window.localStorage.removeItem(x); });
+    } catch (e){}
+    try { window.location.reload(); } catch (e){}
   }
 
   function open(container, onExit){
     host = container;
-    state = { onExit:onExit, editing:null, confirming:null, resetting:false };
+    state = { onExit:onExit, editing:null, confirming:null, resetting:false,
+              wiping:null };
     paint();
   }
 

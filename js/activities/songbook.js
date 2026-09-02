@@ -22,6 +22,11 @@ GH.songs = (function(){
   var VIEW_KEY = 'gh-song-view';
 
   var host = null, state = null, audio = null;
+  /* The player, held outside the repainted DOM. `playerFor` is the song
+     stem it belongs to, so arriving at a DIFFERENT song builds a new one
+     rather than inheriting the last song's position. */
+  var playerWrap = null;
+  var playerFor = null;
 
   function t(k, v){ return GH.i18n.t(k, v); }
 
@@ -42,8 +47,12 @@ GH.songs = (function(){
     try { window.localStorage.setItem(VIEW_KEY, v); } catch (e){}
   }
 
+  /* A real stop: leaving the song, or the section. Discards the held
+     element so the next paintSong() builds a fresh one. */
   function stopAudio(){
     if (audio){ audio.pause(); audio = null; }
+    playerWrap = null;
+    playerFor = null;
   }
 
   /* ---------- one line ---------- */
@@ -230,8 +239,27 @@ GH.songs = (function(){
     head.appendChild(titles);
     host.appendChild(head);
 
-    var grid = el('div', 'tiles');
-    (window.GH_SONGS || []).forEach(function(song){
+    /* ---------- PAIRED SONGS SIT TOGETHER ----------
+
+       Two songs can be two halves of one thing: the same evening from his
+       side and from hers, each complete on its own and each meaning more
+       beside the other. Listing them as two tiles among nine hides that
+       entirely, and putting them next to each other only suggests it.
+
+       A song declares its partner with `pair:'<id>'`, and both halves carry
+       the same id. Nothing else is needed — no ordering here, no list of
+       pairs to maintain, and a song with no `pair` behaves exactly as
+       before.
+
+       `voice:'f'` or `'m'` is optional and only labels the half. Where it
+       is absent the tile is simply unlabelled.
+
+       ONE HALF ALONE IS NOT A PAIR. While only her version exists it
+       renders as an ordinary tile, so a half-finished pair never shows a
+       box with a gap in it. */
+    var all = (window.GH_SONGS || []).slice();
+
+    function tileFor(song){
       var b = el('button', 'tile');
       b.type = 'button';
       b.appendChild(el('span', 'tile-glyph', '🎵'));
@@ -251,31 +279,78 @@ GH.songs = (function(){
       }, 0);
       b.appendChild(el('span', 'tile-foot', t('sgLineCount', { d:distinct, s:sung })));
       b.addEventListener('click', function(){ state.song = song; paintSong(); });
-      grid.appendChild(b);
-    });
+      return b;
+    }
+
+    /* Which pair ids have BOTH halves present. */
+    var count = {};
+    all.forEach(function(x){ if (x.pair) count[x.pair] = (count[x.pair] || 0) + 1; });
+
+    var grid = el('div', 'tiles');
     host.appendChild(grid);
+
+    var done = {};
+    all.forEach(function(song){
+      var id = song.pair;
+      if (!id || count[id] < 2){
+        grid.appendChild(tileFor(song));
+        return;
+      }
+      if (done[id]) return;
+      done[id] = true;
+
+      /* The shaded box. It goes OUTSIDE the tile grid, because a box inside
+         a CSS grid becomes one grid cell and the two tiles in it would be
+         squeezed into the width of one. */
+      var half = all.filter(function(x){ return x.pair === id; });
+      var box = el('div', 'sg-pair');
+      var lbl = el('p', 'sg-pair-l', t('sgPairHead'));
+      box.appendChild(lbl);
+      var inner = el('div', 'sg-pair-two');
+      half.forEach(function(x){
+        var wrap = el('div', 'sg-pair-half');
+        if (x.voice) wrap.appendChild(el('span', 'sg-pair-voice', t(x.voice === 'm' ? 'sgVoiceM' : 'sgVoiceF')));
+        wrap.appendChild(tileFor(x));
+        inner.appendChild(wrap);
+      });
+      box.appendChild(inner);
+      host.appendChild(box);
+
+      /* A fresh grid after the box, so any songs listed later do not jump
+         above it. */
+      grid = el('div', 'tiles');
+      host.appendChild(grid);
+    });
   }
 
-  function paintSong(){
-    stopAudio();
-    host.textContent = '';
-    var song = state.song;
+  /* ---------- the player, which OUTLIVES a repaint ----------
 
-    var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ stopAudio(); state.song = null; paintList(); });
-    head.appendChild(back);
-    var titles = el('div', 'practice-title');
-    titles.appendChild(el('h1', null, song.title.de));
-    var lang = GH.i18n.lang();
-    /* a song title, not a section label — the shared subtitle style is 0.8rem
-       and meant for 'Section 1 · Sentences', which reads as small print here */
-    if (lang !== 'de') titles.appendChild(el('p', 'sg-subtitle', song.title[lang]));
-    head.appendChild(titles);
-    host.appendChild(head);
+     paintSong() clears the page and rebuilds it, and it used to build a
+     fresh <audio> every time. So switching РУС / DEU / ENG, or switching
+     the lyric view, silently killed the track she was listening to —
+     because the language switch calls GH.app.redraw, which calls
+     paintSong().
 
-    var card = el('div', 'card');
+     Now the element is held in `playerWrap` and put back into the newly
+     built page. Re-attaching a detached media element is safe here
+     SPECIFICALLY because it happens in the same synchronous block as the
+     detach: the spec pauses a media element removed from a document, but
+     only after awaiting a stable state, and only if it is still not in a
+     document by then. By then this one is back in.
+
+     Everything below runs only when there is no player for this song, so
+     the event handlers are attached once rather than once per repaint. */
+  function playerBlock(song, wasPlaying){
+    if (playerWrap && playerFor === song.audio){
+      /* A belt-and-braces resume, in case an engine does pause it. She
+         gets the track continuing rather than silence and a language
+         button to blame. */
+      if (wasPlaying && audio && audio.paused){
+        var again = audio.play();
+        if (again && again.catch) again.catch(function(){});
+      }
+      return playerWrap;
+    }
 
     /* the player. The file may not be there yet, so the whole block hides
        itself rather than showing a broken control. */
@@ -319,8 +394,39 @@ GH.songs = (function(){
     a.addEventListener('pause', progress);
     a.addEventListener('ended', progress);
     wrap.appendChild(a);
-    card.appendChild(wrap);
     audio = a;
+    playerWrap = wrap;
+    playerFor = song.audio;
+    return wrap;
+  }
+
+  function paintSong(){
+    var song = state.song;
+    /* ONLY stop when this is a DIFFERENT song. Stopping unconditionally is
+       what made a language switch kill the music, because paintSong() is
+       what the switch and the view toggle both call. */
+    if (playerFor && playerFor !== song.audio) stopAudio();
+    var wasPlaying = !!(audio && !audio.paused && !audio.ended);
+
+    host.textContent = '';
+
+    var head = el('div', 'practice-head');
+    var back = el('button', 'backlink', '‹ ' + t('back'));
+    back.type = 'button';
+    back.addEventListener('click', function(){ stopAudio(); state.song = null; paintList(); });
+    head.appendChild(back);
+    var titles = el('div', 'practice-title');
+    titles.appendChild(el('h1', null, song.title.de));
+    var lang = GH.i18n.lang();
+    /* a song title, not a section label — the shared subtitle style is 0.8rem
+       and meant for 'Section 1 · Sentences', which reads as small print here */
+    if (lang !== 'de') titles.appendChild(el('p', 'sg-subtitle', song.title[lang]));
+    head.appendChild(titles);
+    host.appendChild(head);
+
+    var card = el('div', 'card');
+
+    card.appendChild(playerBlock(song, wasPlaying));
 
     var tools = el('div', 'card-tools');
     var toggle = el('div', 'mode-toggle');

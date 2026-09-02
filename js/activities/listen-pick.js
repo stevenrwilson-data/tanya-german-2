@@ -113,6 +113,18 @@ GH.listenPick = (function(){
     if (fromTap) unlocked = true;
     if (!canPlay()) return;
     if (!it.answered) it.plays++;   /* replays after the answer are free */
+    /* THE CLOCK AND THE TIMER BOTH START HERE, NOT AT PAINT.
+
+       On this screen the sentence is spoken, so at paint she cannot answer
+       yet — timing from there would measure the length of the audio and
+       call it thinking. The first play is the honest moment: she has heard
+       it and the choice is now hers.
+
+       Only the first play. A replay is her asking again, which is worth
+       knowing but is not the start of the question. */
+    if (!it.answered && it.plays === 1 && GH.events && GH.events.shown){
+      GH.events.shown();
+    }
     GH.speech.say(it.sentence.de);
     if (state.level.seconds && !state.deadline) startClock();
     paint();
@@ -147,9 +159,13 @@ GH.listenPick = (function(){
     /* running out of time is a miss, and the streak should feel it */
     state.run.saw('lp:' + state.i, false);
     if (GH.tutor){
-      GH.tutor.grade(GH.packs.keyOf(it.word), false);
-      GH.packs.catsOf(it.word).forEach(function(c){ GH.tutor.grade('topic:' + c, false); });
-      GH.tutor.grade('skill:listening', false);
+      /* RAN OUT OF TIME, which is not the same miss as picking the wrong
+         picture. A word she never answers is a word she does not recognise
+         at all; a word she answers wrongly is one she confuses with
+         something. Recorded as `timeout` so the two are separable. */
+      GH.tutor.grade(GH.packs.keyOf(it.word), false, null, 'timeout');
+      GH.packs.catsOf(it.word).forEach(function(c){ GH.tutor.grade('topic:' + c, false, null, 'timeout'); });
+      GH.tutor.grade('skill:listening', false, null, 'timeout');
     }
     paint();
     GH.speech.say(it.sentence.de);
@@ -168,9 +184,14 @@ GH.listenPick = (function(){
     it.correct = opt.n === it.word.n;
     state.run.saw('lp:' + state.i, it.correct);
     if (GH.tutor){
-      GH.tutor.grade(GH.packs.keyOf(it.word), it.correct);
-      GH.packs.catsOf(it.word).forEach(function(c){ GH.tutor.grade('topic:' + c, it.correct); });
-      GH.tutor.grade('skill:listening', it.correct);
+      /* WHICH PICTURE SHE TAPPED, as the word she confused it with. This is
+         the most useful choice in the app: `die Tür` mistaken for `das Tor`
+         is a sound confusion, mistaken for `das Fenster` is a meaning
+         confusion, and only the pair says which. */
+      var pk = GH.packs.keyOf(opt);
+      GH.tutor.grade(GH.packs.keyOf(it.word), it.correct, null, pk);
+      GH.packs.catsOf(it.word).forEach(function(c){ GH.tutor.grade('topic:' + c, it.correct, null, pk); });
+      GH.tutor.grade('skill:listening', it.correct, null, pk);
     }
     paint();
     GH.speech.say(it.sentence.de);
@@ -291,6 +312,7 @@ GH.listenPick = (function(){
 
     host.appendChild(card);
     /* arm whichever button is currently the primary one */
+
     if (it.answered || !it.plays) GH.nav.ready();
   }
 

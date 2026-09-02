@@ -482,6 +482,20 @@ GH.reference = (function(){
 
     b.addEventListener('click', function(){
       GH.speech.say(v.de);
+      /* AND SHOW THE SENTENCES.
+
+         The search already looks inside them — the comment above search()
+         says why: she may half-remember the phrase rather than the word. So
+         she could find a word BECAUSE of a sentence and then not be shown
+         the sentence that matched. The data was here the whole time; only
+         the row was hiding it.
+
+         Toggled per word rather than opened for all of them, because a list
+         of 773 words with two sentences each is not a list any more. */
+      /* `state.open` is already the map of which GROUPS are expanded, so
+         this needs its own name — one word number, not a map. */
+      state.exFor = (state.exFor === v.n) ? 0 : v.n;
+      paint();
       /* SEEKING, not browsing.
 
          Tapping a row while a search is running is the one unambiguous
@@ -498,6 +512,35 @@ GH.reference = (function(){
       }
     });
     wrap.appendChild(b);
+
+    if (state.exFor === v.n){
+      var ex = GH.packs.sentencesOf(v) || [];
+      if (ex.length){
+        var box = el('div', 'ref-ex');
+        ex.forEach(function(x){
+          var line = el('div', 'ref-ex-line');
+          /* The German is the thing; tapping it hears the sentence rather
+             than the bare word, which is the whole reason to show it. */
+          var de = el('button', 'ref-ex-de', x.de);
+          de.type = 'button';
+          de.addEventListener('click', function(e){
+            e.stopPropagation();
+            GH.speech.say(x.de);
+          });
+          line.appendChild(de);
+          var lang2 = GH.i18n.lang();
+          var tr = (lang2 === 'ru' && x.ru) ? x.ru : x.en;
+          if (lang2 !== 'de' && tr) line.appendChild(el('span', 'ref-ex-tr', tr));
+          box.appendChild(line);
+        });
+        wrap.appendChild(box);
+      } else {
+        /* Every tense turned off can leave a word with nothing to show,
+           which is a setting rather than a fault — so say which. */
+        wrap.appendChild(el('p', 'ref-ex-none', t('refNoEx')));
+      }
+    }
+
     return wrap;
   }
 
@@ -645,6 +688,7 @@ GH.reference = (function(){
     host = container;
     state = { onExit:onExit, view:'topic', cats:{}, catCount:0,
               filterOpen:false, open:{}, allOpen:false, scrollTo:null,
+              exFor:0,
               painted:false };
     paint();
   }

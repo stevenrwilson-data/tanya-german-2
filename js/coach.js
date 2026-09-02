@@ -39,6 +39,9 @@ GH.coach = (function(){
   /* how many wrong answers in a row before each thing happens */
   var CHEER_AT = 3;
   var HELP_AT  = 6;
+  /* How many DISTINCT missed words before offering to drill them. Steven's
+     number. Fewer than six is not a session. */
+  var WORDS_AT = 6;
   var QUIET    = 8;      /* answers of peace after speaking, before again */
 
   var cache = null;
@@ -202,16 +205,31 @@ GH.coach = (function(){
     return null;
   }
 
-  function reset(){ run = { wrong:0, sinceCheer:99, sinceHelp:99, missed:[] }; }
+  function reset(){
+    run = { wrong:0, sinceCheer:99, sinceHelp:99, missed:[] };
+    armed = false;
+  }
 
   /* ---------- what she is struggling with ---------- */
 
   /* The missed keys point at a grammar page. Whichever area comes up most
      in the run is the one worth offering, because a session that goes
      wrong usually goes wrong about one thing. */
+  /* `word:` USED TO MAP TO 'plural' HERE, AND THAT WAS WRONG.
+
+     It was written for the games where a missed `word:` really did mean a
+     plural was being tested. Listen and Pick records the same key for pure
+     recognition — she heard `der rosa Nagellack` and picked the wrong
+     picture — so every miss there offered her the PLURALS page. Not a
+     missing rule: a wrong answer to a question she had not asked.
+
+     Removed, so a recognition miss no longer invents a grammar topic.
+     `showRule()` below still offers the grammar section itself, because she
+     may well be right that a rule is the problem — it just no longer claims
+     to know WHICH rule when nothing said so. */
   var TO_TOPIC = {
     gender:'gender', 'case':'case', conj:'irregular', person:'irregular',
-    word:'plural', sent:'order',
+    sent:'order',
     /* the finer-grained keys the games now record */
     plural:'plural', order:'order', tense:'past', 'tense-bin':'past',
     verbkind:'shift'
@@ -274,13 +292,99 @@ GH.coach = (function(){
     return panel;
   }
 
+  /* ---------- HER PET DOES THE TALKING ----------
+
+     The coach used to speak in nobody's voice. She has a companion sitting
+     in the header the whole time she works, and the one moment it had
+     nothing to say was the moment she was struggling — which is the moment
+     a companion is for.
+
+     The pet already greets her on the hub (`welcome`) and comments on a
+     finished round (`perfect` / `high` / `mid` / `low`, chosen by score).
+     This is the third place, and the only one it was absent from.
+
+     TWO BANDS ARE NEEDED AND NEITHER EXISTS YET.
+
+       `stick`  after three wrong in a row — keep going, this is hard
+       `stuck`  after six — we will look at this at the end
+
+     `nudge` is already written and is NOT this: those sixteen lines are
+     "come and do a lesson", said to someone who has not started. Saying
+     "Jump in, the lesson is just a lily pad" to somebody already six
+     questions into a bad round would read as not paying attention. And
+     `low` is a verdict on a finished round, not encouragement inside one.
+
+     So this asks for the new band and falls back to the app's own wording
+     when it is empty — which is the state today, and nothing looks broken.
+     Sixteen pets x two bands x three languages is Steven's writing, not
+     mine; the moment those lines exist the panels start using them with
+     no further change here.
+
+     The FACE and the NAME arrive immediately either way, which is most of
+     what "get her pet involved" is worth. */
+  function myPet(){
+    if (!GH.store || !GH.store.strip) return null;
+    var pets = GH.store.strip();
+    /* The first of her chosen pets. With three on the shelf, three of them
+       consoling her at once is noise. */
+    return pets.length ? pets[0] : null;
+  }
+
+  /* The pet's own words for a band, or null when that band is unwritten. */
+  function petLine(band){
+    var pet = myPet();
+    if (!pet || !GH.petVoice || !GH.petVoice.bandLine) return null;
+    return GH.petVoice.bandLine(pet.id, band);
+  }
+
+  /* Puts the pet at the top of a panel: its picture, and its line when the
+     band has one. Returns the line it used, so the caller knows whether to
+     print the app's own wording underneath instead. */
+  function petHead(into, band){
+    var pet = myPet();
+    if (!pet) return null;
+
+    var row = el('div', 'co-pet');
+    if (pet.pic){
+      /* `pic` is a ready <img> with its own fallback chain — petArt built
+         it. An element, not a URL. */
+      pet.pic.classList.add('co-pet-img');
+      row.appendChild(pet.pic);
+    }
+    var body = el('div', 'co-pet-body');
+    body.appendChild(el('span', 'co-pet-name', pet.name));
+
+    var line = petLine(band);
+    if (line){
+      /* The German, and tapping it hears the pet say it — the same
+         contract as the end screen and the hub. */
+      var de = el('button', 'co-pet-de', line.de);
+      de.type = 'button';
+      de.addEventListener('click', function(){
+        if (GH.speech) GH.speech.say(line.say || line.de);
+      });
+      body.appendChild(de);
+      if (line.tr) body.appendChild(el('p', 'co-pet-tr', line.tr));
+    }
+    row.appendChild(body);
+    into.appendChild(row);
+    return line;
+  }
+
   /* just a sentence, and a way to make it go away */
   function cheer(){
     var p = shell();
     p.className += ' is-cheer';
-    var lines = ['coCheer1','coCheer2','coCheer3','coCheer4','coCheer5'];
-    p.appendChild(el('span', 'co-glyph', '\u2726'));
-    p.appendChild(el('p', 'co-line', t(lines[Math.floor(Math.random() * lines.length)])));
+    /* Her pet first. Where its `stick` band is written the pet carries the
+       whole message and the app says nothing over the top of it; where it
+       is not, the pet is still there and the app's own line does the
+       talking. */
+    var said = petHead(p, 'stick');
+    if (!said){
+      var lines = ['coCheer1','coCheer2','coCheer3','coCheer4','coCheer5'];
+      p.appendChild(el('span', 'co-glyph', '\u2726'));
+      p.appendChild(el('p', 'co-line', t(lines[Math.floor(Math.random() * lines.length)])));
+    }
     var ok = el('button', 'btn btn-primary', t('coGo'));
     ok.type = 'button';
     ok.addEventListener('click', close);
@@ -288,14 +392,34 @@ GH.coach = (function(){
     setTimeout(function(){ if (box) close(); }, 6000);
   }
 
-  /* the real intervention */
+  /* ---------- MID-ROUND: A WORD, NOT A DOOR ----------
+
+     This used to be the intervention itself: the words, a grammar button
+     and a way out, in the middle of a round. Every one of those buttons
+     threw the round away to go somewhere else, which is a strange thing to
+     do to someone who is struggling and still going.
+
+     So mid-round it says one thing — this is hard, and we will look at it
+     when the round is over — and shows her the words, because seeing them
+     is itself the smallest useful help and costs her nothing. The offers
+     moved to the end screen, where finishing is no longer at stake.
+
+     `armed` is what the end screen reads to know it was promised. */
+  var armed = false;
+
   function help(){
+    armed = true;
     var p = shell();
-    var topic = focusOf();
     var words = missedWords();
 
-    p.appendChild(el('span', 'co-glyph', '\ud83e\udded'));
-    p.appendChild(el('h2', 'co-head', t('coHelpHead')));
+    var said = petHead(p, 'stuck');
+    if (!said){
+      p.appendChild(el('span', 'co-glyph', '\ud83e\udded'));
+      p.appendChild(el('h2', 'co-head', t('coHelpHead')));
+    }
+    /* The explanation stays whether the pet spoke or not: a pet saying
+       something in character is not the same as telling her the part is
+       genuinely hard and she is not failing at it. */
     p.appendChild(el('p', 'co-line', t('coHelpLine')));
 
     if (words.length){
@@ -314,35 +438,90 @@ GH.coach = (function(){
       p.appendChild(grid);
     }
 
+    /* The promise. Said plainly, so the end screen appearing with two extra
+       buttons is something she was told about rather than a surprise. */
+    p.appendChild(el('p', 'co-sub', t('coHelpAtEnd')));
+
     var acts = el('div', 'co-acts');
-
-    if (topic && GH.grammar){
-      var go = el('button', 'btn btn-primary', t('coShowRule'));
-      go.type = 'button';
-      go.addEventListener('click', function(){
-        close();
-        var host = document.getElementById('view');
-        if (!host) return;
-        GH.speech.stop();
-        host.textContent = '';
-        GH.grammar.openTopic(host, topic, function(){
-          host.textContent = '';
-          GH.app.hub();
-        });
-      });
-      acts.appendChild(go);
-    }
-
-    var later = el('button', 'btn btn-ghost', t('coNotNow'));
-    later.type = 'button';
-    later.addEventListener('click', close);
-    acts.appendChild(later);
+    var on = el('button', 'btn btn-primary', t('coGo'));
+    on.type = 'button';
+    on.addEventListener('click', close);
+    acts.appendChild(on);
     p.appendChild(acts);
 
     var off = el('button', 'co-off', t('coStop'));
     off.type = 'button';
     off.addEventListener('click', askMute);
     p.appendChild(off);
+  }
+
+  /* ---------- END OF ROUND: THE ACTUAL OFFERS ----------
+
+     Returned to endscreen.js, which puts them in front of the game's own
+     buttons. Two things decide what appears:
+
+       the WORDS offer, whenever she has missed six or more distinct words.
+       This is the default and the highlighted one — not knowing the words
+       yet is the commoner cause by far, and it is the one the app can
+       actually do something about.
+
+       the RULE offer, only when a real grammar key was missed. It used to
+       appear always, pointing at a page chosen by a mapping that sent every
+       recognition miss to Plurals. A rule offer that cannot name the rule
+       is not an offer.
+
+     `advance:false` on both: endscreen gives its primary button the
+     js-advance class so a tap anywhere starts another round, and a second
+     js-advance would hijack that — a stray tap would launch Word Matching
+     instead of replaying. */
+  function endActions(){
+    var out = [];
+    if (muted()) return out;
+    if (!armed) return out;
+
+    var words = missedWords();
+    var topic = focusOf();
+
+    function leaveTo(fn){
+      var view = document.getElementById('view');
+      if (!view) return;
+      if (GH.speech) GH.speech.stop();
+      view.textContent = '';
+      fn(view, function(){
+        view.textContent = '';
+        if (GH.app && GH.app.hub) GH.app.hub();
+      });
+    }
+
+    if (words.length >= WORDS_AT && GH.wordMatch && GH.wordMatch.openWords){
+      out.push({
+        label: t('coWordsHard', { n:words.length }),
+        kind: 'primary',
+        advance: false,
+        onClick: function(){
+          var mine = words.slice();
+          armed = false;
+          leaveTo(function(view, back){ GH.wordMatch.openWords(view, mine, back); });
+        }
+      });
+    }
+
+    if (topic && GH.grammar){
+      out.push({
+        label: t('coShowRule'),
+        advance: false,
+        onClick: function(){
+          /* OVER the end screen, not instead of it. She keeps her result,
+             her missed words and the Again button; Return puts her straight
+             back on them. Reading the rule used to cost her the screen and
+             land her at the hub. */
+          if (GH.grammar.overlay) GH.grammar.overlay(topic);
+          else leaveTo(function(view, back){ GH.grammar.openTopic(view, topic, back); });
+        }
+      });
+    }
+
+    return out;
   }
 
   /* Someone irritated on a Tuesday should not lose a feature for good, so
@@ -379,6 +558,7 @@ GH.coach = (function(){
     greeting: greeting,
     regreet: regreet,
     heard: heard,
+    endActions: endActions,
     reset: reset,
     muted: muted,
     mute: mute,

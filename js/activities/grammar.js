@@ -587,5 +587,99 @@ GH.grammar = (function(){
     if (tp) paintTopic(); else paintList();
   }
 
-  return { open:open, openTopic:openTopic };
+  /* ---------- A RULE READ WITHOUT LEAVING ----------
+
+     Everything that sent her to a grammar page used to destroy the screen
+     she was on: `host.textContent = ''` and then render the topic into the
+     same container. So reading the rule cost her the round, and coming back
+     meant starting a fresh one — every activity's `open()` resets its state,
+     so there is nothing to resume once the view is gone.
+
+     A Return button could not have fixed that. It would have re-opened the
+     activity at question one.
+
+     So this opens OVER the page instead, exactly as howto.js does and for
+     the reason written at the top of that file: she can check the rule
+     mid-round without losing her place. Nothing behind it is touched, so
+     Return really does return — the round is still there, mid-question,
+     with her streak intact.
+
+     `onClose` is optional. The Return button and the backdrop both close. */
+  var over = null;
+
+  function overlayOpen(){
+    return !!(over && over.className.indexOf('is-open') >= 0);
+  }
+
+  function closeOverlay(){
+    if (!over) return;
+    over.className = 'gr-overlay';
+    over.textContent = '';
+    document.body.style.overflow = '';
+    /* The activity behind may have armed nav before we covered it; re-arm so
+       its advance button takes the keyboard back. */
+    if (GH.nav && GH.nav.ready) GH.nav.ready();
+    var then = over._then;
+    over._then = null;
+    if (then) then();
+  }
+
+  /* `topic` is a topic id, or null for the index. */
+  function overlay(topic, onClose){
+    if (!over){
+      over = el('div', 'gr-overlay');
+      over.setAttribute('role', 'dialog');
+      over.setAttribute('aria-modal', 'true');
+      over.addEventListener('click', function(e){
+        if (e.target === over) closeOverlay();
+      });
+      document.body.appendChild(over);
+    }
+    over.textContent = '';
+    over._then = onClose || null;
+
+    var box = el('div', 'gr-over-box');
+
+    /* Return sits at the top, where the back link would be, because that is
+       where she will look for the way out. */
+    var bar = el('div', 'gr-over-bar');
+    var back = el('button', 'backlink gr-over-back', '\u2039 ' + t('back'));
+    back.type = 'button';
+    back.addEventListener('click', closeOverlay);
+    bar.appendChild(back);
+    var ret = el('button', 'btn btn-primary gr-over-return', t('grReturn'));
+    ret.type = 'button';
+    ret.addEventListener('click', closeOverlay);
+    bar.appendChild(ret);
+    box.appendChild(bar);
+
+    var body = el('div', 'gr-over-body');
+    box.appendChild(body);
+    over.appendChild(box);
+    over.className = 'gr-overlay is-open';
+    document.body.style.overflow = 'hidden';
+
+    /* Rendered into the overlay's own body, so `host` points here and the
+       language switch repaints in place rather than into the page behind. */
+    if (topic) openTopic(body, topic, closeOverlay);
+    else open(body, closeOverlay);
+
+    try { ret.focus(); } catch (e){}
+  }
+
+  /* Escape closes the rule and nothing else. Capture and
+     stopImmediatePropagation for the same reason lightbox.js needs them:
+     nav.js also listens for Escape on `document`, and without this the
+     overlay would close AND the screen behind it would leave. */
+  document.addEventListener('keydown', function(e){
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (e.key !== 'Escape' && e.key !== 'Esc') return;
+    if (!overlayOpen()) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    closeOverlay();
+  }, true);
+
+  return { open:open, openTopic:openTopic,
+           overlay:overlay, closeOverlay:closeOverlay, isOverlayOpen:overlayOpen };
 })();

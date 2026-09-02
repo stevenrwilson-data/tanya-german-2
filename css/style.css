@@ -634,6 +634,17 @@ h2{
 .tile:hover:not(:disabled){transform:translateY(-3px);box-shadow:var(--shadow-lift)}
 .tile:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
 
+/* The one worth starting next. Deliberately quiet: the flame border and a
+   wash of the same colour, no animation and no badge. It is a suggestion,
+   not an instruction, and every other tile has to stay just as tappable. */
+.tile.is-next{
+  border-color:var(--flame);
+  /* Composited over the tile's own paper rather than replacing it. A bare
+     tint is transparent, so it takes the colour of whatever is behind — and
+     `.tile` declares dark ink on the strength of being opaque and light. */
+  background:linear-gradient(rgb(var(--flame-rgb) / .10), rgb(var(--flame-rgb) / .10)), var(--paper);
+}
+
 .tile-glyph{font-size:1.6rem;line-height:1;display:block;margin-bottom:12px}
 .tile-name{
   font-family:var(--ff-display);
@@ -3521,9 +3532,9 @@ button.ref-group.open .ref-group-count{
   color:var(--fg);text-align:center;
 }
 .cv-bin-l{font:400 0.85rem/1 var(--ff-ui);color:var(--fg-soft)}
-.cv-bin-past{background:rgb(var(--mauve-rgb) / .22)}
-.cv-bin-present{background:rgb(var(--sand-rgb) / .28)}
-.cv-bin-future{background:rgb(var(--flame-rgb) / .16)}
+.cv-bin-past{background:linear-gradient(rgb(var(--mauve-rgb) / .22), rgb(var(--mauve-rgb) / .22)), var(--sand-wash)}
+.cv-bin-present{background:linear-gradient(rgb(var(--sand-rgb) / .28), rgb(var(--sand-rgb) / .28)), var(--sand-wash)}
+.cv-bin-future{background:linear-gradient(rgb(var(--flame-rgb) / .16), rgb(var(--flame-rgb) / .16)), var(--sand-wash)}
 
 /* fill-blank: the streak and score line */
 .fb-run{
@@ -4117,13 +4128,36 @@ button.ref-group.open .ref-group-count{
 }
 .pl-ask .speak{position:absolute;top:11px;right:11px}
 
-.pl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+/* ---- the board ----
+
+   A CARD IS ONE SIZE. It used to be `repeat(2,1fr)`, so the width of a card
+   was set by how many were on the board: two items on an iPad gave two
+   enormous half-screen cards, four gave small ones, and the overlapping
+   stack gave something different again. The picture dictated the card
+   instead of the card containing the picture.
+
+   Now the card has a fixed footprint and the row centres and wraps around
+   it, which also puts the spare horizontal space on a wide screen to use
+   rather than growing the board downward past the viewport. */
+.pl-grid{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-end;
+  gap:10px; margin-top:4px;
+}
 .pl-stack{
   display:flex;justify-content:center;align-items:flex-end;
   padding:6px 0 2px;min-height:150px;
 }
 .pl-stack .pl-card{margin-left:-30px}
 .pl-stack .pl-card:first-child{margin-left:0}
+
+/* One width for a card and for a hole, in BOTH layouts, so a gap in the
+   board reads as a missing card rather than as a different kind of object.
+   That was most of why the drop targets did not explain themselves. */
+.pl-card, .pl-slot{
+  width:clamp(104px, 30vw, 150px);
+  flex:0 0 auto;
+  box-sizing:border-box;
+}
 .pl-depth-0{z-index:1}
 .pl-depth-1{z-index:2}
 .pl-depth-2{z-index:3}
@@ -4155,12 +4189,33 @@ button.ref-group.open .ref-group-count{
   border:2px dashed var(--sand-deep);
   background:rgb(var(--shade-rgb) / .14);
   border-radius:var(--r-md);
-  min-height:120px;
+  /* the same shape as the card that goes in it — the sprite is 2/3, plus
+     the room the card's name line takes */
+  aspect-ratio:2 / 2.55;
+  min-height:0;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   transition:background .12s ease,border-color .12s ease;
 }
+/* A target that says it is a target. The dashes alone read as decoration;
+   pulsing once on arrival is what makes them look droppable. */
+.pl-slot:not(.is-past):not(.is-wrong){
+  animation:plSlotWake 1.6s ease-in-out 2;
+}
+@keyframes plSlotWake{
+  0%,100%{ border-color:var(--sand-deep); background:rgb(var(--shade-rgb) / .14) }
+  50%    { border-color:var(--flame);     background:rgb(var(--flame-rgb) / .16) }
+}
+@media (prefers-reduced-motion: reduce){
+  .pl-slot:not(.is-past):not(.is-wrong){ animation:none; border-color:var(--flame) }
+}
+/* where she put it, on a miss */
+.pl-slot.is-wrong{
+  border-style:solid; border-color:var(--no);
+  background:rgb(var(--no-rgb) / .16);
+}
+.pl-slot.is-wrong .pl-slot-mark{ color:var(--no) }
 .pl-slot:hover{border-color:var(--flame);background:rgb(var(--flame-rgb) / .12)}
 .pl-slot-mark{font:700 1.8rem/1 var(--ff-ui);color:var(--fg-soft)}
 .pl-stack .pl-slot{width:96px;margin-left:-30px}
@@ -4219,7 +4274,15 @@ button.ref-group.open .ref-group-count{
 }
 .cm-card:hover{ border-color:var(--ink-on-light) }
 .cm-thumb{ background:#fff; border-bottom:1px solid var(--sand-deep) }
-.cm-thumb img{ display:block; width:100%; height:auto }
+/* The height is declared so the space is reserved before the picture
+   arrives. Without this, every lazy thumbnail reflowed the whole list as
+   it landed — which is what made the index jitter under her thumb, and it
+   was never a scrolling problem. Two of the forty-six are 4:3 and are
+   trimmed a little at this size; the full page is never cropped. */
+.cm-thumb img{
+  display:block; width:100%; height:auto;
+  aspect-ratio:3 / 2; object-fit:cover;
+}
 .cm-card-cap{ display:flex; flex-direction:column; gap:2px; padding:8px 10px 10px }
 .cm-card-n{ font:800 1rem/1.2 var(--ff-ui); color:var(--fg) }
 /* Clamped to two lines. A grid row is as tall as its tallest card, so
@@ -4277,6 +4340,827 @@ button.ref-group.open .ref-group-count{
 .cm-de:hover{ text-decoration:underline; text-underline-offset:3px }
 .cm-de.is-pending{ cursor:default; color:var(--fg-soft) }
 .cm-de.is-pending:hover{ text-decoration:none }
+
+/* From reading a song's words to being tested on them. Full width, above
+   the cards, because it is the action the page now offers rather than a
+   footnote to it. */
+.sw-match{ display:block; width:100%; margin:4px 0 14px }
+
+/* ---- two songs that are one thing ----
+
+   Side by side where there is room, stacked on a phone. A pair of lyric
+   sheets in two columns on a 380px screen is unreadable, and the point of
+   the box is that they belong together — which the box says whether they
+   sit beside each other or above each other. */
+.sg-pair{
+  margin:14px 0;
+  padding:14px;
+  border-radius:var(--r-lg);
+  background:rgb(var(--shade-rgb) / .30);
+  border:1px solid rgb(var(--sand-rgb) / .55);
+}
+.sg-pair-l{
+  margin:0 0 10px;
+  font-size:.76rem; font-weight:700; letter-spacing:.10em;
+  text-transform:uppercase; color:var(--fg-soft);
+}
+.sg-pair-two{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
+.sg-pair-half{ display:flex; flex-direction:column; gap:6px; min-width:0 }
+.sg-pair-half .tile{ height:100% }
+.sg-pair-voice{
+  font-size:.74rem; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--fg-accent);
+}
+@media (max-width:640px){
+  .sg-pair-two{ grid-template-columns:1fr }
+}
+
+/* ================= the purchase flare =================
+
+   Four intensities, one per tier, because the tiers cost wildly different
+   things — three days and 500 Kronen against five months and 15,000 with
+   three legendaries already owned. Same puff for both and the biggest
+   moment in the app feels like the smallest.
+
+   Everything here is decoration and `pointer-events:none`, so the card
+   underneath stays fully operable while it plays. */
+
+.ptd-card.is-bought{
+  animation:ptdRise .5s cubic-bezier(.2,.9,.25,1.03) both;
+}
+@keyframes ptdRise{
+  from{ transform:scale(.9) translateY(10px); opacity:0 }
+  to  { transform:none; opacity:1 }
+}
+
+/* ---- the glow, per tier ---- */
+.ptd-card.tier-common{
+  box-shadow:0 0 0 1px rgb(var(--sand-rgb) / .7), 0 6px 30px rgb(var(--sand-rgb) / .45);
+  animation:ptdRise .5s cubic-bezier(.2,.9,.25,1.03) both,
+            ptdGlowSoft 2.2s ease-in-out 1;
+}
+.ptd-card.tier-rare{
+  animation:ptdRise .5s cubic-bezier(.2,.9,.25,1.03) both,
+            ptdGlowRare 2.4s ease-in-out 1;
+}
+.ptd-card.tier-epic{
+  animation:ptdRise .5s cubic-bezier(.2,.9,.25,1.03) both,
+            ptdGlowEpic 2.6s ease-in-out 1;
+}
+.ptd-card.tier-legendary{
+  animation:ptdRise .5s cubic-bezier(.2,.9,.25,1.03) both,
+            ptdGlowLegend 3s ease-in-out 1;
+}
+@keyframes ptdGlowSoft{
+  0%,100%{ box-shadow:0 6px 24px rgb(0 0 0 / .28) }
+  40%    { box-shadow:0 6px 30px rgb(var(--sand-rgb) / .55) }
+}
+@keyframes ptdGlowRare{
+  0%,100%{ box-shadow:0 6px 24px rgb(0 0 0 / .28) }
+  40%    { box-shadow:0 0 0 2px rgb(var(--mauve-rgb) / .55),
+                      0 8px 44px rgb(var(--mauve-rgb) / .5) }
+}
+@keyframes ptdGlowEpic{
+  0%,100%{ box-shadow:0 6px 24px rgb(0 0 0 / .28) }
+  35%    { box-shadow:0 0 0 3px rgb(var(--flame-rgb) / .5),
+                      0 10px 56px rgb(var(--flame-rgb) / .5) }
+  70%    { box-shadow:0 0 0 2px rgb(var(--flame-rgb) / .35),
+                      0 8px 40px rgb(var(--flame-rgb) / .35) }
+}
+@keyframes ptdGlowLegend{
+  0%,100%{ box-shadow:0 6px 24px rgb(0 0 0 / .28) }
+  25%    { box-shadow:0 0 0 3px rgb(var(--flame-rgb) / .75),
+                      0 0 70px 10px rgb(var(--flame-rgb) / .55) }
+  55%    { box-shadow:0 0 0 4px rgb(var(--sand-rgb) / .8),
+                      0 0 90px 14px rgb(var(--flame-rgb) / .45) }
+  80%    { box-shadow:0 0 0 3px rgb(var(--flame-rgb) / .6),
+                      0 0 60px 8px rgb(var(--flame-rgb) / .4) }
+}
+
+/* the name lit, legendary only */
+.ptd-card.tier-legendary .ptd-name{
+  animation:ptdNameLit 2.6s ease-in-out 1;
+}
+@keyframes ptdNameLit{
+  0%,100%{ text-shadow:none }
+  45%    { text-shadow:0 0 18px rgb(var(--flame-rgb) / .85) }
+}
+
+/* Ember. The capstone gets one thing nothing else has: a slow aura that
+   keeps turning after the sparks have gone. */
+.ptd-card.is-capstone::before{
+  content:''; position:absolute; inset:-30px; z-index:-1;
+  border-radius:50%;
+  background:conic-gradient(from 0deg,
+    rgb(var(--flame-rgb) / .45), transparent 30%,
+    rgb(var(--sand-rgb) / .35) 55%, transparent 80%,
+    rgb(var(--flame-rgb) / .45));
+  filter:blur(18px);
+  animation:ptdAura 5.5s linear 2;
+  pointer-events:none;
+}
+@keyframes ptdAura{ to{ transform:rotate(360deg) } }
+
+/* ---- the sparks ---- */
+.ptd-burst{
+  position:absolute; inset:0; overflow:visible; pointer-events:none;
+  display:grid; place-items:center;
+}
+.ptd-spark{
+  position:absolute; width:8px; height:8px; border-radius:50%;
+  background:var(--flame);
+  box-shadow:0 0 10px 2px rgb(var(--flame-rgb) / .7);
+  opacity:0;
+  animation:ptdThrow 1.25s cubic-bezier(.15,.75,.2,1) var(--d) both;
+}
+/* every third one in the pale tone, so the burst is not one flat colour */
+.ptd-spark:nth-child(3n){
+  background:var(--sand);
+  box-shadow:0 0 10px 2px rgb(var(--sand-rgb) / .7);
+}
+@keyframes ptdThrow{
+  0%  { opacity:0; transform:rotate(var(--a)) translateY(0) scale(.3) }
+  18% { opacity:1 }
+  100%{ opacity:0;
+        transform:rotate(var(--a)) translateY(calc(-1 * var(--r))) scale(var(--s)) }
+}
+
+/* ---- the rings ---- */
+.ptd-ring{
+  position:absolute; width:40px; height:40px; border-radius:50%;
+  border:2px solid rgb(var(--flame-rgb) / .8);
+  opacity:0; pointer-events:none;
+  animation:ptdRing 1.4s ease-out .1s both;
+}
+.ptd-ring.is-two{
+  border-color:rgb(var(--sand-rgb) / .85);
+  animation-delay:.34s; animation-duration:1.6s;
+}
+@keyframes ptdRing{
+  0%  { opacity:.9; transform:scale(.4) }
+  100%{ opacity:0;  transform:scale(7) }
+}
+
+/* The card needs a stacking context for the aura's negative z-index, and
+   the burst must be allowed outside its bounds. */
+.ptd-card{ isolation:isolate }
+
+/* Asked to stop animating: nothing moves, and the JS spawns no sparks at
+   all rather than spawning them and hiding them. A single steady ring is
+   left so a purchase still looks like an event. */
+@media (prefers-reduced-motion: reduce){
+  .ptd-card.is-bought,
+  .ptd-card.tier-common, .ptd-card.tier-rare,
+  .ptd-card.tier-epic, .ptd-card.tier-legendary,
+  .ptd-card.tier-legendary .ptd-name,
+  .ptd-card.is-capstone::before{ animation:none }
+  .ptd-card.tier-rare     { box-shadow:0 0 0 2px rgb(var(--mauve-rgb) / .55) }
+  .ptd-card.tier-epic     { box-shadow:0 0 0 3px rgb(var(--flame-rgb) / .5) }
+  .ptd-card.tier-legendary{ box-shadow:0 0 0 3px rgb(var(--flame-rgb) / .75) }
+}
+
+/* The loud reset. Distinct from the ordinary ghost buttons beside it,
+   because "erase everything" should not look like "show the welcome". */
+.st-danger{
+  border-color:var(--no) !important;
+  color:var(--no) !important;
+  margin-top:8px;
+}
+.st-danger:hover{
+  background:linear-gradient(rgb(var(--no-rgb) / .12), rgb(var(--no-rgb) / .12)), var(--paper);
+}
+/* the item-by-item list of what goes: "everything" is not a list */
+.st-warn-big{
+  margin:0 0 6px; font-weight:700; font-size:1.02rem; color:var(--no);
+}
+
+/* ---- a word's example sentences, in the dictionary ----
+
+   The search has always looked inside these; the row never showed them. So
+   she could find a word because of a sentence and not be shown the sentence
+   that matched. One word at a time — 773 rows with two sentences each is
+   not a list any more.
+
+   Its own declared ink: opaque light surface inside whatever is behind it. */
+.ref-ex{
+  margin:2px 0 8px 0;
+  padding:10px 12px;
+  border-left:3px solid var(--flame);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  background:var(--sand-wash);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  display:flex; flex-direction:column; gap:8px;
+}
+.ref-ex-line{ display:flex; flex-direction:column; gap:2px }
+.ref-ex-de{
+  border:0; background:transparent; padding:0; cursor:pointer; text-align:left;
+  font-family:var(--ff-display); font-size:1.02rem; line-height:1.35;
+  color:var(--fg);
+}
+.ref-ex-de:hover{ text-decoration:underline }
+.ref-ex-tr{ font-size:.88rem; line-height:1.35; color:var(--fg-soft) }
+.ref-ex-none{
+  margin:2px 0 8px; padding:8px 12px;
+  font-size:.88rem; color:var(--fg-soft);
+}
+
+/* ================= Listen and Speak — the pronunciation lab =================
+
+   Every opaque light surface here declares its own dark ink. That is the
+   trap that made the Jukebox song list render blank earlier: a cream
+   background inside a dark card, with text still coloured for the card. */
+
+.sp-h{
+  margin:16px 0 8px; font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  text-transform:uppercase; color:var(--fg-soft);
+}
+.sp-h:first-child{ margin-top:0 }
+
+.sp-opts{ display:flex; flex-wrap:wrap; gap:8px }
+.sp-opt{
+  flex:1 1 140px; min-width:0;
+  display:flex; flex-direction:column; gap:2px; align-items:flex-start;
+  border:2px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  color:var(--fg);
+  padding:10px 12px; cursor:pointer; text-align:left;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .12s ease, background .12s ease;
+}
+.sp-opt:hover:not(:disabled){ border-color:var(--flame) }
+.sp-opt:disabled{ opacity:.45; cursor:not-allowed }
+.sp-opt.is-on{
+  border-color:var(--flame);
+  background:linear-gradient(rgb(var(--flame-rgb) / .12), rgb(var(--flame-rgb) / .12)), var(--paper);
+}
+.sp-opt-n{ font:600 1rem/1.25 var(--ff-display) }
+.sp-opt-s{ font-size:.82rem; color:var(--fg-soft) }
+
+/* Break the line up without leaving the round. The setup screen asks the
+   same question, but she finds out a line is too much AFTER she is looking
+   at it, and going back would abandon the round. */
+.sp-cuts{
+  display:flex; align-items:center; flex-wrap:wrap; gap:6px;
+  margin:0 0 12px;
+}
+.sp-cuts-l{
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  text-transform:uppercase; color:var(--fg-soft); margin-right:2px;
+}
+.sp-cut{
+  border:1.5px solid var(--sand-deep); border-radius:999px;
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  color:var(--fg);
+  padding:5px 12px; cursor:pointer;
+  font:600 .85rem/1 var(--ff-ui); white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.sp-cut:hover{ border-color:var(--flame) }
+.sp-cut.is-on{
+  border-color:var(--flame);
+  background:linear-gradient(rgb(var(--flame-rgb) / .14), rgb(var(--flame-rgb) / .14)), var(--paper);
+}
+
+/* the line she is saying */
+.sp-line{
+  margin:14px 0 2px; padding:16px 14px;
+  border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+}
+.sp-chunk{
+  font-family:var(--ff-display); font-size:1.35rem; line-height:1.35;
+  color:var(--fg-soft);
+}
+/* the piece she is on, when the line is split */
+.sp-chunk.is-now{
+  color:var(--fg); font-weight:600;
+  border-bottom:3px solid var(--flame);
+}
+/* What the line means. Larger and closer than the source line below it,
+   because it is about the sentence and the source is only provenance. */
+.sp-mean{
+  margin:8px 0 2px; text-align:center;
+  font-size:1.02rem; line-height:1.4; color:var(--fg);
+}
+/* The label, so a title is never read as a translation — which is exactly
+   what happened when both lines were bare. */
+.sp-lab{
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  text-transform:uppercase; color:var(--fg-soft);
+  margin-right:2px;
+}
+.sp-mean-t{ color:var(--fg) }
+.sp-from{
+  margin:0 0 14px; text-align:center;
+  font-size:.85rem; color:var(--fg-soft);
+}
+
+.sp-hear, .sp-rec{ display:block; width:100%; margin-bottom:9px }
+
+/* Recording. A red pulse, because she needs to know at a glance that the
+   microphone is live — an app that is listening should look like it. */
+.sp-rec.is-rec{
+  border-color:var(--no);
+  background:linear-gradient(rgb(var(--no-rgb) / .18), rgb(var(--no-rgb) / .18)), var(--paper);
+  --fg:var(--ink);
+  animation:spRecPulse 1.1s ease-in-out infinite;
+}
+@keyframes spRecPulse{
+  0%,100%{ box-shadow:0 0 0 0 rgb(var(--no-rgb) / .5) }
+  50%    { box-shadow:0 0 0 7px rgb(var(--no-rgb) / 0) }
+}
+@media (prefers-reduced-motion: reduce){
+  .sp-rec.is-rec{ animation:none; box-shadow:0 0 0 3px rgb(var(--no-rgb) / .5) }
+}
+
+.sp-modes{ display:flex; flex-wrap:wrap; gap:8px }
+.sp-mode{
+  flex:1 1 auto;
+  border:1.5px solid var(--sand-deep); border-radius:999px;
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  color:var(--fg);
+  padding:8px 14px; cursor:pointer;
+  font:600 .9rem/1 var(--ff-ui); white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.sp-mode:hover{ border-color:var(--flame) }
+.sp-mode:active{ transform:scale(.97) }
+
+.sp-note{ margin:12px 0 0; font-size:.9rem; line-height:1.45; color:var(--fg-soft) }
+/* the https warning: the accent tone, because it is the answer rather than
+   a footnote */
+.sp-warn{
+  margin:12px 0 0; padding:10px 12px;
+  border-radius:var(--r-sm);
+  background:linear-gradient(rgb(var(--no-rgb) / .14), rgb(var(--no-rgb) / .14)), var(--paper);
+  --fg:var(--ink);
+  color:var(--fg); font-size:.9rem; line-height:1.45; font-weight:600;
+}
+
+/* ---- a question asked in German, and the price of translating it ----
+
+   Some topics borrow their whole vocabulary from English, so the translated
+   question answers itself. She may still translate — she is told first what
+   it costs, and never after. */
+.rd-q-tr{ margin:0 0 12px; font-size:.9rem }
+.rd-q-warn{
+  margin:0 0 12px; padding:12px 14px;
+  border-radius:var(--r-sm);
+  background:linear-gradient(rgb(var(--no-rgb) / .14), rgb(var(--no-rgb) / .14)), var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+.rd-q-warn p{
+  flex:1 1 100%; margin:0 0 4px;
+  font-size:.92rem; line-height:1.45; font-weight:600;
+}
+.rd-q-void{
+  margin:0 0 12px; padding:8px 12px;
+  border-radius:var(--r-sm);
+  background:var(--sand-wash);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg-soft); font-size:.88rem;
+}
+
+/* ---- the word list for a reading piece ----
+   Identical to the song word list; the two screens do the same job.
+   Cloned rather than shared so a change to one cannot silently
+   restyle the other. */
+.rw-match{ display:block; width:100%; margin:4px 0 14px }
+.rw-count{
+  margin:14px 0 0;
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  color:var(--fg-soft); text-transform:uppercase;
+}
+.rw-list{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin:10px 0 0;
+}
+.rw-card{
+  display:flex; gap:12px; align-items:flex-start;
+  padding:11px 13px;
+  border-radius:var(--r-md);
+  background:rgb(var(--shade-rgb) / .14);
+  border-left:3px solid var(--sand-deep);
+}
+.rw-pic{
+  flex:0 0 auto;
+  width:62px;
+  border:0; padding:0; margin:0; background:none;
+  border-radius:10px;
+  overflow:hidden;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.rw-pic.rw-lens{
+  box-shadow:0 0 0 1px rgb(var(--shade-rgb) / .3);
+  transition:box-shadow .12s, transform .12s;
+}
+.rw-pic.rw-lens:hover{
+  box-shadow:0 0 0 2px var(--sand-deep);
+  transform:scale(1.04);
+}
+.rw-body{ flex:1 1 auto; min-width:0 }
+.rw-de{
+  display:block; width:100%; text-align:left;
+  border:0; background:none; padding:0; margin:0;
+  color:var(--fg); cursor:pointer;
+  font:var(--t-de); letter-spacing:var(--t-de-ls);
+  -webkit-tap-highlight-color:transparent;
+}
+.rw-de:hover{ text-decoration:underline }
+.rw-gloss{
+  margin:2px 0 0;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg);
+}
+.rw-other{
+  margin:1px 0 0;
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  color:var(--fg-soft);
+}
+.rw-def{
+  margin:5px 0 0;
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  color:var(--fg-soft);
+}
+.rw-senses{ list-style:none; margin:4px 0 0; padding:0 }
+.rw-sense + .rw-sense{
+  margin-top:5px; padding-top:5px;
+  border-top:1px solid rgb(var(--shade-rgb) / .28);
+}
+.rw-sense-gloss{
+  display:block;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg);
+}
+.rw-sense-def{
+  display:block; margin-top:1px;
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  color:var(--fg-soft);
+}
+.rw-missing{
+  margin:16px 0 0; padding:11px 14px;
+  border-radius:var(--r-md);
+  border:1px solid var(--no);
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  color:var(--fg-soft);
+}
+.rw-de.is-phrase{ font-style:normal }
+.rw-de.is-slot{ font-style:italic }
+
+/* free, unlike the translation beside it */
+.rd-words{ }
+
+/* ---- jump to a tier, at the top of the reader ----
+
+   Three filled tiers put the poems below the fold, so the row of tiles she
+   wants is the one she cannot see. Built from the same SECTIONS list that
+   draws the sections, so an empty tier has no button. */
+.rd-jump{
+  display:flex; flex-wrap:wrap; gap:8px; margin:2px 0 16px;
+}
+.rd-jump-b{
+  border:1.5px solid var(--sand-deep);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  color:var(--fg);
+  border-radius:999px; padding:7px 15px; cursor:pointer;
+  font:600 .92rem/1 var(--ff-ui);
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .12s ease, background .12s ease;
+}
+.rd-jump-b:hover{ border-color:var(--flame) }
+.rd-jump-b:active{ transform:scale(.97) }
+
+/* ---- one pet, over the grid ----
+
+   A panel rather than a screen change. Tapping a pet used to jump to the
+   store, which from mid-round cost her the round for what is only a
+   question: what is this one, and can I have it. */
+.ptd-wrap{
+  position:fixed; inset:0; z-index:80;
+  display:flex; align-items:center; justify-content:center;
+  padding:18px; background:rgb(0 0 0 / .6); overflow-y:auto;
+}
+.ptd-card{
+  position:relative; max-width:420px; width:100%;
+  text-align:center; padding:20px 18px 16px;
+}
+.ptd-img{ width:150px; height:150px; object-fit:contain; margin:0 auto 4px; display:block }
+.ptd-name{ margin:0; font:var(--t-section); letter-spacing:var(--t-section-ls) }
+.ptd-de{
+  margin:2px 0 10px; font-family:var(--ff-display); font-size:1.05rem;
+  color:var(--fg-accent);
+}
+.ptd-line{
+  border:0; background:transparent; cursor:pointer; padding:0;
+  font-family:var(--ff-display); font-size:1.1rem; line-height:1.35;
+  color:var(--fg); text-align:center;
+}
+.ptd-line:hover{ text-decoration:underline }
+.ptd-tr{ margin:4px 0 0; font-size:.92rem; line-height:1.4; color:var(--fg-soft) }
+.ptd-acts{ display:flex; flex-direction:column; gap:8px; margin-top:16px }
+.ptd-go{ width:100% }
+/* The gate and the price. `pre-line` because needText() joins its lines
+   with \n — one line per requirement, each with her own number on it. */
+/* the shortfall, and the plain "not yet" — said in the warning colour so it
+   reads as the answer rather than as more requirements */
+.ptd-short{
+  margin:0; font-size:.95rem; font-weight:700; color:var(--fg-accent);
+}
+/* the card body is a button now; it must not look like one */
+.pt-ask{
+  border:0; background:transparent; padding:0; cursor:pointer;
+  text-align:inherit; color:inherit; font:inherit; display:block; width:100%;
+}
+.ptd-need{
+  margin:0; white-space:pre-line;
+  font-size:.95rem; line-height:1.5; color:var(--fg-soft);
+}
+.ptd-more{
+  margin-top:14px; border:0; background:transparent; cursor:pointer;
+  font-size:.86rem; font-weight:700; color:var(--fg-accent);
+  text-decoration:underline;
+}
+.ptd-x{
+  position:absolute; top:6px; right:10px;
+  border:0; background:transparent; cursor:pointer;
+  font-size:1.5rem; line-height:1; color:var(--fg-soft); padding:4px 8px;
+}
+
+/* ---- a grammar rule read WITHOUT leaving the exercise ----
+
+   Same pattern as .howto-overlay: it covers the page, nothing behind it is
+   destroyed, and closing it puts her back mid-round with her streak intact.
+   The alternative — rendering the topic into the activity's own container —
+   is what used to throw the round away. */
+.gr-overlay{
+  position:fixed; inset:0; z-index:70;
+  display:none; overflow-y:auto;
+  background:rgb(0 0 0 / .55);
+  padding:16px;
+}
+.gr-overlay.is-open{ display:block }
+.gr-over-box{
+  max-width:760px; margin:0 auto;
+  background:var(--page); border-radius:var(--r-lg);
+  padding:14px 14px 22px;
+  /* the page's own ink, because the box is the page colour */
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+}
+.gr-over-bar{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:10px; flex-wrap:wrap;
+}
+/* Return is the primary action and sits beside Back, because Back is what
+   she will reach for and this is the one that keeps her place. */
+.gr-over-return{ margin-left:auto }
+.gr-over-body > .card:first-child{ margin-top:0 }
+
+/* ---- her pet, in the coach's panels ----
+
+   The face at the size the end screen uses, not a thumbnail: the point is
+   that somebody is there. The German is a button because tapping it hears
+   the pet say it, the same contract as the hub and the end screen. */
+.co-pet{ display:flex; align-items:flex-start; gap:12px; margin-bottom:4px; text-align:left }
+.co-pet-img{ width:76px; height:76px; object-fit:contain; flex:0 0 auto }
+.co-pet-body{ display:flex; flex-direction:column; gap:3px; min-width:0 }
+.co-pet-name{
+  font-size:.78rem; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--fg-soft);
+}
+.co-pet-de{
+  border:0; background:transparent; padding:0; cursor:pointer; text-align:left;
+  font-family:var(--ff-display); font-size:1.12rem; font-weight:600;
+  line-height:1.3; color:var(--fg);
+}
+.co-pet-de:hover{ text-decoration:underline }
+.co-pet-tr{ margin:0; font-size:.9rem; line-height:1.35; color:var(--fg-soft) }
+
+/* ================= Jukebox ================= */
+
+.jb-h{
+  margin:0; font:var(--t-section); letter-spacing:var(--t-section-ls); color:var(--fg);
+}
+.jb-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px }
+.jb-clear{
+  margin-left:auto; border:0; background:transparent; cursor:pointer;
+  font-size:.86rem; font-weight:700; color:var(--fg-accent);
+  text-decoration:underline; padding:4px 2px;
+}
+.jb-note{ margin:10px 0 0; font-size:.86rem; line-height:1.45; color:var(--fg-soft) }
+
+/* ---- the transport ---- */
+.jb-now-l{
+  margin:0; font-size:.78rem; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--fg-soft);
+}
+.jb-now{
+  margin:4px 0 0; font-family:var(--ff-display); font-size:1.35rem;
+  font-weight:600; line-height:1.25; color:var(--fg);
+}
+.jb-pos{ margin:4px 0 0; font-size:.86rem; font-weight:700; color:var(--fg-accent) }
+.jb-controls{ display:flex; align-items:center; gap:14px; margin-top:16px }
+.jb-btn{
+  width:56px; height:56px; border-radius:999px;
+  border:1.5px solid var(--sand-deep); background:var(--paper);
+  font-size:1.2rem; line-height:1; color:var(--fg); cursor:pointer;
+}
+.jb-btn:disabled{ opacity:.4; cursor:not-allowed }
+.jb-btn:hover:not(:disabled){ border-color:var(--ink-on-light) }
+/* Bigger, and the only filled one: with the screen off this is the button
+   she will have been reaching for. */
+.jb-play{
+  width:68px; height:68px; font-size:1.5rem;
+  background:var(--flame); color:var(--on-flame); border-color:var(--flame);
+}
+.jb-opts{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px }
+.jb-opts .chip:disabled{ opacity:.45; cursor:not-allowed }
+
+/* ---- the queue ---- */
+.jb-list{ list-style:none; margin:0; padding:0 }
+.jb-row{
+  display:flex; align-items:center; gap:4px;
+  border-top:1px solid rgb(var(--sand-rgb) / .45);
+}
+.jb-row:first-child{ border-top:0 }
+.jb-row.is-here{ background:rgb(var(--flame-rgb) / .10) }
+.jb-row.is-broken .jb-row-t{ color:var(--fg-soft); text-decoration:line-through }
+.jb-row-go{
+  flex:1; display:flex; align-items:baseline; gap:10px;
+  border:0; background:transparent; cursor:pointer;
+  padding:12px 6px; text-align:left; color:inherit;
+}
+.jb-row-n{ font-size:.86rem; font-weight:700; color:var(--fg-soft); min-width:1.4em }
+.jb-row-t{ font-size:1rem; font-weight:600; line-height:1.3; color:var(--fg) }
+.jb-row-x{ font-size:.78rem; font-weight:700; color:var(--no) }
+.jb-move{
+  border:0; background:transparent; cursor:pointer;
+  font-size:1.05rem; line-height:1; color:var(--fg-soft);
+  padding:12px 8px;
+}
+.jb-move:disabled{ opacity:.28; cursor:not-allowed }
+.jb-move:hover:not(:disabled){ color:var(--fg) }
+.jb-rm:hover{ color:var(--no) }
+
+/* ---- choosing songs ---- */
+.jb-songs{ display:flex; flex-direction:column; gap:8px }
+.jb-song{
+  display:flex; align-items:center; gap:10px;
+  padding:12px; text-align:left; cursor:pointer;
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper); color:var(--fg);
+}
+.jb-song:hover{ border-color:var(--ink-on-light) }
+.jb-song.is-on{ border-color:var(--flame); background:linear-gradient(rgb(var(--flame-rgb) / .10), rgb(var(--flame-rgb) / .10)), var(--paper) }
+.jb-song-mark{
+  width:1.5em; text-align:center; font-weight:700; color:var(--fg-accent);
+}
+.jb-song-t{ font-size:1rem; font-weight:600; line-height:1.3 }
+
+/* ================= Word Matching ================= */
+
+.wm-h{
+  margin:18px 0 8px; font:var(--t-section); letter-spacing:var(--t-section-ls);
+  color:var(--fg);
+}
+.wm-h:first-child{ margin-top:0 }
+.wm-note{ margin:8px 0 0; font-size:.86rem; color:var(--fg-soft) }
+.wm-count{ margin:6px 0 0; font-size:.9rem; font-weight:700; color:var(--fg-accent) }
+.wm-lens{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px }
+.wm-toggle{ margin-left:0 }
+.wm-go{ display:block; width:100%; margin-top:22px }
+
+/* ---- the listening stage ----
+
+   Fixed rather than in the flow: the picture is meant to fill the window,
+   and one tap anywhere on it is the whole control surface. */
+.wm-stage{
+  position:fixed; inset:0; z-index:60;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:18px; padding:24px;
+  background:var(--paper); cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+/* No picture — either the word has none, or she asked for none. Dark, so a
+   loop running in a quiet room at night is not a lit screen. */
+.wm-stage.is-dark{ background:#1b1b1d }
+.wm-stage.is-dark .wm-word{ color:#f4f2ee }
+.wm-stage.is-dark .wm-meta{ color:rgb(244 242 238 / .55) }
+
+/* A PICTURE, NOT A POSTER.
+
+   This was `width:min(78vw, 62vh)` with `max-height:70vh`, sized for a
+   phone held up while she listens with her hands free. On an iPad 78vw is
+   most of the screen and the drawing became a billboard — the viewport
+   units had no ceiling, so the bigger the screen the more absurd it got.
+
+   Now a real maximum in pixels. `min()` still lets it shrink on a narrow
+   phone, where 78vw is genuinely about right; it simply stops growing past
+   the size of a large card. */
+.wm-pic{ width:min(78vw, 62vh, 340px); max-height:min(70vh, 460px) }
+.wm-pic .sprite{ width:100%; border-radius:var(--r-lg) }
+.wm-word{
+  margin:0; text-align:center;
+  font-family:var(--ff-display); font-size:2rem; font-weight:600;
+  color:var(--fg);
+}
+/* On the dark screen the word IS the screen, so it is set as large as the
+   longest German compound allows. */
+.wm-word.is-big{ font-size:clamp(2rem, 11vw, 4.5rem); line-height:1.1 }
+.wm-meta{
+  position:absolute; top:16px; right:18px; margin:0;
+  font-size:.95rem; font-weight:700; letter-spacing:.06em;
+  color:var(--fg-soft);
+}
+.wm-exit{ position:fixed; left:16px; bottom:16px; z-index:61 }
+
+.wm-paused{
+  position:absolute; inset:0; z-index:1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:14px; padding:24px;
+  background:rgb(0 0 0 / .62);
+}
+.wm-paused-t{
+  margin:0; font-family:var(--ff-display); font-size:1.6rem; color:#f4f2ee;
+}
+.wm-paused-n{ margin:0; font-size:.9rem; color:rgb(244 242 238 / .7); text-align:center }
+
+/* ---- the question after the loop ---- */
+.wm-ask-n{ margin:0; font-size:1.15rem; font-weight:700; color:var(--fg) }
+.wm-ask-paid{ margin:6px 0 0; font-size:.95rem; font-weight:700; color:var(--fg-accent) }
+.wm-acts{ display:flex; flex-direction:column; gap:10px; margin-top:6px }
+
+/* ---- the board ----
+
+   Two columns, and they are shuffled independently in the JS so no row
+   ever sits beside its own answer. */
+.wm-board{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.wm-col{ display:flex; flex-direction:column; gap:10px }
+.wm-cell{
+  padding:14px 12px; min-height:52px;
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper); color:var(--fg);
+  font-size:1rem; font-weight:600; line-height:1.25; text-align:center;
+  cursor:pointer; transition:opacity .35s ease, border-color .12s ease;
+}
+.wm-cell:hover:not(:disabled){ border-color:var(--ink-on-light) }
+.wm-cell.is-picked{ border-color:var(--flame); background:linear-gradient(rgb(var(--flame-rgb) / .14), rgb(var(--flame-rgb) / .14)), var(--paper) }
+.wm-cell.is-wrong{ border-color:var(--no); color:var(--fg-soft) }
+/* A matched pair fades but keeps its slot, so the board does not jump
+   under her hand. The JS refills only once two or more are free. */
+.wm-cell.is-gone{ opacity:0; pointer-events:none }
+.wm-col-right .wm-cell{ font-weight:700 }
+
+/* ---- quizzes kept for later ---- */
+.wm-saved-row{ display:flex; align-items:center; gap:8px; margin-top:8px }
+.wm-saved-go{ flex:1; text-align:left }
+.wm-saved-x{
+  border:0; background:transparent; color:var(--fg-soft);
+  font-size:1.4rem; line-height:1; padding:6px 10px; cursor:pointer;
+}
+.wm-saved-x:hover{ color:var(--no) }
+
+/* ---------- the comic's whole text, on one screen ----------
+
+   The reference view. Panels are separated because a panel is the unit of
+   the drawing above it, and a wall of lines with no breaks in it cannot be
+   matched up against the picture. */
+.cm-tools{ flex-wrap:wrap }
+/* Two toggles in one row. `.mode-toggle` carries `margin-left:auto`, which
+   with two of them splits the free space between the pair and leaves both
+   floating in the middle. The first is pinned left so the view sits by the
+   picture and the narrator sits at the far end. */
+.cm-tools .mode-toggle:first-child{ margin-left:0 }
+.cm-voice button{ letter-spacing:.06em }
+.cm-all{ display:flex; flex-direction:column; gap:18px; margin-top:14px }
+.cm-all-panel{
+  display:flex; flex-direction:column; gap:10px;
+  padding-left:12px;
+  border-left:2px solid rgb(var(--sand-rgb) / .45);
+}
+.cm-all-line{ display:flex; flex-direction:column; gap:2px }
+/* Tighter than the single-line view, which sets one line at reading size
+   in the middle of a card. Thirteen of those is a scroll. */
+.cm-all-line .cm-de{ font-size:1.02rem; line-height:1.4; text-align:left }
+.cm-all-line .cm-who{ margin:0 }
+.cm-all-line .cm-mean{ margin:0 }
+.cm-all-line .cm-de:disabled{ cursor:default; opacity:1 }
+.cm-playall{ margin-bottom:4px }
+
+/* A narrator language this comic has no text for. Dimmed and inert rather
+   than hidden, so the German being unwritten is visible instead of the
+   button silently not existing. */
+.mode-toggle button:disabled{ opacity:.38; cursor:not-allowed }
 .cm-pending-note{ margin:6px 0 0; font-size:0.86rem; color:var(--fg-soft) }
 .cm-mean{ margin:10px 0 0; font:400 1.05rem/1.45 var(--ff-ui); color:var(--fg-soft) }
 
@@ -5351,7 +6235,75 @@ button.ref-group.open .ref-group-count{
 .pt-buy:hover:not(:disabled), .pt-pick:hover,
 .ls-eg, .ls-sentence, .ls-bin:hover, .ls-opt:hover,
 .pl-card,
-.cm-card{
+.cm-card,
+/* ---- added 01 Sep 2026, after the Wo-oder-wohin grammar page ----
+
+   `.ww-pair` sets `background:var(--sand-wash)` and declared no ink, so on
+   the grammar page — where it sits inside a dark `.card` — every German
+   line was --on-dark on a pale wash and effectively invisible. In the GAME
+   the same element sits on the page and looked fine, which is why it
+   survived.
+
+   Its own siblings were all already in this list: .gr-stat, .gr-pair,
+   .gr-past-row, .gr-mark, .gr-fut-now, .sc-answer, .cg-table, .cg-both.
+   It was an omission from a known list rather than a new problem.
+
+   So the list was swept properly. THE RULE IS ABSOLUTE: an OPAQUE light
+   background — var(--paper), var(--sand), var(--sand-wash) — always needs
+   dark ink, whatever it is nested inside. There is no surface in any theme
+   where those three carry pale text. Every rule in the stylesheet setting
+   one of them and declaring no ink of its own is now here.
+
+   NOT swept, deliberately: the `rgb(var(--shade-rgb) / .12)` tints. Those
+   are semi-transparent by design and take the colour of whatever is behind
+   them — over a dark card they are still dark, and forcing dark ink onto
+   them would break them the other way round. They are correct as they are. */
+.ww-pair,
+.sc-slot,
+.cw-cell.cw-shot,
+.es-review,
+.pt-common, .pt-buy, .pt-pick, .pt-buy.is-token, .pt-say,
+.pt-buy:hover:not(:disabled), .pt-pick:hover,
+.pl-ask,
+.gw-guess, .gw-cat, .gw-val, .gw-size,
+.who-input, .st-input, .ref-search-in,
+.rd-pos,
+.bt-btn, .purse, .petstrip-btn,
+.wm-stage,
+.done, .backlink, .tile,
+.speak.is-speaking,
+.dg-mode.is-on,
+.cm-btn[aria-pressed="true"],
+.mode-toggle button[aria-pressed="true"],
+.typeswitch button[aria-pressed="true"],
+/* `.sprite-word` is the tile sprite.js builds for a word with NO drawING —
+   the German set large on a pale dashed box — and `.sprite-word-text` paints
+   it with --fg. 133 of the 743 words have no picture, so inside a card that
+   is roughly one word in six rendered pale-on-pale. Worse than the grammar
+   page that started this, and it will grow as the vocabulary outpaces the
+   art. The rest are picture frames with no text of their own; listed so the
+   next sweep finds nothing left to argue about. */
+.sprite-word,
+.pt-say::before, .pt-strip-face, .petstrip-mini, .ptg-img, .fp,
+/* ---- added again, 01 Sep 2026, after the Jukebox came up blank ----
+
+   MY FIRST SWEEP HAD A FLAW AND THESE SIX ESCAPED IT. It skipped any rule
+   whose body mentioned `--fg`, on the assumption that mentioning it meant
+   declaring it. `.jb-song` mentions it as a CONSUMER — `color:var(--fg)` —
+   on an opaque `var(--paper)` background. Using the variable is not
+   declaring it, so inside a dark `.card` the text was --on-dark on white
+   and the song list rendered blank until a row was selected, which is
+   exactly what it looked like.
+
+   The test is now: an opaque light background must DECLARE `--fg:`, not
+   merely read it.
+
+   Four of the six were mine from this session — the two Jukebox rules and
+   the Word Matching quiz cell, which would have made that whole board
+   invisible too. `.pt-strip-say` and `.ptg-cell` were already there. */
+.jb-btn, .jb-song,
+.wm-cell,
+.pt-strip-say, .ptg-cell{
   --fg:       var(--ink);
   --fg-soft:  var(--ink-soft);
   --fg-accent:var(--ink);

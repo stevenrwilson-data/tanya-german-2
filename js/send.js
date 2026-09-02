@@ -45,10 +45,27 @@ window.GH = window.GH || {};
 
 GH.send = (function(){
 
-  /* The one line to change. Empty means "not configured": nothing is sent,
-     nothing is logged as an error, and the app runs normally — which is the
-     state it ships in until the endpoint exists. */
-  var URL = '';
+  /* Empty means "not configured": nothing is sent, nothing is logged as an
+     error, and the app runs normally.
+
+     RELATIVE, AND ON PURPOSE. `/api/log` is a Cloudflare Pages Function in
+     the same project as the site, so it answers on the same origin. Same
+     origin means no CORS, no preflight and no second deployment — and it
+     means this keeps working if the domain changes.
+
+     On the LAN over http there is no function to answer, the POST fails,
+     and the app carries on exactly as before. */
+  var URL = '/api/log';
+
+  /* Shared with functions/api/log.js, so only her app can write to the
+     namespace. IN THE BODY, not a header: `sendBeacon` cannot set headers,
+     and the beacon path is the one that survives the page closing — which
+     is exactly when a language app gets closed. A query string would work
+     too and would end up in access logs.
+
+     Replace with the same long random string you set as GH_TOKEN in the
+     Pages environment. Empty here and empty there both mean "no check". */
+  var TOKEN = '';
 
   var KEY = 'gh-send-v1';
   var OFF = 'gh-send-off';
@@ -117,6 +134,7 @@ GH.send = (function(){
        German mode" is a real finding and costs one field. */
     body.lang = GH.i18n ? GH.i18n.lang() : '';
     body.target = (GH.player && GH.player.target) ? GH.player.target() : '';
+    if (TOKEN) body.token = TOKEN;
     return body;
   }
 
@@ -141,7 +159,8 @@ GH.send = (function(){
         headers:{ 'Content-Type':'application/json' },
         body:text,
         keepalive:true,
-        mode:'cors'
+        /* Same origin now that the URL is relative. */
+        mode:'same-origin'
       }).catch(function(){});
       return true;
     } catch (e){}

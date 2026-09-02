@@ -308,7 +308,17 @@ GH.welcome = (function(){
       card.appendChild(el('p', 'wc-note', t('wcFormsNote')));
 
       var row = el('div', 'wc-genders');
-      [['f','wcFormsF'], ['m','wcFormsM'], ['','wcFormsNone']].forEach(function(pair){
+      /* TWO OPTIONS, NOT THREE.
+
+         "Do not specify" was removed. It was the DEFAULT value as well as a
+         button, so it was already selected when the screen opened and
+         choosing it did nothing visible — a control that cannot be operated
+         because it is where you already are.
+
+         `''` is still a valid stored value and the app handles it
+         everywhere; there is simply no longer a button for it. Anyone who
+         skips this screen still gets it. */
+      [['f','wcFormsF'], ['m','wcFormsM']].forEach(function(pair){
         var b = el('button', 'wc-gender' + (g === pair[0] ? ' is-on' : ''),
                    t(pair[1]));
         b.type = 'button';
@@ -355,10 +365,34 @@ GH.welcome = (function(){
     return true;
   }
 
-  /* For testing without clearing storage by hand. */
+  /* Clears the flag only.
+
+     NOT ENOUGH ON ITS OWN, and that was worth learning the hard way:
+     `due()` has THREE gates — the flag, a name on the profile, and any
+     lifetime Kronen. Clearing the flag on an account that has been used
+     leaves the other two standing, so `reset()` followed by a reload does
+     nothing visible. Which is correct for its actual job — not asking a
+     returning user to introduce herself — and useless for testing. */
   function reset(){
     try { window.localStorage.removeItem(KEY); } catch (e){}
   }
 
-  return { open:open, due:due, reset:reset };
+  /* SHOW IT REGARDLESS.
+
+     For seeing the onboarding on an account that already has a name and a
+     purse, which is the only account anyone testing it has. Skips `due()`
+     entirely rather than trying to satisfy it — the point of showing it
+     again is that she is NOT a fresh install, so pretending otherwise would
+     mean deleting her name to look at a screen.
+
+     The flag is cleared too, so a reload mid-way through does not strand
+     her: she gets the welcome again rather than a half-finished one. */
+  function force(then){
+    reset();
+    done = then || null;
+    askLanguage();
+    return true;
+  }
+
+  return { open:open, due:due, reset:reset, force:force };
 })();

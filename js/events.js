@@ -17,7 +17,7 @@
    ------------------------------------------------------------------
    WHAT IS RECORDED
 
-     ANSWERS   t | game | key | ok
+     ANSWERS   t | game | key | ok | dev | level | think | chose
                One per graded answer. `key` is the tutor's own key —
                'word:342', 'topic:kitchen', 'skill:listening' — so the log
                joins straight onto gh-progress-v1 and gh-sched-v1 with no
@@ -93,6 +93,7 @@ GH.events = (function(){
   var stopped = false;     /* storage refused a write; stop trying */
   var current = '';        /* the activity being used right now */
   var lastGrade = 0;       /* when she last answered, for the think gap */
+  var shownAt = 0;         /* when the current question went up, if a game said */
 
   /* ---------- which device ----------
 
@@ -224,7 +225,45 @@ GH.events = (function(){
 
   /* One graded answer. `game` is optional — the caller may know better
      than the current screen — and falls back to it. */
-  function grade(key, ok, from){
+  /* `chose` is WHAT SHE PICKED when she was wrong, and it is the field this
+     log was missing.
+
+     `ok:false` says she missed `word:342`. It does not say she answered
+     *der* for *die Tür* — which is a different error from answering *das*.
+     One is over-applying the masculine default, the other is confusing two
+     feminine-looking nouns, and they want different teaching. Same for
+     case: *dem* for *den* is the case, *die* for *den* is the gender.
+
+     RECORDED ON RIGHT ANSWERS TOO. It looked redundant — a correct answer's
+     choice is derivable from the key — but only by joining against
+     vocab.js, and only for some games. Stored, the row is self-contained:
+     `der` beside `gender:14` and `ok:1` says what right WAS, without
+     needing the bank to interpret it. Six characters a row against a 650KB
+     budget, and it means a year of history can be read by anything that can
+     split a string.
+
+     Games that do not know what she picked pass nothing and the field is
+     empty, which is different from zero.
+
+     No pipes: the row is pipe-delimited, so a choice containing one would
+     split into two fields and shift everything after it. */
+  /* A GAME SAYING "THE QUESTION IS NOW ON SCREEN".
+
+     Called from the paint that shows a question, once per question. Turns
+     `think` into the time from the question appearing to her answering it,
+     rather than the gap since her last answer.
+
+     Cheap to be wrong about: calling it twice just uses the later time,
+     never calling it falls back to the gap, and calling it and then never
+     grading leaves a stale timestamp that the NEXT grade would consume — so
+     `clear()` exists for a game that paints a question and then leaves. */
+  function shown(){
+    if (stopped) return;
+    shownAt = Date.now();
+  }
+  function clearShown(){ shownAt = 0; }
+
+  function grade(key, ok, from, chose){
     if (stopped || !key) return;
     var m = mine();
     /* HOW LONG SHE TOOK.
@@ -241,11 +280,41 @@ GH.events = (function(){
        measure from. Capped at two minutes: beyond that she put the phone
        down, and a five-minute gap is not five minutes of thinking. */
     var now = Date.now();
-    var think = lastGrade ? Math.min(now - lastGrade, 120000) : 0;
+
+    /* TWO WAYS TO MEASURE, AND THE BETTER ONE WHERE IT EXISTS.
+
+       The gap since her previous answer is what this always used, and it
+       needs nothing from the games. But it includes everything the app did
+       in between — painting, and in Listen and Pick speaking a whole
+       sentence aloud. On that screen the "thinking" was mostly listening.
+
+       So a game can call `events.shown()` when it puts a question up, and
+       the measurement runs from there instead: the time from the question
+       appearing to her answering it. Games that do not call it fall back to
+       the gap exactly as before, so nothing had to be changed to keep
+       working.
+
+       `src` records WHICH measure it was, because comparing a shown-based
+       1.4s against a gap-based 1.4s from another game would be comparing
+       two different things. */
+    var think, src;
+    if (shownAt){
+      think = Math.min(now - shownAt, 120000);
+      src = 'q';
+      shownAt = 0;
+    } else {
+      think = lastGrade ? Math.min(now - lastGrade, 120000) : 0;
+      src = think ? 'g' : '';
+    }
     lastGrade = now;
 
+    var pick = '';
+    if (chose !== undefined && chose !== null && chose !== ''){
+      pick = String(chose).replace(/\|/g, '/').slice(0, 40);
+    }
     m.ev.push([now, (from || current || '?'), key, ok ? 1 : 0,
-               dev(), currentLevel, think ? Math.round(think / 100) : ''].join('|'));
+               dev(), currentLevel, think ? Math.round(think / 100) : '',
+               pick, src].join('|'));
     /* A lifetime count that the cap never touches.
 
        app.js measures a bounce by comparing the answer count on the way in
@@ -456,7 +525,15 @@ GH.events = (function(){
            thinking. Both undefined on older rows, which is a different
            fact from empty or zero. */
         level: p.length > 5 && p[5] !== '' ? p[5] : undefined,
-        think: p.length > 6 && p[6] !== '' ? +p[6] / 10 : undefined
+        think: p.length > 6 && p[6] !== '' ? +p[6] / 10 : undefined,
+        /* v7: what she picked, right or wrong. Undefined only where the
+           game does not know, and on every row written before this. */
+        chose: p.length > 7 && p[7] !== '' ? p[7] : undefined,
+        /* v7: how the time was measured. 'q' is from the question appearing
+           — the real one. 'g' is the gap since her last answer, which
+           includes whatever the app did in between. Undefined means there
+           was no measurement at all, which is the first answer of a round. */
+        timing: p.length > 8 && p[8] !== '' ? p[8] : undefined
       };
     });
   }
@@ -628,7 +705,7 @@ GH.events = (function(){
 
   return {
     setGame:setGame, game:game,
-    grade:grade, visit:visit,
+    grade:grade, visit:visit, shown:shown, clearShown:clearShown,
     all:all, days:days, sessions:sessions, byDevice:byDevice, dev:dev,
     seen:seen, opened:opened, left:left, finished:finished, mark:mark,
     setLevel:setLevel,

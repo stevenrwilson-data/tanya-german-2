@@ -482,7 +482,11 @@ GH.lessons = (function(){
       actions: [
         { label:t('again'), kind:'primary', onClick:function(){ begin(state.lesson, true); } },
         /* the page that explains the same rule, for reading at leisure */
+        /* Over this screen rather than replacing it. It used to clear `host`
+           and render the topic in its place, so reading the rule threw away
+           the result she had just been shown and Back went to the hub. */
         (state.lesson.topic && GH.grammar ? { label:t('lsToGrammar'), onClick:function(){
+            if (GH.grammar.overlay){ GH.grammar.overlay(state.lesson.topic); return; }
             host.textContent = '';
             GH.grammar.openTopic(host, state.lesson.topic, state.onExit);
           } } : null),

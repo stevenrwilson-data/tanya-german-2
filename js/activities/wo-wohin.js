@@ -137,14 +137,20 @@ GH.woWohin = (function(){
     state.run.saw('ww:' + state.i, it.correct);
 
     if (GH.tutor){
-      GH.tutor.grade('skill:case', it.correct);
-      if (it.prep) GH.tutor.grade('case:' + it.prep, it.correct);
+      /* WHAT SHE PICKED. `dem` for `den` is the case; `die` for `den` is the
+         gender. Both are one wrong answer on a two-way preposition and they
+         are not the same mistake — one needs the wo/wohin rule, the other
+         needs the article table. `it.picked` is already recorded for the
+         verdict line, so this costs nothing to collect. */
+      var pk = it.picked;
+      GH.tutor.grade('skill:case', it.correct, null, pk);
+      if (it.prep) GH.tutor.grade('case:' + it.prep, it.correct, null, pk);
       /* two different rules wear the same skill name. A preposition whose
          case never changes is memorising; a two-way one is a judgement
          about motion, and she can be fine at one and lost in the other. */
-      if (it.fixedCase) GH.tutor.grade('case:fixed-' + it.fixedCase, it.correct);
-      else GH.tutor.grade('case:twoway', it.correct);
-      if (it.kind === 'which') GH.tutor.grade('case:motion', it.correct);
+      if (it.fixedCase) GH.tutor.grade('case:fixed-' + it.fixedCase, it.correct, null, pk);
+      else GH.tutor.grade('case:twoway', it.correct, null, pk);
+      if (it.kind === 'which') GH.tutor.grade('case:motion', it.correct, null, pk);
     }
     GH.speech.say(it.de);
     paint();
@@ -283,6 +289,12 @@ GH.woWohin = (function(){
     }
 
     host.appendChild(card);
+
+    /* The question is on screen now, so time from here. Only when it is
+       still unanswered — a repaint showing the verdict is not a new
+       question, and marking it would measure how long she looked at the
+       answer. */
+    if (!it.answered && GH.events && GH.events.shown) GH.events.shown();
     if (it.answered) GH.nav.ready();
   }
 

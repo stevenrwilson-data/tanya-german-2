@@ -165,13 +165,18 @@ GH.tutor = (function(){
      `from` is the activity that asked, and is optional: GH.events falls
      back to whatever app.js said was on screen. It exists so a caller that
      knows better than the screen can say so — nothing uses it yet. */
-  function grade(key, ok, from){
+  /* `chose` rides through untouched: the scheduler does not care WHAT she
+     answered, only whether it was right. It exists so the log can tell
+     `der` for `die Tür` from `das` for `die Tür`, which is the difference
+     between over-applying the masculine default and confusing two
+     feminine-looking nouns. Passed on and never read here. */
+  function grade(key, ok, from, chose){
     if (!key) return;
     if (GH.progress) GH.progress.record(key, ok);
     /* The log is the only record that holds the item, the activity and the
        outcome in one row. Guarded because it is a later file than this one
        and the app has to work without it. */
-    if (GH.events) GH.events.grade(key, ok, from);
+    if (GH.events) GH.events.grade(key, ok, from, chose);
 
     var d = read(), k = scoped(key);
     var c = d[k] || (d[k] = blank());

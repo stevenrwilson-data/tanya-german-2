@@ -354,9 +354,22 @@ GH.guessWho = (function(){
        it is a screen holding a single button — a gate she taps through
        every time to reach the game, which is the worst kind of screen.
 
-       So it appears only when there is something to choose. Add a second
-       board to GH_FACE_LEVELS and it comes back on its own. */
-    if (!state.round){ begin(prefer()); return; }
+       So it appears only when there is something to choose.
+
+       ------------------------------------------------------------------
+       THIS WAS A TRAP, AND BACK COULD NOT ESCAPE IT.
+
+       GH_FACE_LEVELS has THREE boards, so `levels().length > 1` in head()
+       is true, and Back's first branch fired: clear the round, repaint.
+       Then this function saw no round and started a NEW one. Back began a
+       fresh game, every time, with no way out but the browser.
+
+       Two comments in this file had drifted apart — head() says "with no
+       chooser there is nowhere between the round and the hub", this one
+       says the chooser appears when there is something to choose. The
+       second is right, so paintLevels() is reachable again and Back has
+       somewhere to go. */
+    if (!state.round){ paintLevels(); return; }
     paintRound();
   }
 

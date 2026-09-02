@@ -76,7 +76,35 @@
    screen — they are not Kronen and must not be confused with them.
    Kronen come from finishing, the same as everywhere else, because
    paying more for a longer piece would make the medium stories the only
-   thing worth opening. */
+   thing worth opening. 
+   ------------------------------------------------------------------
+   WHAT A QUESTION IS FOR
+
+   The site exists to teach German — and later some other second language.
+   Every question is judged by one thing: does it move that needle. There
+   are exactly two ways it can, and a question does ONE of them:
+
+     1. IT NEEDS THE PASSAGE. She cannot answer without having understood
+        the German text. Translating the QUESTION costs nothing, because
+        the comprehension already happened upstream, in the reading.
+
+     2. IT IS ANSWERABLE FROM PRIOR KNOWLEDGE — but only asked in German.
+        "Which two fish are popular for sushi?" with four German fish names
+        is answerable by anyone who has eaten sushi. Read in German it is
+        still an exercise: the reading of the question and the options IS
+        the whole of it. Translate it and nothing is left.
+
+   Both are legitimate. They are not the same job, and a question cannot do
+   both — which is what `inL2` marks. NOT a flaw, and not a bad question:
+   it says which of the two this one is.
+
+   So: `inL2:true` renders that question and its options in German whatever
+   the interface language, and translating it forfeits ITS credit only. She
+   is warned before, never after. Everything unmarked translates freely.
+
+   TRANSLATION IS NEVER BLOCKED anywhere in this app. It sometimes costs the
+   credit, and the price is always stated first.
+*/
 
 window.GH = window.GH || {};
 
@@ -96,8 +124,26 @@ GH.reader = (function(){
   var SECTIONS = [
     { id:'short',  data:'GH_SHORT',  score:15, glyph:'\ud83d\udcc4', key:'rdShort'  },
     { id:'medium', data:'GH_MEDIUM', score:20, glyph:'\ud83d\udcd7', key:'rdMedium' },
-    { id:'poem',   data:'GH_POEMS',  score:15, glyph:'\u2712\ufe0f', key:'rdPoems'  }
+    /* 20, same as medium: the poems run 12 to 20 lines, so paying them a
+       five-line rate was wrong. */
+    { id:'poem',   data:'GH_POEMS',  score:20, glyph:'\u2712\ufe0f', key:'rdPoems'  },
+    /* ARTICLES — expository prose, 26 lines against a medium story's 12, so
+       worth more and asked more. `ask:3` is the only place any tier asks a
+       number other than two; see askFor() below. */
+    { id:'article', data:'GH_ARTICLES', score:25, ask:3,
+      glyph:'\ud83d\udcf0', key:'rdArticles' }
   ];
+
+  /* HOW MANY QUESTIONS THIS TIER ASKS.
+
+     `ASK` was a single number for the whole reader, which was right while
+     every tier was one to two screens of text. An article is twice a medium
+     story, and two questions on 26 lines is a spot check rather than
+     comprehension. So a tier may override it and the rest do not have to
+     know. */
+  function askFor(sec){
+    return (sec && sec.ask) ? sec.ask : ASK;
+  }
 
   var host = null, state = null;
 
@@ -117,6 +163,53 @@ GH.reader = (function(){
     if (!obj) return '';
     var l = lang();
     return obj[l] || obj.en || obj.de || '';
+  }
+
+  /* ---------- ASKED IN THE TARGET LANGUAGE ----------
+
+     See the note at the top of this file for why. In short: a question does
+     one of two jobs, and this marks which.
+
+     WAS CALLED `giveaway`, AND THAT NAME WAS WRONG. It read as "this
+     question is flawed", when what it means is "this question tests the
+     German of the question rather than comprehension of the passage" — a
+     different job, not a worse one. "Which two fish are popular for sushi?"
+     in German with four German fish names is a perfectly good vocabulary
+     exercise. It simply cannot ALSO be a comprehension check, because
+     anyone who has eaten sushi knows the answer.
+
+     Renamed while there were eleven of them rather than a hundred.
+
+     The makeup article is what forced the mechanism. German borrows nearly
+     all of that vocabulary from English — Mascara, Eyeliner, Lidschatten,
+     Foundation, Concealer, Puder, Rouge, Lipgloss, Parfüm — so "which goes
+     on the eyelids? ... C. EYESHADOW" is real in German and free in
+     English.
+
+     PER QUESTION, NOT PER PIECE. The first version was per piece and it was
+     wrong: only three of that article's twelve are of this kind, and
+     penalising "why clean your face before makeup and again before bed?"
+     would punish reading. 11 of 48 across the four articles.
+
+     The piece TEXT always translates freely — the five-day rest and the
+     reveal are untouched. */
+  function inL2(q){
+    return !!(q && q.inL2);
+  }
+
+  /* Rendered in German while it is still worth credit; in her language once
+     she has chosen to spend it. */
+  function askPick(q, obj){
+    if (!obj) return '';
+    if (inL2(q) && !state.qShown[state.qi]) return obj.de || obj.en || '';
+    return pick(obj);
+  }
+
+  /* Whether THIS question still counts. Per question: one look does not
+     spoil the other two. */
+  function counts(){
+    var item = state.qs[state.qi];
+    return !(item && inL2(item.q) && state.qShown[state.qi]);
   }
 
   /* ---------- the rest clock ----------
@@ -170,8 +263,9 @@ GH.reader = (function(){
      history. */
   function drawQuestions(piece){
     var bank = (piece.q || []).filter(function(q){ return q && q.kind; });
-    if (bank.length < ASK) return [];
-    return GH.text.shuffle(bank).slice(0, ASK);
+    var n = askFor(state.sec);
+    if (bank.length < n) return [];
+    return GH.text.shuffle(bank).slice(0, n);
   }
 
   /* The choices for one question, already shuffled, each carrying whether
@@ -203,7 +297,7 @@ GH.reader = (function(){
     if (q.kind === 'multi'){
       var right = q.a || [];
       opts.forEach(function(o, idx){
-        out.push({ label:pick(o), right:right.indexOf(idx) >= 0, i:idx });
+        out.push({ label:askPick(q, o), right:right.indexOf(idx) >= 0, i:idx });
       });
       return GH.text.shuffle(out);
     }
@@ -212,12 +306,12 @@ GH.reader = (function(){
       /* Every option is used and the answer is the sequence, so nothing is
          right on its own. Shuffled so the printed order is never the
          answer. */
-      opts.forEach(function(o, idx){ out.push({ label:pick(o), right:false, i:idx }); });
+      opts.forEach(function(o, idx){ out.push({ label:askPick(q, o), right:false, i:idx }); });
       return GH.text.shuffle(out);
     }
 
     /* mc */
-    opts.forEach(function(o, idx){ out.push({ label:pick(o), right:idx === q.a, i:idx }); });
+    opts.forEach(function(o, idx){ out.push({ label:askPick(q, o), right:idx === q.a, i:idx }); });
     return GH.text.shuffle(out);
   }
 
@@ -258,12 +352,46 @@ GH.reader = (function(){
 
     var any = false;
 
+    /* ---------- JUMP TO A TIER ----------
+
+       With three tiers filled the index is long enough that the poems are
+       well below the fold — so the row of tiles she wants is the one she
+       cannot see. A row of jumps at the top costs one line each and saves
+       the scroll.
+
+       Built from the same SECTIONS list that draws the sections, so a tier
+       with no data has no button and a fourth tier added later gets one
+       without being told to.
+
+       `scrollIntoView` rather than a hash: a hash would put `#rd-poem` in
+       the address bar, and reloading that URL lands her on the hub with a
+       fragment that means nothing. */
+    var jumps = el('div', 'rd-jump');
+    var jumped = 0;
+    SECTIONS.forEach(function(sec){
+      var n = pieces(sec).length;
+      if (!n) return;
+      jumped++;
+      var j = el('button', 'rd-jump-b', t(sec.key) + '  ' + n);
+      j.type = 'button';
+      j.addEventListener('click', function(){
+        var target = document.getElementById('rd-sec-' + sec.id);
+        if (!target) return;
+        try { target.scrollIntoView({ behavior:'smooth', block:'start' }); }
+        catch (e){ target.scrollIntoView(); }
+      });
+      jumps.appendChild(j);
+    });
+    /* One tier is not a choice, so no row. */
+    if (jumped > 1) host.appendChild(jumps);
+
     SECTIONS.forEach(function(sec){
       var list = pieces(sec);
       if (!list.length) return;
       any = true;
 
       var wrap = el('section', 'rd-sec');
+      wrap.id = 'rd-sec-' + sec.id;
       wrap.appendChild(el('h2', 'rd-sec-h',
         t(sec.key) + ' \u00b7 ' + t('rdPiecesN', { n:list.length })));
 
@@ -284,7 +412,7 @@ GH.reader = (function(){
         b.appendChild(el('span', 'tile-foot',
           !bank ? t('rdNoQuestions')
                 : left ? t('rdRestingN', { n:left })
-                       : t('rdAskN', { n:ASK })));
+                       : t('rdAskN', { n:askFor(state.sec) })));
         if (left) b.className += ' is-resting';
 
         b.addEventListener('click', function(){ openPiece(sec, p); });
@@ -312,6 +440,9 @@ GH.reader = (function(){
     state.chosen = [];
     state.answered = false;
     state.right = 0;
+    state.voided = 0;
+    state.qShown = {};
+    state.qWarn = -1;
     state.run = GH.run ? GH.run.create() : null;
     paintRead();
   }
@@ -406,6 +537,30 @@ GH.reader = (function(){
       acts.appendChild(tr);
     }
 
+    /* ---------- THE WORD LIST, WHICH COSTS HER NOTHING ----------
+
+       Deliberately beside the translate button, because the two are the
+       same shape and opposite prices. Translating rests the questions for
+       five days; this does not touch the rest at all.
+
+       That asymmetry is the whole design. Reading a story cold is hard;
+       reading it after five minutes with its own words is not. So the path
+       that builds comprehension is free and the shortcut is expensive.
+
+       Only when the piece has a list. `has()` answers that, so a piece
+       without one shows no button rather than an empty page. */
+    if (GH.readerWords && GH.readerWords.has(p)){
+      var wb = el('button', 'btn btn-ghost rd-words', t('rdWords'));
+      wb.type = 'button';
+      wb.addEventListener('click', function(){
+        GH.speech.stop();
+        /* Back returns HERE, to the piece she was reading, not to the
+           index — she opened the list in order to read this. */
+        GH.readerWords.open(host, p, function(){ paintRead(); });
+      });
+      acts.appendChild(wb);
+    }
+
     if (hasQs && !left){
       /* Dimmed rather than hidden while the warning is up, so she can see
          what she is about to give up. */
@@ -471,6 +626,9 @@ GH.reader = (function(){
     state.chosen = [];
     state.answered = false;
     state.right = 0;
+    state.voided = 0;
+    state.qShown = {};
+    state.qWarn = -1;
     state.phase = 'ask';
     paintAsk();
   }
@@ -502,7 +660,11 @@ GH.reader = (function(){
     if (!item || state.answered || !state.chosen.length) return;
     state.answered = true;
     var ok = isRight(item.q, state.chosen, item.choices);
-    if (ok) state.right++;
+    /* Right, but translated: correct on screen and worth nothing, which is
+       what she was warned about. Counted separately so the end screen can
+       say so rather than leaving her to work out why the score is short. */
+    if (ok && counts()) state.right++;
+    else if (ok) state.voided++;
     if (state.run) state.run.saw('rd:' + state.qi, ok);
     if (GH.tutor){
       GH.tutor.grade('skill:reading', ok);
@@ -541,7 +703,43 @@ GH.reader = (function(){
     var card = el('div', 'card');
 
     card.appendChild(el('p', 'rd-kind', t('rdKind_' + item.q.kind)));
-    card.appendChild(el('p', 'rd-q', pick(item.q)));
+    card.appendChild(el('p', 'rd-q', askPick(item.q, item.q)));
+
+    /* ---------- SHE MAY TRANSLATE IT, AND IT THEN COUNTS FOR NOTHING ----
+
+       Not hidden and not forbidden. On a loanword-heavy topic the English
+       question answers itself, so translating it has to cost something —
+       but refusing outright would leave her stuck on a question she cannot
+       read, which teaches nothing either.
+
+       WARNED BEFORE, NEVER AFTER. A penalty she discovers on the end screen
+       is a trap; a penalty she agreed to is a choice. Two taps, and the
+       first one only tells her the price. */
+    if (inL2(item.q) && lang() !== 'de'){
+      if (state.qShown[state.qi]){
+        card.appendChild(el('p', 'rd-q-void', t('rdQVoid')));
+      } else if (state.qWarn === state.qi){
+        var warn = el('div', 'rd-q-warn');
+        warn.appendChild(el('p', null, t('rdQWarn')));
+        var yes = el('button', 'btn btn-ghost', t('rdQWarnYes'));
+        yes.type = 'button';
+        yes.addEventListener('click', function(){
+          state.qShown[state.qi] = true;
+          state.qWarn = -1;
+          paintAsk();
+        });
+        var no = el('button', 'btn btn-ghost', t('rdQWarnNo'));
+        no.type = 'button';
+        no.addEventListener('click', function(){ state.qWarn = -1; paintAsk(); });
+        warn.appendChild(yes); warn.appendChild(no);
+        card.appendChild(warn);
+      } else {
+        var trq = el('button', 'btn btn-ghost rd-q-tr', t('rdQTranslate'));
+        trq.type = 'button';
+        trq.addEventListener('click', function(){ state.qWarn = state.qi; paintAsk(); });
+        card.appendChild(trq);
+      }
+    }
 
     var list = el('div', 'rd-choices');
     item.choices.forEach(function(c, i){
@@ -631,12 +829,20 @@ GH.reader = (function(){
       glyph: sec.glyph,
       title: right === asked ? t('cwPerfect') : t('doneTitle'),
       badge: pick(p.title),
-      stats: [
-        { n:right, label:t('fbRight'), kind:'good' },
-        { n:asked - right, label:t('fbWrong'), kind:'bad' },
-        { n:score, label:t('rdScore'), kind: right === asked ? 'good' : 'bad' }
-      ],
-      note: t('rdRestNote', { n:REST_DAYS }),
+      stats: (function(){
+        var rows = [{ n:right, label:t('fbRight'), kind:'good' }];
+        /* Right but translated. Its own row rather than folded into wrong,
+           because she DID answer it correctly and being told otherwise is
+           a lie. It simply did not score, which is what she agreed to. */
+        if (state.voided) rows.push({ n:state.voided, label:t('rdVoided'), kind:'bad' });
+        rows.push({ n:asked - right - state.voided, label:t('fbWrong'), kind:'bad' });
+        rows.push({ n:score, label:t('rdScore'),
+                    kind: right === asked ? 'good' : 'bad' });
+        return rows;
+      })(),
+      note: state.voided
+        ? t('rdVoidNote') + ' ' + t('rdRestNote', { n:REST_DAYS })
+        : t('rdRestNote', { n:REST_DAYS }),
       actions: [
         { label:t('rdReadAgain'), kind:'primary', onClick:function(){
             state.phase = 'read'; paintRead(); } },
@@ -651,7 +857,8 @@ GH.reader = (function(){
     host = container;
     state = { onExit:onExit, sec:null, piece:null, phase:'index',
               translated:false, confirmTr:false,
-              qs:[], qi:0, chosen:[], answered:false, right:0, run:null };
+              qs:[], qi:0, chosen:[], answered:false, right:0,
+              voided:0, qShown:{}, qWarn:-1, run:null };
     GH.app.redraw = function(){
       if (state.phase === 'read') paintRead();
       else if (state.phase === 'ask') paintAsk();

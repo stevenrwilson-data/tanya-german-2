@@ -156,7 +156,7 @@ GH.petStrip = (function(){
          grid is the one place all sixteen are visible at once. Only for
          the ones she owns — the word arrives with the animal. */
       if (p.own) cell.appendChild(el('span', 'ptg-de', p.de));
-      cell.addEventListener('click', function(){ go(p.id); });
+      cell.addEventListener('click', function(){ tapped(p.id); });
       grid.appendChild(cell);
     });
   }
@@ -174,6 +174,46 @@ GH.petStrip = (function(){
     if (!overlay) return;
     overlay.className = 'ptg-overlay';
     document.body.style.overflow = '';
+  }
+
+  /* ---------- THE GRID IS DIRECT ----------
+
+     No panel, no confirmation. One tap does the thing:
+
+       owned            equip it. That is what tapping a pet she has means.
+       unlocked, afford buy it — and store.buy() adds it to her chosen pets
+                        if there is a free slot, exactly as the store does.
+       locked, or dear  NOTHING. Not an error, not an explanation.
+
+     Doing nothing is deliberate. The grid is the fast path, used mid-round
+     with three taps to spare; a locked pet that opens a panel about
+     ninety-day streaks is an interruption she did not ask for. The cell is
+     already drawn `is-locked`, so the screen has told her before she taps.
+
+     The STORE is where the why lives — the gate with her progress against
+     it, the pet's own pitch, the carriers. `go(id)` still opens it at this
+     pet, from the store tile and from the purse.
+
+     `refresh()` and purse afterwards, so the header strip and the balance
+     both show what just happened. That is the only feedback, and for an
+     equip it is the right amount. */
+  function tapped(id){
+    var S = GH.store;
+    if (!S || !S.buyState) return;
+    var st = S.buyState(id);
+
+    if (st === 'own'){
+      S.pickById(id);
+    } else if (st === 'can'){
+      if (!S.buyById(id)) return;
+      if (GH.purse) GH.purse.refresh();
+    } else {
+      /* locked, too dear, or earned-only. Nothing. */
+      return;
+    }
+
+    refresh();
+    fill();
   }
 
   /* To the store, at that pet. */

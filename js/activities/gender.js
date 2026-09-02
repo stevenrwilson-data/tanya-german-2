@@ -205,8 +205,12 @@ GH.gender = (function(){
     state.answer = { picked:art, ok:ok, word:v };
 
     if (GH.tutor){
-      GH.tutor.grade('gender:' + v.n, ok);
-      GH.tutor.grade('skill:gender', ok);
+      /* WHICH article she chose, not just that she was wrong.
+         `der` for `die Tür` is over-applying the masculine default; `das`
+         for the same word is confusing two feminine-looking nouns. Same
+         `ok:false`, different lesson. */
+      GH.tutor.grade('gender:' + v.n, ok, null, art);
+      GH.tutor.grade('skill:gender', ok, null, art);
       GH.packs.catsOf(v).forEach(function(c){ GH.tutor.grade('topic:' + c, ok); });
     }
 
@@ -411,6 +415,12 @@ GH.gender = (function(){
     if (state.answer && state.mode === 'basic') card.appendChild(verdict(v));
 
     host.appendChild(card);
+
+    /* The question is on screen now, so time from here. Only when it is
+       still unanswered — a repaint showing the verdict is not a new
+       question, and marking it would measure how long she looked at the
+       answer. */
+    if (!state.answer && GH.events && GH.events.shown) GH.events.shown();
     if (state.answer && state.mode === 'basic') GH.nav.ready();
   }
 

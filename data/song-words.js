@@ -360,6 +360,258 @@ window.GH_SONGWORDS = {
     'überleben': { en:'to survive', ru:'выживать', img:0, kind:'word', want:'def' },
     'überqueren': { en:'to cross', ru:'пересекать', img:0, kind:'word', want:'def' },
     'übrig': { en:'remaining / left', ru:'оставшийся', img:0, kind:'word', want:'def' },
+    'hinaus':
+      { en:'outward / out',
+        ru:'наружу',
+        img:0, kind:'word', want:'def' },
+    'schick':
+      { en:'dressed up / stylish',
+        ru:'нарядный',
+        img:0, kind:'word', want:'def' },
+    'die Dämmerung':
+      { en:'twilight',
+        ru:'сумерки',
+        img:0, kind:'word', want:'def' },
+    'richten':
+      { en:'to fix / arrange',
+        ru:'поправлять',
+        img:0, kind:'word', want:'def' },
+    'das Haar':
+      { en:'hair',
+        ru:'волосы',
+        img:0, kind:'word', want:'def' },
+    'der Depp':
+      { en:'chump / fool',
+        ru:'дурак',
+        img:0, kind:'word', want:'def' },
+    'makellos':
+      { en:'flawless',
+        ru:'безупречный',
+        img:0, kind:'word', want:'def' },
+    'kriechen':
+      { en:'to crawl',
+        ru:'ползти',
+        img:0, kind:'word', want:'def' },
+    'der Fiebertraum':
+      { en:'fever dream',
+        ru:'горячечный сон',
+        img:0, kind:'word', want:'def' },
+    'die Schleife':
+      { en:'loop',
+        ru:'цикл / петля',
+        img:0, kind:'word', want:'def' },
+    'beschweren':
+      { en:'to complain',
+        ru:'жаловаться',
+        img:0, kind:'word', want:'def' },
+    'die Schönheit':
+      { en:'beauty',
+        ru:'красота',
+        img:0, kind:'word', want:'def' },
+    'froh':
+      { en:'glad / happy',
+        ru:'рад',
+        img:0, kind:'word', want:'def' },
+    'hinaus in die Nacht':
+      { en:'out into the night',
+        ru:'выйти в ночь',
+        img:0, kind:'phrase', want:'def' },
+    'bereit für den Spaß':
+      { en:'ready to have fun',
+        ru:'готов веселиться',
+        img:0, kind:'phrase', want:'def' },
+    'die Schlüssel nehmen':
+      { en:'to take the keys',
+        ru:'брать ключи',
+        img:0, kind:'phrase', want:'def' },
+    'zur Tür gehen':
+      { en:'to head for the door',
+        ru:'идти к двери',
+        img:0, kind:'phrase', want:'def' },
+    'noch fünf Minuten':
+      { en:'five more minutes',
+        ru:'ещё пять минут',
+        img:0, kind:'phrase', want:'def' },
+    'warten und warten':
+      { en:'waiting and waiting',
+        ru:'ждать и ждать',
+        img:0, kind:'phrase', want:'def' },
+    'ihr letztes Licht in den Himmel brennen':
+      { en:'to burn its last light into the sky',
+        ru:'сжигать свой последний свет в небе',
+        img:0, kind:'phrase', want:'def' },
+    'aus der Dämmerung herabscheinen':
+      { en:'to shine down from the twilight',
+        ru:'сиять с высоты сквозь сумерки',
+        img:0, kind:'phrase', want:'def' },
+    'nach mir rufen':
+      { en:'to call out to me',
+        ru:'звать меня',
+        img:0, kind:'phrase', want:'def' },
+    'Jacke an, Schuhe zu':
+      { en:'jacket on, shoes tied',
+        ru:'куртка надета, шнурки завязаны',
+        img:0, kind:'phrase', want:'def' },
+    'Schlüssel in der Hand':
+      { en:'keys in my hand',
+        ru:'ключи в руке',
+        img:0, kind:'phrase', want:'def' },
+    'vorm Spiegel stehen':
+      { en:'to stand at the mirror',
+        ru:'стоять у зеркала',
+        img:0, kind:'phrase', want:'def' },
+    'ihr Haar richten':
+      { en:'to fix her hair',
+        ru:'поправлять волосы',
+        img:0, kind:'phrase', want:'def' },
+    'wie ein Depp herumstehen':
+      { en:'to stand around like a chump',
+        ru:'торчать как дурак',
+        img:0, kind:'phrase', want:'def' },
+    'wie ein langsam brennendes Fieber':
+      { en:'like a slow-burning fever',
+        ru:'как медленно разгорающаяся лихорадка',
+        img:0, kind:'phrase', want:'def' },
+    'verdammt heiß aussehen':
+      { en:'to look damn hot',
+        ru:'выглядеть чертовски горячо',
+        img:0, kind:'phrase', want:'def' },
+    'so manchen Kopf verdrehen':
+      { en:'to turn quite a few heads',
+        ru:'вскружить не одну голову',
+        img:0, kind:'phrase', want:'def' },
+    'Die Minuten kriechen vorbei':
+      { en:'The minutes crawl past',
+        ru:'Минуты медленно ползут',
+        img:0, kind:'phrase', want:'def' },
+    'wie ein Fiebertraum':
+      { en:'like a fever dream',
+        ru:'как горячечный сон',
+        img:0, kind:'phrase', want:'def' },
+    'in Schleife laufen':
+      { en:'to keep looping',
+        ru:'повторяться по кругу',
+        img:0, kind:'phrase', want:'def' },
+    'sich weiterdrehen':
+      { en:'to keep turning',
+        ru:'продолжать крутиться',
+        img:0, kind:'phrase', want:'def' },
+    'das Warten wert sein':
+      { en:'to be worth the wait',
+        ru:'стоить ожидания',
+        img:0, kind:'phrase', want:'def' },
+    'in ihrer ganzen Schönheit':
+      { en:'in all her beauty',
+        ru:'во всей её красе',
+        img:0, kind:'phrase', want:'def' },
+    'froh sein, gewartet zu haben':
+      { en:'to be glad one waited',
+        ru:'быть рад, что дождался',
+        img:0, kind:'phrase', want:'def' },
+    'der Spaß':
+      { en:'fun',
+        ru:'веселье',
+        img:0, kind:'word', want:'def' },
+    'gelingen':
+      { en:'to succeed / turn out right',
+        ru:'удаваться',
+        img:0, kind:'word', want:'def' },
+    'mühelos':
+      { en:'effortless',
+        ru:'без усилий',
+        img:0, kind:'word', want:'def' },
+    'der Brand':
+      { en:'fire / blaze',
+        ru:'пожар / огонь',
+        img:0, kind:'word', want:'def' },
+    'leuchten':
+      { en:'to shine / glow',
+        ru:'сиять',
+        img:0, kind:'word', want:'def' },
+    'rufen':
+      { en:'to call',
+        ru:'звать',
+        img:0, kind:'word', want:'def' },
+    'der Diamantring':
+      { en:'diamond ring',
+        ru:'кольцо с бриллиантом',
+        img:0, kind:'word', want:'def' },
+    'fast bereit sein':
+      { en:'to be almost ready',
+        ru:'быть почти готовой',
+        img:0, kind:'phrase', want:'def' },
+    'Dieser Look muss mir gelingen':
+      { en:'I have to nail this look',
+        ru:'я должна довести этот образ до совершенства',
+        img:0, kind:'phrase', want:'def' },
+    'noch fünf Minuten brauchen':
+      { en:'to need five more minutes',
+        ru:'нужно ещё пять минут',
+        img:0, kind:'phrase', want:'def' },
+    'die Welt in Brand setzen':
+      { en:'to set the world on fire',
+        ru:'поджечь этот мир',
+        img:0, kind:'phrase', want:'def' },
+    'die Sterne zum Leuchten bringen':
+      { en:'to make the stars shine',
+        ru:'заставить звёзды сиять',
+        img:0, kind:'phrase', want:'def' },
+    'die Schuhe passen dazu':
+      { en:'the shoes match it',
+        ru:'туфли подходят к этому',
+        img:0, kind:'phrase', want:'def' },
+    'die Haare hinkriegen':
+      { en:'to get one\'s hair right',
+        ru:'привести волосы в порядок',
+        img:0, kind:'phrase', want:'def' },
+    'wie ein Diamantring aussehen':
+      { en:'to look like a diamond ring',
+        ru:'выглядеть как кольцо с бриллиантом',
+        img:0, kind:'phrase', want:'def' },
+    'alle Hälse nach mir drehen sehen':
+      { en:'to see every neck turn toward me',
+        ru:'увидеть, как все шеи повернутся мне вслед',
+        img:0, kind:'phrase', want:'def' },
+    'fast so weit sein':
+      { en:'to be almost ready / almost there',
+        ru:'быть почти готовой',
+        img:0, kind:'phrase', want:'def' },
+    'etwas mit diesen Haaren machen':
+      { en:'to do something about this hair',
+        ru:'что-то сделать с этими волосами',
+        img:0, kind:'phrase', want:'def' },
+    'jemanden warten lassen':
+      { en:'to keep someone waiting',
+        ru:'заставить кого-то ждать',
+        img:0, kind:'phrase', want:'def' },
+    'tief im Innern':
+      { en:'deep down',
+        ru:'в глубине души',
+        img:0, kind:'phrase', want:'def' },
+    'Auf mich zu warten lohnt sich':
+      { en:'I\'m worth waiting for',
+        ru:'меня стоит ждать',
+        img:0, kind:'phrase', want:'def' },
+    'sich nicht beschweren können':
+      { en:'to have no right to complain',
+        ru:'не иметь причин жаловаться',
+        img:0, kind:'phrase', want:'def' },
+    'jemanden fest in der Hand haben':
+      { en:'to have someone in the palm of one\'s hand',
+        ru:'крепко держать кого-то в своих руках',
+        img:0, kind:'phrase', want:'def' },
+    'wieder und wieder':
+      { en:'again and again',
+        ru:'снова и снова',
+        img:0, kind:'phrase', want:'def' },
+    'weitere fünf Minuten':
+      { en:'another five minutes',
+        ru:'ещё пять минут',
+        img:0, kind:'phrase', want:'def' },
+    'danach noch fünf Minuten':
+      { en:'five more minutes after that',
+        ru:'а потом ещё пять минут',
+        img:0, kind:'phrase', want:'def' },
   },
 
   /* Keyed on the audio stem, the only stable identifier a song has: songs
@@ -367,6 +619,98 @@ window.GH_SONGWORDS = {
      array, so an index here would break the day a song is inserted. */
   songs: {
 
+    'noch-fuenf-minuten': [
+      'hinaus',
+      'schick',
+      'bereit',
+      'warten',
+      'die Dämmerung',
+      'herab',
+      'die Jacke',
+      'der Spiegel',
+      'richten',
+      'das Haar',
+      'der Depp',
+      'das Fieber',
+      'makellos',
+      'der Kopf',
+      'kriechen',
+      'der Fiebertraum',
+      'die Schleife',
+      'beschweren',
+      'die Schönheit',
+      'froh',
+      'hinaus in die Nacht',
+      'bereit für den Spaß',
+      'die Schlüssel nehmen',
+      'zur Tür gehen',
+      'noch fünf Minuten',
+      'warten und warten',
+      'ihr letztes Licht in den Himmel brennen',
+      'aus der Dämmerung herabscheinen',
+      'nach mir rufen',
+      'Jacke an, Schuhe zu',
+      'Schlüssel in der Hand',
+      'vorm Spiegel stehen',
+      'ihr Haar richten',
+      'wie ein Depp herumstehen',
+      'wie ein langsam brennendes Fieber',
+      'verdammt heiß aussehen',
+      'so manchen Kopf verdrehen',
+      'Die Minuten kriechen vorbei',
+      'wie ein Fiebertraum',
+      'in Schleife laufen',
+      'sich weiterdrehen',
+      'das Warten wert sein',
+      'in ihrer ganzen Schönheit',
+      'froh sein, gewartet zu haben'
+    ],
+    'ihre-fuenf-minuten': [
+      'hinaus',
+      'die Nacht',
+      'schick',
+      'bereit',
+      'der Spaß',
+      'gelingen',
+      'mühelos',
+      'makellos',
+      'die Zeit',
+      'der Brand',
+      'der Stern',
+      'leuchten',
+      'rufen',
+      'das Kleid',
+      'die Handtasche',
+      'der Spiegel',
+      'die Haare',
+      'der Diamantring',
+      'die Schönheit',
+      'warten',
+      'beschweren',
+      'das Make-up',
+      'hinaus in die Nacht',
+      'fast bereit sein',
+      'Dieser Look muss mir gelingen',
+      'noch fünf Minuten brauchen',
+      'die Welt in Brand setzen',
+      'die Sterne zum Leuchten bringen',
+      'nach mir rufen',
+      'die Schuhe passen dazu',
+      'die Haare hinkriegen',
+      'wie ein Diamantring aussehen',
+      'verdammt heiß aussehen',
+      'alle Hälse nach mir drehen sehen',
+      'fast so weit sein',
+      'etwas mit diesen Haaren machen',
+      'jemanden warten lassen',
+      'tief im Innern',
+      'Auf mich zu warten lohnt sich',
+      'sich nicht beschweren können',
+      'jemanden fest in der Hand haben',
+      'wieder und wieder',
+      'weitere fünf Minuten',
+      'danach noch fünf Minuten'
+    ],
     /* Unterwegs bei Sonne, unterwegs bei Regen · 35 words */
     'unterwegs-bei-sonne-unterwegs-bei-regen': [
       'unterwegs', 'das Wetter', 'der Zug', 'die Straßenbahn',

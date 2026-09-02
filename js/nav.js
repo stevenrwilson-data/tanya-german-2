@@ -47,6 +47,8 @@ GH.nav = (function(){
                 works when the screen happens to have just repainted is
                 not working. */
              ' .rd-line, .rd-choice, .pt-lens, .cm-btn, .cm-de, .cm-swap,' +
+             /* the pet's line in a coach panel: tapping it hears the pet */
+             ' .co-pet-de,' +
              ' .sg-line, .sg-par-line, .sg-recur, .co-word, .es-item,' +
              ' .pt-say-de, .pt-say-btn, .co-earn-shop, .co-total-shop, .es-hear, .tile,' +
              ' .cm-card, .cm-prev, .cm-next, .cm-auto,' +
@@ -58,15 +60,28 @@ GH.nav = (function(){
                 view arms nav, so without these one tap would translate
                 the piece AND start the questions it just spent. */
              ' .rd-translate, .rd-warn-yes, .rd-warn-no, .sg-words, .sw-de, .sw-lens, .pt-buy,' +
+             ' .sw-match,' +
              ' .gd-open, .gd-head, .gd-go, .purse,' +
              ' .bt-btn, .bt-perch, .bt-box,' +
              ' .pt-strip-say, .petstrip, .petstrip-btn, .ptg-cell, .ptg-close,' +
+             ' .ptd-line, .ptd-go, .ptd-more, .ptd-x, .pt-ask, .rd-jump-b,' +
+             ' .rd-words, .rw-de, .rw-lens, .rw-match, .rd-q-tr,' +
+             ' .sp-opt, .sp-hear, .sp-rec, .sp-mode, .sp-cut, .ref-ex-de, .st-danger,' +
              ' .ref-search, .ref-search-in, .ref-search-x,' +
              ' .gw-pic, .gw-guess, .gw-cat, .gw-val, .gw-ask-back, .gw-answer-q,' +
              ' .gw-size,' +
              ' .update-bar, .update-go, .update-no,' +
              ' .wc-lang, .wc-gender, .wc-btn, .wc-input,' +
              ' .gw-level, .gw-confirm-yes, .gw-confirm-no,' +
+             /* Word Matching. The stage owns its own tap entirely — one
+                tap pauses and the next leaves — so it must never also
+                advance whatever is behind it. The cells and the chips are
+                the quiz and the setup. */
+             /* The jukebox transport. Every one of these has its own job
+                on a screen that also has a back link, and a stray advance
+                would skip a track. */
+             ' .jb-btn, .jb-row-go, .jb-move, .jb-song, .jb-clear,' +
+             ' .wm-stage, .wm-cell, .wm-saved-go, .wm-saved-x, .wm-go, .wm-exit,' +
              ' .tl-card, .tl-stage, .tl-de, .tl-choice, .tl-order-btn,' +
              ' .tl-next, .tl-play,' +
              ' .dg-card, .dc-entry, .dc-sense-de, .dc-say';
@@ -84,7 +99,7 @@ GH.nav = (function(){
        tap or a swipe behind it would have advanced the screen underneath.
        Every overlay that covers the page belongs here. */
     return !!(q('.howto-overlay.is-open') || q('.lb-overlay.open') ||
-              q('.ptg-overlay.is-open'));
+              q('.ptg-overlay.is-open') || q('.gr-overlay.is-open'));
   }
 
   function inside(node, sel){

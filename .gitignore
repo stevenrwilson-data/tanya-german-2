@@ -3,3 +3,4 @@ _local-only/
 *.log
 .env
 node_modules/
+functions/

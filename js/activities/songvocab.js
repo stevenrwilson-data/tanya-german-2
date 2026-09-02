@@ -181,6 +181,50 @@ GH.songWords = (function(){
       .trim();
   }
 
+  /* ---------- the same list, as an exercise ----------
+
+     This page is already the one place a song's words are collected, which
+     is exactly what a matching quiz needs — so the list becomes a session
+     rather than only a page to read.
+
+     resolve() returns what the CARD needs: a gloss in her current language
+     and nothing in the other. Word Matching needs both languages, because
+     the quiz shows her language on one side and it must still work after
+     she switches. So this reaches back to the three sources directly
+     instead of reusing resolve().
+
+     A real GH_VOCAB entry is handed over untouched, so the word arrives
+     with its own image number and its bank identity. The other two are
+     built to the same shape.
+
+     `say` carries the readable form for the five entries that have a
+     placeholder in them — sayable() already exists here for the card's own
+     speak button, and Word Matching honours the field. */
+  function matchWords(song){
+    var out = [];
+    refs(song).forEach(function(de){
+      var v = fromBank(de);
+      if (v){ out.push(v); return; }
+
+      var d = fromDict(de);
+      if (d){
+        /* The first sense carries the headword's picture and is the one the
+           card shows; the others are meanings the dictionary page is for. */
+        var sn = (d.senses || [])[0];
+        if (!sn) return;
+        out.push({ de:de, say:sayable(de), n:0, img:sn.img || 0,
+                   ru:sn.ru || '', en:sn.en || '' });
+        return;
+      }
+
+      var w = (data() && data().words[de]) || null;
+      if (!w) return;
+      out.push({ de:de, say:sayable(de), n:0, img:w.img || 0,
+                 ru:w.ru || '', en:w.en || '' });
+    });
+    return out;
+  }
+
   /* ---------- the page ---------- */
 
   function paint(){
@@ -215,6 +259,29 @@ GH.songWords = (function(){
 
     host.appendChild(el('p', 'sw-count',
       t('swCountN', { n:shown, pics:withPic })));
+
+    /* Straight from reading the list to being tested on it. Only when there
+       are enough for a real quiz — Word Matching's own floor is ten pairs,
+       and below that it runs but does not count, so offering it on a
+       four-word list would be offering something that pays nothing. */
+    var pool = matchWords(state.song);
+    if (pool.length >= 10 && GH.wordMatch && GH.wordMatch.openWords){
+      var go = el('button', 'btn btn-primary sw-match',
+                  t('swMatchN', { n:pool.length }));
+      go.type = 'button';
+      go.addEventListener('click', function(){
+        GH.speech.stop();
+        /* Back returns HERE, to the song's word list, rather than to the
+           hub — she came from a song and that is where she is going back
+           to. */
+        var back = state.onExit, song = state.song;
+        GH.wordMatch.openWords(host, pool, function(){
+          open(host, song, back);
+        });
+      });
+      host.appendChild(go);
+    }
+
     host.appendChild(cards);
 
     /* A reference that resolved to nothing is a typo between two files and

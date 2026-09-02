@@ -159,7 +159,13 @@ window.GH_PETS = {
       de:'der Fuchs', ru:'лиса', en:'fox',
       cost:3000, need:{ now:7, run:30 }, art:[] },
 
-    /* legendary — none of these can be bought at any price.
+    /* legendary — STALE COMMENT, CORRECTED 01 Sep 2026. It read "none of
+       these can be bought at any price", which was true when it was written
+       and is not now: all four have prices. Steven's rule as stated —
+       "x days of repeated effort and some achievements along with earned
+       currency" — so the money is real AND every condition below must hold.
+       The comment was left standing long enough that `earned()` was checked
+       against it and looked broken when it was not.
 
        Every one asks for three months of practice on consecutive days,
        and the Phoenix for five. That is the floor; each then asks for

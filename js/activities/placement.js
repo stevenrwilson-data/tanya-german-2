@@ -318,11 +318,21 @@ GH.placement = (function(){
     else { state.hearts--; state.missed.push(it); }
     if (state.run) state.run.saw('pl:' + state.i, it.correct);
     if (GH.tutor){
-      GH.tutor.grade('skill:placement', it.correct);
-      GH.tutor.grade('prep:' + it.rel.id, it.correct);
+      /* WHAT SHE CHOSE. In find mode `it.chose` is the noun she picked, so
+         the log gets the word she confused with the right one. In move mode
+         it is the slot index — which says whether she put it on the wrong
+         side or in the wrong place entirely, and those are different
+         misreadings of the same preposition. */
+      var pk;
+      if (it.chose === undefined || it.chose === null) pk = '';
+      else if (it.mode === 'find') pk = 'word:' + (it.chose.n === undefined ? '?' : it.chose.n);
+      else pk = 'slot:' + it.chose;
+
+      GH.tutor.grade('skill:placement', it.correct, null, pk);
+      GH.tutor.grade('prep:' + it.rel.id, it.correct, null, pk);
       /* the two modes are different grammar and fail independently */
-      GH.tutor.grade(it.mode === 'find' ? 'case:wo' : 'case:wohin', it.correct);
-      if (it.target) GH.tutor.grade('word:' + it.target.n, it.correct);
+      GH.tutor.grade(it.mode === 'find' ? 'case:wo' : 'case:wohin', it.correct, null, pk);
+      if (it.target) GH.tutor.grade('word:' + it.target.n, it.correct, null, pk);
     }
   }
 
@@ -468,6 +478,12 @@ GH.placement = (function(){
     }
 
     host.appendChild(card);
+
+    /* The question is on screen now, so time from here. Only when it is
+       still unanswered — a repaint showing the verdict is not a new
+       question, and marking it would measure how long she looked at the
+       answer. */
+    if (!it.done && GH.events && GH.events.shown) GH.events.shown();
     GH.nav.ready();
   }
 
