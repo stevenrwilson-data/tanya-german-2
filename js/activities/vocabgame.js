@@ -1,3 +1,4 @@
+/* js/activities/vocabgame.js */
 /* Vocab sets.
 
    A set is six words from one topic. Phase one tests the words; phase

@@ -1,3 +1,4 @@
+/* js/activities/gameguide.js */
 /* What every game is — one page.
 
    The hub gives her a glyph, a name and one line of subtitle per tile.
@@ -92,34 +93,68 @@ GH.guide = (function(){
     body.appendChild(el('span', 'gd-name', GH.i18n.pick(a.name)));
 
     var lines = rules(a.rules);
-    /* Rule one if there is one, the tile's own subtitle if not. */
+    /* An explicit `guide` line first, then rule one, then the tile's own
+       subtitle.
+
+       WHY A THIRD SOURCE. Rule 1 doubles as the guide summary and as the
+       first line of a game's "?" overlay, which works because for a game
+       those are the same sentence. A LESSON has no rules — nothing to
+       explain about how to press it — so it fell through to `sub`, and
+       `sub` is written for the hub tile: "Chapters 16-18 . thirty words"
+       tells her the scope and nothing about what the lesson does. An
+       activity that wants to say something longer here now can, without
+       either changing what its tile says or inventing a rules prefix and
+       an overlay it does not need. */
     body.appendChild(el('span', 'gd-what',
-      lines.length ? lines[0] : GH.i18n.pick(a.sub)));
+      a.guide ? GH.i18n.pick(a.guide)
+              : (lines.length ? lines[0] : GH.i18n.pick(a.sub))));
     head.appendChild(body);
 
+    /* TWO KINDS OF "MORE". A game expands into its remaining rules, which
+       are a numbered list because they are steps. A lesson has no rules
+       and expands into prose describing what it does — so either one is
+       enough to earn the expander, and a lesson is no longer a card with
+       nothing behind it on a screen whose subtitle promises more. */
+    var more = lines.length > 1 || !!a.detail;
     var open = state.open[a.id];
-    if (lines.length > 1){
+    if (more){
       head.appendChild(el('span', 'gd-more', open ? '\u2212' : '+'));
     }
     box.appendChild(head);
 
-    if (lines.length > 1){
+    if (more){
       head.addEventListener('click', function(){
         state.open[a.id] = !state.open[a.id];
         paint();
       });
       if (open){
-        var ol = el('ol', 'gd-rules');
-        lines.slice(1).forEach(function(x){
-          ol.appendChild(el('li', 'gd-rule', x));
-        });
-        box.appendChild(ol);
+        if (a.detail){
+          var det = el('div', 'gd-detail');
+          if (a.detailHead){
+            det.appendChild(el('h3', 'gd-detail-h', GH.i18n.pick(a.detailHead)));
+          }
+          det.appendChild(el('p', 'gd-detail-p', GH.i18n.pick(a.detail)));
+          box.appendChild(det);
+        }
+        if (lines.length > 1){
+          var ol = el('ol', 'gd-rules');
+          lines.slice(1).forEach(function(x){
+            ol.appendChild(el('li', 'gd-rule', x));
+          });
+          box.appendChild(ol);
+        }
       }
     }
 
     /* Straight into it from here, so reading about it and starting it are
        one screen rather than two. */
-    var go = el('button', 'btn gd-go', t('gdPlay'));
+    /* "Play" is wrong for most of this screen. Steven: "You have play it
+       should say go there or read." The Games section is the only part of
+       it you play — the read and reference sections are things you open,
+       and a Play button on The Reader or the Jukebox describes neither.
+       Lessons keep Play: Word Lab is played, in nine stages. */
+    var go = el('button', 'btn gd-go',
+      (a.kind === 'read' || a.kind === 'ref') ? t('gdGo') : t('gdPlay'));
     go.type = 'button';
     go.addEventListener('click', function(){
       GH.speech.stop();

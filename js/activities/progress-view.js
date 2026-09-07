@@ -1,3 +1,5 @@
+/* js/activities/progress-view.js */
+
 /* Прогресс — what she knows, what has slipped, and what is due.
 
    The old version of this screen showed percentages, which answer the
@@ -18,7 +20,22 @@
    the reasoning was right: lifetime says whether she ever learned it,
    recent says whether she knows it today, and the gap between them is
    slippage. A topic at 90% lifetime and 40% recent has not been failed —
-   it has been forgotten, and that needs revisiting rather than teaching. */
+   it has been forgotten, and that needs revisiting rather than teaching.
+
+   ------------------------------------------------------------------
+   03 SEP — TWO THINGS ADDED, BOTH REQUESTED DIRECTLY
+
+   Every headline tile is now tappable, not just Due and Learned. Tapping
+   any of the four opens a short explanation of what that number actually
+   measures — Due and Learned already had something to show when tapped
+   (their lists), and now say what they mean before showing it; Learning
+   and Stuck had nothing to tap at all, and now do. Nobody has to guess
+   what "23 stuck" means any more.
+
+   And a rolling week: the last 7 days, Kronen earned each day, and which
+   of those days reached the five-exercise target — the same "full day"
+   the streak and the achievements are built on, read out of the same
+   ledger rather than a separate guess. */
 
 window.GH = window.GH || {};
 
@@ -97,7 +114,12 @@ GH.progressView = (function(){
 
   /* Four numbers that between them say where she stands. Deliberately not
      a single score: 'due' is a call to action, 'learned' is the reward,
-     and the other two are the work in between. */
+     and the other two are the work in between.
+
+     Every tile is live now. It used to be only Due and Learned, gated on
+     having something to show — but a beginner at zero due is exactly the
+     person who most needs to be told what 'due' means, and Learning and
+     Stuck never had anywhere to send a tap at all. */
   function headline(){
     var s = GH.tutor.stats();
     var wrap = el('div', 'pv-head');
@@ -105,28 +127,20 @@ GH.progressView = (function(){
     var tiles = [
       { n:s.due,     key:'pvDue',      kind: s.due ? 'act' : 'calm', act:'due' },
       { n:s.mature,  key:'pvLearned',  kind:'good', act:'settled' },
-      { n:s.young,   key:'pvLearning', kind:'calm' },
-      { n:s.leeches, key:'pvStuck',    kind: s.leeches ? 'bad' : 'calm' }
+      { n:s.young,   key:'pvLearning', kind:'calm', act:'learning' },
+      { n:s.leeches, key:'pvStuck',    kind: s.leeches ? 'bad' : 'calm', act:'stuck' }
     ];
     tiles.forEach(function(x){
-      /* The due tile is the only one that is a call to action, so it is
-         the only one that is a button. A number that cannot be tapped is
-         a fact; the whole point of 'twelve are due' is doing the twelve. */
-      var live = !!x.act && x.n > 0;
-      var open_ = live && state.panel === x.act;
-      var b = el(live ? 'button' : 'div',
-                 'pv-tile pv-' + x.kind + (live ? ' is-live' : '') +
-                 (open_ ? ' is-on' : ''));
-      if (live){
-        b.type = 'button';
-        b.addEventListener('click', function(){
-          state.panel = state.panel === x.act ? null : x.act;
-          paint();
-        });
-      }
+      var open_ = state.panel === x.act;
+      var b = el('button', 'pv-tile pv-' + x.kind + ' is-live' + (open_ ? ' is-on' : ''));
+      b.type = 'button';
+      b.addEventListener('click', function(){
+        state.panel = state.panel === x.act ? null : x.act;
+        paint();
+      });
       b.appendChild(el('span', 'pv-tile-n', x.n));
       b.appendChild(el('span', 'pv-tile-l', t(x.key)));
-      if (live) b.appendChild(el('span', 'pv-tile-go', open_ ? '\u25b4' : '\u25be'));
+      b.appendChild(el('span', 'pv-tile-go', open_ ? '▴' : '▾'));
       wrap.appendChild(b);
     });
     return wrap;
@@ -137,10 +151,15 @@ GH.progressView = (function(){
      'Settled' is a threshold, not a trophy, and the screen has to say so:
      what the word means, how it was earned, and that it can be lost. A
      count with no definition behind it is the same dead end the due
-     number was. */
+     number was. Said unconditionally now, before the empty-state check —
+     tapping the tile at zero settled should still explain what settling
+     means, not just report that nothing has yet. */
   function settledBlock(){
     var rows = GH.tutor.matureList(null);
     var wrap = el('div', 'pv-due pv-settled');
+
+    wrap.appendChild(el('p', 'pv-settled-what', t('pvSettledWhat', { n:GH.tutor.matureDays })));
+    wrap.appendChild(el('p', 'pv-settled-what', t('pvSettledLoss')));
 
     if (!rows.length){
       wrap.appendChild(el('p', 'gr-note', t('pvNoneSettled')));
@@ -148,9 +167,6 @@ GH.progressView = (function(){
     }
 
     wrap.appendChild(el('p', 'pv-due-head', t('pvSettledHead', { n:rows.length })));
-    wrap.appendChild(el('p', 'pv-settled-what',
-      t('pvSettledWhat', { n:GH.tutor.matureDays })));
-    wrap.appendChild(el('p', 'pv-settled-what', t('pvSettledLoss')));
 
     var byArea = {}, order = [];
     rows.forEach(function(r){
@@ -205,10 +221,15 @@ GH.progressView = (function(){
      Grouped by area, because that is the unit a game can drill — twelve
      loose items scattered across five games is not a session, and there
      is no activity in the app that takes a mixed queue. Each group says
-     how many and offers the game that covers them. */
+     how many and offers the game that covers them.
+
+     Opens on a sentence saying what 'due' means, unconditionally — the
+     same reasoning as settledBlock() above. */
   function dueBlock(){
     var rows = GH.tutor.dueList(null);
     var wrap = el('div', 'pv-due');
+
+    wrap.appendChild(el('p', 'pv-settled-what', t('pvDueWhy')));
 
     if (!rows.length){
       wrap.appendChild(el('p', 'gr-note', t('pvNoneDue')));
@@ -269,6 +290,18 @@ GH.progressView = (function(){
     return wrap;
   }
 
+  /* Learning and Stuck have no list behind them — nothing in the app
+     offers a queue of 'everything young' or 'everything leeched' the way
+     dueList()/matureList() do for the other two. Steven asked for an
+     explanation of what each tile measures, not a new browsing screen, so
+     this is exactly that and nothing more: one panel, one sentence, shared
+     by both tiles and told apart by which key is passed in. */
+  function explainBlock(key){
+    var wrap = el('div', 'pv-due pv-explain');
+    wrap.appendChild(el('p', 'pv-settled-what', t(key)));
+    return wrap;
+  }
+
   /* What the numbers mean, said once, in a sentence rather than a legend. */
   function readingOf(){
     var s = GH.tutor.stats();
@@ -276,6 +309,53 @@ GH.progressView = (function(){
     if (s.due > 20) return t('pvLotsDue', { n:s.due });
     if (s.due) return t('pvSomeDue', { n:s.due });
     return t('pvNoneDue');
+  }
+
+  /* ---------- the rolling week ----------
+
+     Requested directly: the last 7 days, Kronen per day, and which days
+     hit the five-exercise target. Read from GH.coins.lastDays(), which
+     archives off the exact same `done`/`gotBonus` the daily bonus and the
+     streak are already built on — so 'full' here means precisely what
+     'full day' means everywhere else in the app, not a second definition
+     invented for this screen. */
+  function weekBlock(){
+    if (!GH.coins || !GH.coins.lastDays) return null;
+    var days = GH.coins.lastDays(7);
+    var target = (GH.coins.rates && GH.coins.rates.target) || 5;
+
+    var max = 1;
+    days.forEach(function(d){ if (d.coins > max) max = d.coins; });
+    var fullN = 0;
+    days.forEach(function(d){ if (d.full) fullN++; });
+
+    var wrap = el('div', 'pv-week');
+    wrap.appendChild(el('h2', 'gr-group', t('pvWeekHead')));
+    wrap.appendChild(el('p', 'gr-note', t('pvWeekNote', { n:target })));
+    wrap.appendChild(el('p', 'pv-week-tally', t('pvWeekTallyN', { n:fullN })));
+
+    var rows = el('div', 'pv-week-rows');
+    days.forEach(function(d){
+      var row = el('div', 'pv-week-row' + (d.full ? ' is-full' : '') +
+                            (d.isToday ? ' is-today' : ''));
+      var dlab = d.isToday ? t('pvToday')
+        : new Date(d.date).toLocaleDateString(undefined, { weekday:'short' });
+      row.appendChild(el('span', 'pv-week-day', dlab));
+
+      var track = el('div', 'pv-week-bar');
+      var fillEl = el('div', 'pv-week-fill');
+      fillEl.style.width = Math.max(d.coins ? 4 : 0, Math.round((d.coins / max) * 100)) + '%';
+      track.appendChild(fillEl);
+      row.appendChild(track);
+
+      row.appendChild(el('span', 'pv-week-n', '◈ ' + d.coins));
+      row.appendChild(el('span', 'pv-week-mark', d.full ? '✓' : ''));
+
+      rows.appendChild(row);
+    });
+    wrap.appendChild(rows);
+
+    return wrap;
   }
 
   /* ---------- rows ---------- */
@@ -351,7 +431,7 @@ GH.progressView = (function(){
     /* the scheduler's own numbers, for when they are wanted */
     if (c){
       var why = el('span', 'pv-why');
-      why.textContent = state.open === r.key ? '\u00d7' : '?';
+      why.textContent = state.open === r.key ? '×' : '?';
       why.addEventListener('click', function(e){
         e.stopPropagation();
         state.open = state.open === r.key ? null : r.key;
@@ -377,7 +457,7 @@ GH.progressView = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
+    var back = el('button', 'backlink', '‹ ' + t('back'));
     back.type = 'button';
     back.addEventListener('click', function(){ state.onExit(); });
     head.appendChild(back);
@@ -393,9 +473,15 @@ GH.progressView = (function(){
     card.appendChild(headline());
     card.appendChild(el('p', 'pv-reading', readingOf()));
 
-    /* the list behind whichever number she tapped */
+    /* the panel behind whichever tile she tapped — a list for two of them,
+       a plain explanation for the other two */
     if (state.panel === 'due') card.appendChild(dueBlock());
     else if (state.panel === 'settled') card.appendChild(settledBlock());
+    else if (state.panel === 'learning') card.appendChild(explainBlock('pvLearningWhy'));
+    else if (state.panel === 'stuck') card.appendChild(explainBlock('pvStuckWhy'));
+
+    var wb = weekBlock();
+    if (wb) card.appendChild(wb);
 
     if (!GH.tutor.enabled()){
       card.appendChild(el('p', 'pv-off', t('pvTutorOff')));

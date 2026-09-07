@@ -1,3 +1,4 @@
+/* data/curriculum.js */
 /* Lessons.
 
    The layer the app has been missing. A grammar page explains and a game

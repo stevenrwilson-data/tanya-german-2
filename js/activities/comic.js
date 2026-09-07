@@ -1,3 +1,4 @@
+/* js/activities/comic.js */
 /* Alina and Stella — the reader.
 
    A comic is one image with its panels drawn into it, so nothing is
@@ -206,6 +207,27 @@ GH.comic = (function(){
     return !!d[keyOf(c)];
   }
 
+  /* ---------- WHAT SHE HAS EVER READ, SEPARATELY ----------
+
+     `gh-comic-read` is the CURRENT PASS and is cleared unit by unit as each
+     one is paid, so the n/10 on a unit tile always means "how close am I to
+     earning this again". That makes the counter honest and makes the
+     achievement impossible to read off it — hence a second store that is
+     never cleared. */
+  var EVER_KEY = 'gh-comic-ever';
+
+  function everAll(){
+    try {
+      var raw = window.localStorage.getItem(EVER_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e){ return {}; }
+  }
+
+  function hasEver(c){
+    var d = everAll()[readSlot()] || {};
+    return !!d[keyOf(c)];
+  }
+
   function markRead(c){
     if (!c) return;
     try {
@@ -213,7 +235,136 @@ GH.comic = (function(){
       if (!all[readSlot()]) all[readSlot()] = {};
       all[readSlot()][keyOf(c)] = 1;
       window.localStorage.setItem(READ_KEY, JSON.stringify(all));
+      var ev = everAll();
+      if (!ev[readSlot()]) ev[readSlot()] = {};
+      ev[readSlot()][keyOf(c)] = 1;
+      window.localStorage.setItem(EVER_KEY, JSON.stringify(ev));
     } catch (e){}
+  }
+
+  /* ---------- A WHOLE UNIT PAYS, ONCE A WEEK ----------
+
+     Steven: "make every full unit worth 20 pts, 2 exercises... a seven day
+     cool down... you have to listen to the full unit for 7 to 10 comics
+     with 4-6 panels each. That should be worth 20 pts."
+
+     A unit is seven to ten comics of four to six panels — between about
+     thirty and sixty lines of German read and heard. Two exercises out of
+     the day's five is the right weight for that and the arithmetic he did
+     is right: five units over five days is ten exercises earned, and she
+     still needs two more each day. It cannot be farmed into a whole day.
+
+     THE COOLDOWN AND THE RESET ARE ONE MECHANISM, NOT TWO. Paying on
+     `unitDone` alone would pay every seven days for ever without her
+     opening anything, because the read marks persist and the unit stays
+     done. So payment clears that unit's marks: the seven days must pass
+     AND the unit must be read again. */
+  var PAID_KEY = 'gh-comic-paid';
+  var UNIT_COINS = 20;
+  var UNIT_TASKS = 2;
+  var REST_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function paidAll(){
+    try {
+      var raw = window.localStorage.getItem(PAID_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e){ return {}; }
+  }
+
+  function paidAt(unit){
+    var d = paidAll()[readSlot()] || {};
+    return d[unit] || 0;
+  }
+
+  function restingUnit(unit){
+    var at = paidAt(unit);
+    return !!at && (Date.now() - at) < REST_MS;
+  }
+
+  function clearUnit(u){
+    try {
+      var all = readAll();
+      var mine = all[readSlot()] || {};
+      u.comics.forEach(function(c){ delete mine[keyOf(c)]; });
+      all[readSlot()] = mine;
+      window.localStorage.setItem(READ_KEY, JSON.stringify(all));
+    } catch (e){}
+  }
+
+  /* Called after a comic is ticked. Returns what was paid, or null. */
+  function payUnit(c){
+    if (!c) return null;
+    var u = null, list = units(), i;
+    for (i = 0; i < list.length; i++) if (list[i].unit === c.unit) u = list[i];
+    if (!u || !unitDone(u)) return null;
+    if (restingUnit(u.unit)) return null;
+    if (!GH.coins || !GH.coins.awardPart) return null;
+
+    /* TWO CALLS, AND DELIBERATELY. `awardPart(game, coins, per)` counts one
+       partial per call, so `per:1` completes one of the five daily
+       exercises each time. Two exercises is two calls, and the coins ride
+       on the first so the second does not report a second payment. */
+    var got = GH.coins.awardPart('comic', UNIT_COINS, 1);
+    GH.coins.awardPart('comic', 0, 1);
+
+    try {
+      var all = paidAll();
+      if (!all[readSlot()]) all[readSlot()] = {};
+      all[readSlot()][u.unit] = Date.now();
+      window.localStorage.setItem(PAID_KEY, JSON.stringify(all));
+    } catch (e){}
+    clearUnit(u);
+    if (GH.purse) GH.purse.refresh();
+    return { unit:u.unit, coins:UNIT_COINS, tasks:UNIT_TASKS, got:got };
+  }
+
+  /* For awards.js: every comic in every unit, ever read. */
+  /* ---------- WHAT THE ACHIEVEMENTS ASK ----------
+
+     `allComics` was one flag: every unit in the file, read. That worked
+     while there were five units and became a trap the moment there were
+     more — a flag that means "all of them" silently changes what it
+     demands every time content is added, so somebody who had earned it
+     would open the page and find a completed achievement she could no
+     longer satisfy.
+
+     Steven's fix, and it is the right shape: "change the achievement for
+     comics to reading any full unit, and one for reading 1-5. And another
+     for 6-8." A range can never move.
+
+     So this reports which UNITS are finished and lets awards.js ask about
+     whatever ranges it likes. `unitsRead` is the set of unit numbers;
+     `inRange(a, b)` answers whether every unit that exists between a and b
+     is done — and it is false when the range is empty, because "all of a
+     range with nothing in it" is not an achievement, it is a division by
+     zero. That matters right now: units 6 to 8 have no content yet, so
+     the new achievement must be unearnable rather than instantly true.
+
+     `allComics` is kept and still means every unit in the file. Nothing
+     reads it after this change, but removing an exported field is how a
+     caller somewhere breaks silently. */
+  function progress(){
+    var list = units(), done = 0, all = true, read = {};
+    list.forEach(function(u){
+      var full = u.comics.every(function(c){ return hasEver(c); });
+      if (full){ done++; read[u.n] = true; } else all = false;
+    });
+
+    function inRange(from, to){
+      var any = false, ok = true;
+      list.forEach(function(u){
+        if (u.n < from || u.n > to) return;
+        any = true;
+        if (!read[u.n]) ok = false;
+      });
+      return any && ok;
+    }
+
+    return { unitsEver:done, units:list.length,
+             allComics:all && list.length > 0,
+             unitsRead:read,
+             anyUnit:done >= 1,
+             inRange:inRange };
   }
 
   function readIn(u){
@@ -458,6 +609,9 @@ GH.comic = (function(){
        forty-six looked like one activity. */
     if (GH.events && GH.events.mark) GH.events.mark('read', 'comic:' + c.id);
     state.comic = c;
+    /* A new screen, so it starts at the top rather than inheriting the
+       index's scroll offset. */
+    if (GH.nav && GH.nav.top) GH.nav.top();
     state.panel = 0;
     state.line = 0;
     state.shown = false;
@@ -537,7 +691,78 @@ GH.comic = (function(){
 
     host.appendChild(tools());
     host.appendChild(state.view === 'all' ? allBox() : readerBox());
+    host.appendChild(comicNav());
     armNav();
+  }
+
+  /* ---------- ON TO THE NEXT COMIC ----------
+
+     Steven, with a screenshot of the All-text view: "Literally zero
+     mechanism to advance." Correct, and it was worse than missing a
+     shortcut — there was no way out of a comic except Back.
+
+     The prev/next pair that already existed belongs to the LINE and lives
+     inside readerBox(), so it only exists in the One-line view and only
+     ever moves between lines of the comic you are already in. The All-text
+     view has no line cursor and therefore had no buttons at all: picture,
+     text, two toggles, nothing to press.
+
+     This row belongs to the COMIC, so it is appended by paintComic() and
+     appears in both views. Within the unit only, which is what he asked
+     for — the unit is the story arc and comic 10 of unit 1 does not run on
+     into comic 1 of unit 2.
+
+     LABELLED WITH THE NUMBER IT GOES TO, not "Next": in the One-line view
+     there is already a Next that means the next LINE, and two buttons
+     saying the same word doing different things is the confusion this is
+     meant to end. `cmComicN` is already translated, so this needs no new
+     string.
+
+     IT DOES NOT MARK ANYTHING READ. Finishing a comic is pressing Done on
+     its last line, and that is deliberately the only thing that ticks one
+     (see the note on that button). Advancing has to stay free of the
+     bookkeeping or flipping through a unit would tick all ten. */
+  function unitComics(c){
+    return all().filter(function(x){ return x.unit === c.unit; })
+                .sort(function(x, y){ return x.comic - y.comic; });
+  }
+
+  function comicNav(){
+    var c = state.comic;
+    var list = unitComics(c);
+    var at = -1, i;
+    for (i = 0; i < list.length; i++) if (list[i].id === c.id) at = i;
+
+    var row = el('div', 'cm-cnav');
+    if (at < 0) return row;
+
+    var before = list[at - 1], after = list[at + 1];
+
+    var prev = el('button', 'btn cm-cprev',
+      before ? '\u2039 ' + t('cmComicN', { n:before.comic }) : '');
+    prev.type = 'button';
+    prev.disabled = !before;
+    if (before){
+      prev.addEventListener('click', function(){ stopAll(); openComic(before); });
+    } else {
+      /* Kept in place rather than removed, so `next` does not slide across
+         the row and land where `prev` was on the comic before. */
+      prev.style.visibility = 'hidden';
+    }
+    row.appendChild(prev);
+
+    var next = el('button', 'btn btn-primary cm-cnext',
+      after ? t('cmComicN', { n:after.comic }) + ' \u203a' : '');
+    next.type = 'button';
+    next.disabled = !after;
+    if (after){
+      next.addEventListener('click', function(){ stopAll(); openComic(after); });
+    } else {
+      next.style.visibility = 'hidden';
+    }
+    row.appendChild(next);
+
+    return row;
   }
 
   /* The two controls that belong to the whole comic rather than to one
@@ -847,8 +1072,15 @@ GH.comic = (function(){
         /* The last line, pressed Done: that is what finishing a comic
            means, and it is the only thing that ticks one. */
         markRead(state.comic);
+        /* The tick may have completed the unit. Checked here because this
+           is the only place a comic is ever finished. */
+        var paid = payUnit(state.comic);
         stopAll();
         paintIndex();
+        /* No toast: there is no such helper in this app, and inventing one
+           for a single caller is how a second notification system starts.
+           The purse in the header counts up, which is how every other
+           payment in the app announces itself. */
         return;
       }
       step(1);
@@ -927,6 +1159,19 @@ GH.comic = (function(){
     glyph:'\ud83d\udcd6',
     name:{ ru:'Алина и Стелла', de:'Alina und Stella', en:'Alina and Stella' },
     sub:{ ru:'Комиксы', de:'Comics', en:'Comics' },
+    /* What opens behind the + on the game guide. Steven's text.
+
+       No `detailHead`: the card is already headed "Alina and Stella", and
+       Word Lab only has one because a nine-stage lesson needed a title.
+
+       This card was the worst case of the guide's fallback: `sub` is the
+       single word "Comics", which says less than the glyph does. Nothing
+       on that screen said she could switch editions, read a line at a
+       time or the whole story, hear it read, or reveal a translation per
+       line — four features with no way to discover them. */
+    detail:{ en:'Follow Alina and her magical purse Stella through a series of illustrated stories. Read one line at a time or the whole story, switch languages, listen to the text, and use translations when you need them.',
+             de:'Begleite Alina und ihre magische Tasche Stella durch eine Reihe illustrierter Geschichten. Lies Zeile für Zeile oder die ganze Geschichte, wechsle zwischen den Sprachen, höre dir den Text an und nutze Übersetzungen, wenn du sie brauchst.',
+             ru:'Следи за приключениями Алины и её волшебной сумочки Стеллы в серии иллюстрированных историй. Читай по одной строке или всю историю целиком, переключай языки, слушай текст и используй перевод, когда он нужен.' },
     open:open
   };
   /* Register whenever app.js turns up.
@@ -944,5 +1189,5 @@ GH.comic = (function(){
   else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', register);
   else register();
 
-  return { open:open, entry:entry, register:register };
+  return { open:open, entry:entry, register:register, progress:progress };
 })();

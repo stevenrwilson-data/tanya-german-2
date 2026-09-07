@@ -1,3 +1,4 @@
+/* js/activities/store.js */
 /* The store.
 
    Pets, and places for them to stand. Nothing here affects how the app
@@ -525,7 +526,10 @@ GH.store = (function(){
         var g = el('button', 'pt-grow');
         g.type = 'button';
         g.disabled = !GH.coins.afford(growCost(p));
-        g.textContent = t('stGrow') + '  \u25c8 ' + growCost(p);
+        /* A string label, so the CHARACTER and not the element — an
+           <img> cannot go in textContent. markText() is coins.js's answer
+           for exactly these places. */
+        g.textContent = t('stGrow') + '  ' + GH.coins.markText() + ' ' + growCost(p);
         g.addEventListener('click', function(){ grow(p); });
         box.appendChild(g);
       } else if (form(p.id) >= 3){
@@ -554,13 +558,21 @@ GH.store = (function(){
       /* Still say what it would otherwise have cost or needed, so using a
          token is a visible choice rather than a shortcut she stumbles on. */
       if (gated && !gateOpen) box.appendChild(el('span', 'pt-need', needText(p)));
-      else if (p.cost) box.appendChild(el('span', 'pt-locked-cost', '\u25c8 ' + p.cost));
+      else if (p.cost){
+        var lc = el('span', 'pt-locked-cost');
+        lc.appendChild(GH.coins.markWith(p.cost));
+        box.appendChild(lc);
+      }
       return box;
     }
 
     if (gated && !gateOpen){
       box.appendChild(el('span', 'pt-need', needText(p)));
-      if (p.cost) box.appendChild(el('span', 'pt-locked-cost', '\u25c8 ' + p.cost));
+      if (p.cost){
+        var lc2 = el('span', 'pt-locked-cost');
+        lc2.appendChild(GH.coins.markWith(p.cost));
+        box.appendChild(lc2);
+      }
       return box;
     }
 
@@ -568,7 +580,8 @@ GH.store = (function(){
       var b = el('button', 'pt-buy' + (GH.coins.afford(p.cost) ? '' : ' is-dear'));
       b.type = 'button';
       b.disabled = !GH.coins.afford(p.cost);
-      b.textContent = '\u25c8 ' + p.cost;
+      b.textContent = '';
+      b.appendChild(GH.coins.markWith(p.cost));
       b.addEventListener('click', function(){ buy(p); });
       box.appendChild(b);
       /* the gate is behind her, so say so rather than leaving the card
@@ -651,7 +664,8 @@ GH.store = (function(){
       var sb = el('button', 'btn btn-primary pt-slot-buy');
       sb.type = 'button';
       sb.disabled = !GH.coins.afford(next.cost);
-      sb.textContent = t('stBuySlot', { n:next.n }) + '  \u25c8 ' + next.cost;
+      sb.textContent = t('stBuySlot', { n:next.n }) + '  ' +
+                       GH.coins.markText() + ' ' + next.cost;
       sb.addEventListener('click', buySlot);
       card.appendChild(sb);
     }

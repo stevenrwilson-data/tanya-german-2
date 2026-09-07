@@ -1,3 +1,4 @@
+/* js/activities/listen-speak.js */
 /* LISTEN AND SPEAK — the pronunciation lab.
 
    Everything else in the app asks her to recognise German. This is the only

@@ -1,3 +1,4 @@
+/* data/past.js */
 /* The past, which German has two of.
 
    Perfekt is what people say: haben or sein plus a participle. Präteritum

@@ -1,3 +1,4 @@
+/* js/activities/catch-word.js */
 /* Поймай слово — words surface in a 3×3 grid; tap the ones belonging to
    the announced topic before they vanish, leave the rest alone.
 

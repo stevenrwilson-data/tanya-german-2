@@ -1,3 +1,4 @@
+/* js/send.js */
 /* Sending the event log somewhere Steven can read it.
 
    The log lives in her browser. He is not near her and cannot read it off

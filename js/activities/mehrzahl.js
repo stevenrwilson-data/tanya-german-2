@@ -1,3 +1,4 @@
+/* js/activities/mehrzahl.js */
 /* Mehrzahl — the plural.
 
    German plurals look arbitrary and mostly are not. Five endings cover

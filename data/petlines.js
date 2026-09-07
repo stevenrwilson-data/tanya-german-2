@@ -1,3 +1,4 @@
+/* data/petlines.js */
 /* What each pet says at the end of a round.
 
    Four bands, chosen by the percentage she scored:

@@ -1,3 +1,4 @@
+/* js/app.js */
 /* Screen wiring + the hub. Add new games with GH.app.register(). */
 
 window.GH = window.GH || {};
@@ -135,6 +136,7 @@ GH.app = (function(){
 
   function filterBlock(){
     var wrap = el('div', 'filterwrap');
+    var row = el('div', 'filter-row');
 
     var toggle = el('button', 'filter-toggle' + (catCount ? ' has' : ''));
     toggle.type = 'button';
@@ -148,7 +150,32 @@ GH.app = (function(){
       filterOpen = !filterOpen;
       hub();
     });
-    wrap.appendChild(toggle);
+    row.appendChild(toggle);
+
+    /* NOW WIRED. It shipped inert in v262 — Steven's instruction was to
+       claim the spot next to the filter toggle before there was anywhere
+       to go, so the destination would not have to be guessed at. There is
+       somewhere to go now.
+
+       Opened the same way the game guide's button is, a few hundred lines
+       down: stop the speech, tell the log we are leaving the hub, clear
+       the view, and launch() the screen with `hub` as its way back. Doing
+       it any other way is how a screen ends up outside the event log —
+       launch() is the only thing that records which screen she is on. */
+    if (GH.toc){
+      var toc = el('button', 'filter-toggle toc-toggle');
+      toc.type = 'button';
+      toc.appendChild(el('span', null, t('tocButton')));
+      toc.addEventListener('click', function(){
+        GH.speech.stop();
+        leaving();
+        view.textContent = '';
+        launch(function(){ GH.toc.open(view, hub); }, 'toc');
+      });
+      row.appendChild(toc);
+    }
+
+    wrap.appendChild(row);
 
     if (!filterOpen) return wrap;
 
@@ -173,6 +200,55 @@ GH.app = (function(){
     wrap.appendChild(chips);
     wrap.appendChild(el('p', 'filter-hint', t('filterHint')));
     return wrap;
+  }
+
+  /* ---------- FOUR AT A TIME, NOT ALL OF THEM ----------
+
+     Steven, having timed it: five seconds of accelerated scrolling to reach
+     the bottom. Seventeen topics of sentences, every story, a vocabulary set
+     for every topic and every long story, all laid out in full, before the
+     lessons and games have even started.
+
+     Two per row and tighter tiles halved the height. This is the part that
+     actually fixes it: the four data-heavy sections show four and offer the
+     rest. Her idea of the app is the same — everything is still there and
+     one tap away — but the page is a menu again rather than an inventory.
+
+     A FILTER TURNS THIS OFF ENTIRELY. Choosing topics is her saying which
+     ones she wants; hiding some of THOSE behind a button would be the app
+     arguing with an instruction it was just given.
+
+     Expanded per section and only until she leaves the hub, deliberately.
+     Nothing is stored: a section she opened once should not be permanently
+     long, and the next visit starts short again.
+
+     The tiles are built and then trimmed rather than sliced at the source,
+     because the four sections read four differently-shaped lists and one
+     trim after the fact is far less to get wrong than four slices. The
+     observer is released as each one goes — `watch()` registers every tile
+     with the IntersectionObserver, and dropping the node without
+     unobserving would leak one per repaint, and the hub repaints often. */
+  var SHOW_FIRST = 4;
+  var openedSections = {};
+
+  function capTiles(sec, key){
+    if (catCount) return;                    /* she filtered; show what she asked for */
+    if (openedSections[key]) return;
+    var total = sec._tiles.children.length;
+    if (total <= SHOW_FIRST) return;
+    while (sec._tiles.children.length > SHOW_FIRST){
+      var last = sec._tiles.lastChild;
+      if (watcher && watcher.unobserve) watcher.unobserve(last);
+      sec._tiles.removeChild(last);
+    }
+    var more = el('button', 'btn btn-quiet sec-more',
+                  t('secShowAll', { n:total }));
+    more.type = 'button';
+    more.addEventListener('click', function(){
+      openedSections[key] = true;
+      hub();
+    });
+    sec.appendChild(more);
   }
 
   function section(headKey, count){
@@ -235,7 +311,20 @@ GH.app = (function(){
   function whoCard(){
     var name = (GH.player.current().name || '').trim();
     var g = GH.player.gender();
-    var blank = !name || !g;
+    /* NAME ONLY. Gender does not gate this card.
+
+       It used to require both, and "не указывать" / "do not specify" —
+       the default, pre-selected choice — DELETES the gender field rather
+       than storing one (see GH.player.setGender). So choosing the option
+       that was already selected left the card permanently blank, and
+       `hub()` reopens it on every redraw: a closed loop with no exit,
+       because the dismiss button below only appears when the card is NOT
+       blank.
+
+       player.js says it outright: "Empty is a real answer and the
+       default. Nothing may require this to be set." This card was the one
+       place in the app breaking that promise. */
+    var blank = !name;
 
     var box = document.createElement('div');
     /* surf-paper carries both the background and the text colour, so the
@@ -375,6 +464,9 @@ GH.app = (function(){
     sawPet = null;
     /* And whatever she was doing has ended. */
     closeActivity();
+    /* The new screen starts at the top. Recorded ABOVE first, so coming
+       back still lands where she was on the hub. */
+    if (GH.nav && GH.nav.top) GH.nav.top();
   }
 
   function restoreScroll(){
@@ -687,14 +779,26 @@ GH.app = (function(){
        one screen makes both look like decoration. */
     if (GH.purse) GH.purse.refresh();
 
-    /* a sentence when she arrives, said once per visit */
-    if (GH.coach && !GH.coach.muted()){
-      var g = GH.coach.greeting();
-      var hi = document.createElement('p');
-      hi.className = 'co-hello';
-      hi.textContent = t(g.key, g.v || {});
-      view.appendChild(hi);
-    }
+    /* HER PET GREETS HER, SO THE COACH NO LONGER SAYS IT TWICE.
+
+       petStrip() above already greets her by name and in character — "Oh.
+       Du bist wieder da, Steven. Mein Horn hat es gemerkt." — and this
+       printed "Hello again, Steven. Back to some German." directly
+       underneath it. The same sentence twice, with the plain one second.
+       Greeting is the pet's job and the pet is better at it.
+
+       THE CALL STAYS, AND MUST. greeting() is not a getter: decide()
+       inside it is what increments the day count, the streak and the best
+       streak, and awards.js reads all three back through
+       GH.coach.stats(). Deleting the call along with the paragraph would
+       have silently stopped her streak and every day-count achievement.
+
+       Separately, and NOT fixed here because it is not what this change
+       is: the call sits behind !muted(), so muting the coach already stops
+       the streak counting today. Same class of bug as the one the comment
+       above GH.events.visit() describes, in the one place it was not
+       fixed. */
+    if (GH.coach && !GH.coach.muted()) GH.coach.greeting();
 
     /* What is waiting, and one tap to it.
 
@@ -735,7 +839,20 @@ GH.app = (function(){
 
     view.appendChild(el('p', 'eyebrow', 'Deutsch · Русский · English'));
     view.appendChild(el('h1', null, t('hubTitle')));
-    view.appendChild(el('p', 'lede', t('hubLede')));
+    /* `hubLede` USED TO SIT HERE AND DESCRIBED THE WRONG THING.
+
+       "Hear the sentence, fill in the missing word, hear it again" is
+       fill-blank — Section 1, one of eight — printed directly under a
+       heading that asks what she wants to practise out of all of them. A
+       leftover from when this site was only sentences.
+
+       Removed rather than moved: no other section carries a description,
+       so giving one to Section 1 alone would make it look like the odd one
+       out rather than the explained one.
+
+       THE STRING IS STILL IN i18n.js in all three languages. Steven wrote
+       it, it is correct about what it describes, and restoring it anywhere
+       is one line. */
 
     /* sentences by topic */
     var cats = GH_BANK.categories || [];
@@ -752,6 +869,7 @@ GH.app = (function(){
         'fill-blank:' + cat.id
       ));
     });
+    capTiles(sec, 'sentences');
     if (sec._tiles.children.length) view.appendChild(sec); else jumps.pop();
 
     /* stories */
@@ -762,7 +880,17 @@ GH.app = (function(){
       var blanks = (story.sentences || []).reduce(function(sum, s){ return sum + countBlanks(s); }, 0);
       var cat = cats.filter(function(c){ return c.id === story.cat; })[0];
       sec2._tiles.appendChild(tile(
-        '📖',
+        /* THE STORY'S OWN TOPIC, not a book for all of them.
+
+           `cat` is looked up right above this and used on the next line but
+           one for the footer, so the topic glyph was already in hand and a
+           hardcoded 📖 was printed over it. Twelve stories, twelve identical
+           icons, in a section where the icon is the only thing the eye can
+           use to tell one card from another at a glance.
+
+           Falls back to the book where a story has no category, which is a
+           real state — nothing requires `story.cat` to match a known one. */
+        (cat && cat.glyph) || '📖',
         GH.i18n.pick(story.title),
         t('itemsN', { n:(story.sentences || []).length }),
         cat ? GH.i18n.pick(cat) + ' · ' + t('blanksN', { n:blanks }) : t('blanksN', { n:blanks }),
@@ -770,6 +898,7 @@ GH.app = (function(){
         'story:' + (story.id || story.cat)
       ));
     });
+    capTiles(sec2, 'stories');
     if (sec2._tiles.children.length) view.appendChild(sec2); else jumps.pop();
 
     /* vocab sets: words first, then the sentences that use them */
@@ -790,6 +919,7 @@ GH.app = (function(){
           ));
         });
       });
+      capTiles(sec25, 'vocab');
       if (any) view.appendChild(sec25); else jumps.pop();
     }
 
@@ -800,7 +930,9 @@ GH.app = (function(){
       shown4.forEach(function(story){
         var c = cats.filter(function(x){ return x.id === story.cat; })[0];
         sec4._tiles.appendChild(tile(
-          '📚',
+          /* Same as Section 2 above: the topic it is about, falling back to
+             the stack of books where there is no category to name. */
+          (c && c.glyph) || '📚',
           GH.i18n.pick(story.title),
           t('itemsN', { n:story.sentences.length }),
           c ? GH.i18n.pick(c) : null,
@@ -808,6 +940,7 @@ GH.app = (function(){
           'long-story:' + (story.id || story.cat)
         ));
       });
+      capTiles(sec4, 'long');
       if (sec4._tiles.children.length) view.appendChild(sec4); else jumps.pop();
     }
 
@@ -827,29 +960,75 @@ GH.app = (function(){
     var taught = extras.filter(function(a){ return a.kind === 'lesson'; });
     var grammarLessons = (GH.lessons && GH.lessons.all()) || [];
 
+    /* Named rather than inline, so the overview list below can open the
+       exact same lesson the same way a tile does \u2014 one place that
+       decides what "open lesson X" means, not two that have to be kept
+       in step. */
+    function openTaughtLesson(a){
+      GH.speech.stop();
+      leaving();
+      view.textContent = '';
+      launch(function(){ a.open(view, hub); }, a.id);
+    }
+    function openGrammarLesson(l){
+      GH.speech.stop();
+      leaving();
+      view.textContent = '';
+      launch(function(){ GH.lessons.open(view, hub, l.id); }, 'lessons');
+    }
+
     if (taught.length || grammarLessons.length){
       var secL = section('lsHead');
 
+      /* Steven: "For the section Lessons there is like around 20
+         lessons. A button at the top that lets you get an overview of
+         all lessons would be helpful." \u2014 a compact list next to the big
+         tile grid, so she can scan titles instead of scrolling past
+         twenty cards to find one. Only worth showing once there is
+         actually a list to overview. */
+      if (taught.length + grammarLessons.length > 1){
+        var lsHead = secL.querySelector('.hub-head');
+        var overviewBtn = el('button', 'btn btn-quiet', t('lsOverview'));
+        overviewBtn.type = 'button';
+        overviewBtn.addEventListener('click', function(){
+          openLessonsOverview(taught, grammarLessons,
+            openTaughtLesson, openGrammarLesson);
+        });
+        if (lsHead) lsHead.appendChild(overviewBtn);
+      }
+
       taught.forEach(function(a){
         secL._tiles.appendChild(tile(a.glyph, GH.i18n.pick(a.name),
-          GH.i18n.pick(a.sub), null, function(){
-            GH.speech.stop();
-            leaving();
-            view.textContent = '';
-            launch(function(){ a.open(view, hub); }, a.id);
-          }, a.id));
+          GH.i18n.pick(a.sub), null, function(){ openTaughtLesson(a); }, a.id));
       });
 
       grammarLessons.forEach(function(l){
         secL._tiles.appendChild(tile(l.glyph || '\ud83d\udcda',
           GH.i18n.pick(l.name), GH.i18n.pick(l.sub),
-          GH.lessons.done(l.id) ? '\u2713' : null, function(){
-            GH.speech.stop();
-            leaving();
-            view.textContent = '';
-            launch(function(){ GH.lessons.open(view, hub, l.id); }, 'lessons');
-          }));
+          GH.lessons.done(l.id) ? '\u2713' : null,
+          function(){ openGrammarLesson(l); }));
       });
+
+      /* CAPPED AT FOUR, like the other long sections. Steven: "lessons
+         has way more than 8 categories. It should collapse to first 4
+         with link to open the rest."
+
+         This section had no cap at all, so around twenty lesson tiles
+         ran down the page and pushed everything below Lessons — Words,
+         Read and listen, Games, Reference — off the first several
+         screens. Four plus a "Show all" is the same treatment
+         Sentences, Short stories, Words and Long stories already get.
+
+         AND THE OVERVIEW BUTTON IS THE BETTER DOOR. It is already in
+         this section's header and it is a compact scannable list of
+         every lesson, which is a far better answer to "where is the one
+         I want" than twenty cards. `capTiles` adds the generic Show-all
+         underneath; the Overview above it stays the recommended route.
+
+         Read and listen is deliberately NOT capped — see the note at its
+         own section. Seven is not a wall, and the three the cap trimmed
+         were the comic, the Reader and the dialogues. */
+      capTiles(secL, 'lessons');
 
       view.appendChild(secL);
     }
@@ -864,7 +1043,7 @@ GH.app = (function(){
           leaving();
           view.textContent = '';
           launch(function(){ GH.progressView.open(view, hub); }, 'progress-view');
-        }));
+        }, 'progress-view'));
       }
       secR._tiles.appendChild(tile('📖', t('refTitle'),
         t('refCount', { n:GH_VOCAB.length }), null, function(){
@@ -881,15 +1060,17 @@ GH.app = (function(){
             leaving();
             view.textContent = '';
             launch(function(){ GH.awardsView.open(view, hub); }, 'awards-view');
-          }));
+          }, 'awards-view'));
       }
       if (GH.store && GH.coins){
-        secR._tiles.appendChild(tile('◈', t('stStore'), GH.coins.label(), null, function(){
+        /* tile() takes a glyph STRING, so the character rather than the
+           element — see markText() in coins.js. */
+        secR._tiles.appendChild(tile(GH.coins.markText(), t('stStore'), GH.coins.label(), null, function(){
           GH.speech.stop();
           leaving();
           view.textContent = '';
           launch(function(){ GH.store.open(view, hub); }, 'store');
-        }));
+        }, 'store'));
       }
       /* who is playing and how questions get chosen */
       if (GH.settings){
@@ -951,6 +1132,20 @@ GH.app = (function(){
             launch(function(){ a.open(view, hub); }, a.id);
           }, a.id));
       });
+      /* NOT CAPPED. Steven: "Read and Listen section only has 7 sections,
+         I don't want that collapsed.. It hides the comic!"
+
+         SHOW_FIRST is 4 and this section has exactly 7, so three were
+         trimmed behind a "Show all 7" button — and the three were the
+         comic, the Reader and the dialogues, because the cap keeps load
+         order and those load last. So the cap was hiding the three
+         biggest pieces of content in the section and showing four
+         smaller ones.
+
+         A cap earns its place on a section with eleven games in it,
+         where the alternative is a wall. Seven is not a wall, and three
+         of seven is not a saving worth burying the comic for. */
+      /* capTiles(secRL, 'reading'); */
       view.appendChild(secRL);
     }
 
@@ -1010,6 +1205,69 @@ GH.app = (function(){
 
     /* the page is complete, so it is now tall enough to scroll */
     restoreScroll();
+  }
+
+  /* The overview list: taught lessons first (same order as the tile
+     grid), then the grammar library, each row title + subtitle + a
+     lock/done mark where the tile grid shows one. Tapping a row closes
+     this list and opens that lesson exactly as its tile would. */
+  function lessonGuideSub(id, fallback){
+    var guide = window.GH_LESSON_GUIDE && window.GH_LESSON_GUIDE[id];
+    if (guide){
+      var picked = GH.i18n.pick(guide);
+      if (picked) return picked;
+    }
+    return fallback;
+  }
+
+  function openLessonsOverview(taught, grammarLessons, openTaught, openGrammar){
+    GH.speech.stop();
+    leaving();
+    view.textContent = '';
+
+    var headBar = el('div', 'practice-head');
+    var back = el('button', 'backlink', '‹ ' + t('back'));
+    back.type = 'button';
+    back.addEventListener('click', hub);
+    headBar.appendChild(back);
+    var titles = el('div', 'practice-title');
+    titles.appendChild(el('h1', null, t('lsOverviewTitle')));
+    titles.appendChild(el('p', null, t('lsOverviewSub',
+      { n: taught.length + grammarLessons.length })));
+    headBar.appendChild(titles);
+    view.appendChild(headBar);
+
+    var list = el('div', 'ls-list');
+
+    taught.forEach(function(a){
+      var row = el('button', 'ls-entry');
+      row.type = 'button';
+      row.appendChild(el('span', 'ls-entry-glyph', a.glyph || '📘'));
+      var body = el('span', 'ls-entry-body');
+      body.appendChild(el('span', 'ls-entry-title', GH.i18n.pick(a.name)));
+      var sub = lessonGuideSub(a.id, GH.i18n.pick(a.sub));
+      if (sub) body.appendChild(el('span', 'ls-entry-sub', sub));
+      row.appendChild(body);
+      row.addEventListener('click', function(){ openTaught(a); });
+      list.appendChild(row);
+    });
+
+    grammarLessons.forEach(function(l){
+      var row = el('button', 'ls-entry');
+      row.type = 'button';
+      row.appendChild(el('span', 'ls-entry-glyph', l.glyph || '📚'));
+      var body = el('span', 'ls-entry-body');
+      body.appendChild(el('span', 'ls-entry-title', GH.i18n.pick(l.name)));
+      var sub = lessonGuideSub(l.id, GH.i18n.pick(l.sub));
+      if (sub) body.appendChild(el('span', 'ls-entry-sub', sub));
+      row.appendChild(body);
+      if (GH.lessons.done(l.id)) row.appendChild(el('span', 'ls-entry-status', '✓'));
+      row.addEventListener('click', function(){ openGrammar(l); });
+      list.appendChild(row);
+    });
+
+    view.appendChild(list);
+    if (GH.nav) GH.nav.ready();
   }
 
   function openLongStory(story){
@@ -1072,29 +1330,159 @@ GH.app = (function(){
     });
   }
 
+  /* ---------- L1 → L2 ----------
+
+     Three buttons — РУС DEU ENG — used to sit permanently in the header
+     saying only which language the INTERFACE was in. They took 48px of
+     every screen and never mentioned the language she is actually here to
+     learn.
+
+     Steven's replacement: one small string, `Рус → Нем`, naming both. His
+     rule, and it is the one that makes the whole thing coherent —
+     EVERYTHING IN THIS CONTROL IS WRITTEN IN L1. A Russian speaker sees
+     `Рус → Нем`, not endonyms and not English. Tapping it asks the two
+     questions in order.
+
+     L1 IS THE INTERFACE LANGUAGE. There is no second store for it and
+     there must not be: `GH.i18n.lang()` already is her language, and a
+     separate `nativeLanguage` beside it would be two sources of truth that
+     drift the first time one is set without the other.
+
+     L2 IS `GH.player.target()`, which has existed all along — every
+     progress key runs through `GH.player.scope()` and carries it. */
+
+  /* Step one is the ONE screen that cannot be translated, because it runs
+     before she has told us anything. Endonyms solve it outright: `Русский`
+     reads correctly to the person who needs it whatever the app is set to,
+     and this list never needs a translator again — including for languages
+     added later. */
+  var ENDONYM = { ru:'Русский', de:'Deutsch', en:'English',
+                  es:'Español', fr:'Français', tl:'Tagalog', ga:'Gaeilge' };
+
+  /* L1 can only be a language the interface exists in. Offering French as a
+     native language would handto her an app written in something else. */
+  var UI_LANGS = ['ru', 'de', 'en'];
+
+  /* L2 offers everything i18n can name, but only the ones with a course
+     behind them are selectable. Every data file in this app is German;
+     a picker that lets her choose Spanish and then shows her an empty app
+     is worse than one that says "not yet" out loud. */
+  var TARGETS = ['de', 'ru', 'es', 'fr', 'tl', 'en', 'ga'];
+  var HAS_COURSE = { de:true };
+
+  function langShort(code){
+    var s = t('langShort_' + code);
+    return s === ('langShort_' + code) ? String(code).toUpperCase() : s;
+  }
+
+  var lgBox = null;
+
+  function lgClose(){
+    if (lgBox && lgBox.parentNode) lgBox.parentNode.removeChild(lgBox);
+    lgBox = null;
+  }
+
+  function lgShell(){
+    lgClose();
+    lgBox = el('div', 'lg-wrap');
+    var panel = el('div', 'lg-panel surf-paper');
+    lgBox.appendChild(panel);
+    /* The backdrop dismisses, the panel does not. */
+    lgBox.addEventListener('click', function(e){ if (e.target === lgBox) lgClose(); });
+    document.body.appendChild(lgBox);
+    return panel;
+  }
+
+  function lgOption(label, note, on, off, onPick){
+    var b = el('button', 'lg-opt' + (on ? ' is-on' : '') + (off ? ' is-soon' : ''));
+    b.type = 'button';
+    b.appendChild(el('span', 'lg-opt-name', label));
+    if (note) b.appendChild(el('span', 'lg-opt-note', note));
+    if (off) b.disabled = true;
+    else b.addEventListener('click', onPick);
+    return b;
+  }
+
+  function askNative(){
+    var p = lgShell();
+    p.appendChild(el('p', 'lg-step', t('lgStep1')));
+    p.appendChild(el('h2', 'lg-q', t('lgNative')));
+    var list = el('div', 'lg-opts');
+    UI_LANGS.forEach(function(code){
+      list.appendChild(lgOption(ENDONYM[code], null, code === GH.i18n.lang(), false,
+        function(){
+          /* Set FIRST, so the second question is already in her language —
+             Steven's rule, and the reason the two questions are two screens
+             rather than one form. */
+          GH.i18n.set(code);
+          askTarget();
+        }));
+    });
+    p.appendChild(list);
+    lgCancel(p);
+  }
+
+  function askTarget(){
+    var p = lgShell();
+    p.appendChild(el('p', 'lg-step', t('lgStep2')));
+    p.appendChild(el('h2', 'lg-q', t('lgTarget')));
+    var list = el('div', 'lg-opts');
+    var now = GH.player ? GH.player.target() : 'de';
+    TARGETS.forEach(function(code){
+      var ok = !!HAS_COURSE[code];
+      list.appendChild(lgOption(t('langName_' + code), ok ? null : t('lgSoon'),
+        code === now, !ok,
+        function(){
+          if (GH.player && GH.player.setTarget) GH.player.setTarget(code);
+          lgClose();
+          paintLang();
+          if (GH.app.redraw) GH.app.redraw();
+        }));
+    });
+    p.appendChild(list);
+    /* Switching course hides her progress rather than destroying it, and
+       she is owed that sentence before she is surprised by it. */
+    p.appendChild(el('p', 'lg-note', t('lgSwitchNote')));
+    lgCancel(p);
+  }
+
+  function lgCancel(p){
+    var b = el('button', 'btn btn-ghost lg-x', t('close'));
+    b.type = 'button';
+    b.addEventListener('click', lgClose);
+    p.appendChild(b);
+  }
+
+  var langBar = null;
+
+  function paintLang(){
+    if (!langBar) return;
+    langBar.textContent = '';
+    var b = el('button', 'lg-pair');
+    b.type = 'button';
+    b.setAttribute('aria-haspopup', 'true');
+    b.appendChild(el('span', 'lg-l1', langShort(GH.i18n.lang())));
+    /* A real arrow, not `->`. Marked hidden because a screen reader saying
+       "rightwards arrow" between two language names is noise. */
+    var arrow = el('span', 'lg-arrow', '→');
+    arrow.setAttribute('aria-hidden', 'true');
+    b.appendChild(arrow);
+    b.appendChild(el('span', 'lg-l2', langShort(GH.player ? GH.player.target() : 'de')));
+    b.addEventListener('click', askNative);
+    langBar.appendChild(b);
+  }
+
   function initLangSwitch(){
-    var bar = document.getElementById('langswitch');
-    var buttons = bar.querySelectorAll('button');
-    function mark(){
-      for (var i = 0; i < buttons.length; i++){
-        buttons[i].setAttribute('aria-pressed',
-          buttons[i].getAttribute('data-lang') === GH.i18n.lang() ? 'true' : 'false');
-      }
-    }
-    for (var i = 0; i < buttons.length; i++){
-      buttons[i].addEventListener('click', function(){
-        GH.i18n.set(this.getAttribute('data-lang'));
-        mark();
-      });
-    }
-    /* mark has to run on every change, not just at boot — the stored
+    langBar = document.getElementById('langswitch');
+    if (!langBar) return;
+    /* Repaint has to run on every change, not just at boot — the stored
        language is restored after this function runs, so without it the
-       header would show РУС highlighted while the page rendered in German */
+       header would show Рус while the page rendered in German. */
     GH.i18n.onChange(function(){
-      mark();
+      paintLang();
       if (GH.app.redraw) GH.app.redraw();
     });
-    mark();
+    paintLang();
   }
 
   function start(){

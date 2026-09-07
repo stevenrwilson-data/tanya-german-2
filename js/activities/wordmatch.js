@@ -1,3 +1,4 @@
+/* js/activities/wordmatch.js */
 /* Word Matching — hear the words, then match them.
 
    Two halves of one activity. The first is hands-free listening: German,
@@ -420,7 +421,7 @@ GH.wordMatch = (function(){
     var stage = el('div', 'wm-stage' + (state.pics ? '' : ' is-dark'));
 
     var img = state.pics && GH.packs ? GH.packs.imgOf(v) : 0;
-    if (img && GH.sprite && GH.sprite.has(img)){
+    if (img && GH.sprite){
       var pic = el('div', 'wm-pic');
       pic.appendChild(GH.sprite.tile(img, v.de));
       stage.appendChild(pic);

@@ -1,3 +1,4 @@
+/* js/lightbox.js */
 /* Lightbox — tap a picture, see it big.
 
    Adapted from the pink math site's shared lightbox, with one structural

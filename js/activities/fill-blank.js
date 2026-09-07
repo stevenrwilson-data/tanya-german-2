@@ -1,3 +1,4 @@
+/* js/activities/fill-blank.js */
 /* Fill in the missing word.
    Every round = one sentence with one blank taken out. A blank is either a
    single word or a whole noun phrase ("eine neue Jacke").
@@ -189,7 +190,14 @@ GH.fillBlank = (function(){
     var top = el('div', 'practice-top');
     var titleWrap = el('div', 'practice-title');
     titleWrap.appendChild(el('h2', null, state.title));
-    if (state.subtitle) titleWrap.appendChild(el('p', null, state.subtitle));
+    /* THE SUBTITLE IS GONE FROM THE ROUND. Steven: "Lose everything but
+       Shopping."
+
+       `Section 1 · Sentences` is where the topic CAME FROM, and she has
+       just arrived from there — it told her nothing she did not know two
+       seconds ago, and on a phone it wrapped to two lines and pushed the
+       question down. `state.subtitle` is still set by every caller and is
+       still used on the end screens; it is only this header that drops it. */
     top.appendChild(titleWrap);
 
     var prog = el('div', 'progress');
@@ -201,17 +209,41 @@ GH.fillBlank = (function(){
     prog.appendChild(el('span', null, t('progress', { i:inSet() + 1, n:setSize() })));
     top.appendChild(prog);
 
+    /* `set 1 of 6` USED TO SIT HERE AND BROKE.
+
+       It was the fourth thing in a flex row already holding the title, a
+       progress bar, `1 of 12`, `100%` and the streak. On a phone it got no
+       width at all and wrapped one word per line — `set / 1 / of / 6`,
+       four lines of tiny text down the side of the header.
+
+       It is a summary, not something she needs while answering a question,
+       so it moved to the screen that exists to summarise: paintSetBreak()
+       below carries it as the end screen's badge. */
     var run = GH.run.header(state.run);
-    if (state.rounds.length > SET){
-      run.appendChild(el('span', 'run-best',
-        t('fbSetOf', { i:Math.floor(state.setStart / SET) + 1,
-                       n:Math.ceil(state.rounds.length / SET) })));
-    }
     top.appendChild(run);
     host.appendChild(top);
 
     /* card */
     var card = el('div', 'card');
+
+    /* THE STREAK RIDES THE CARD'S TOP EDGE. Steven's placement.
+
+       A WRAPPER IS REQUIRED and is not decoration: `.card` is
+       `overflow:hidden`, so a badge positioned to straddle its top edge
+       from the inside is simply cut in half. `.card` is shared by every
+       activity, so removing that clip to suit this one screen would reach
+       all of them. The wrapper positions the badge over the card from
+       outside instead, and nothing else changes.
+
+       Moved rather than copied — appendChild takes it out of `run`, so the
+       percentage keeps the header to itself and there is only ever one
+       streak on screen. */
+    var cardWrap = el('div', 'fb-cardwrap');
+    var streak = run.querySelector('.run-streak');
+    if (streak){
+      streak.className += ' fb-streak';
+      cardWrap.appendChild(streak);
+    }
 
     var tools = el('div', 'card-tools');
     if (GH.speech.supported){
@@ -248,7 +280,17 @@ GH.fillBlank = (function(){
     tools.appendChild(modes);
     card.appendChild(tools);
 
-    if (r.sentence.img){
+    /* `sheet`/`pos` addresses a cell in one of data/gallery.js's named
+       sheets (fruit-1, vegetables-01-leafy-greens, ...) — the newer
+       addressing GH.sprite.cell() already crops, same as the hub's own
+       galleries. `img` stays the older single-number address into the
+       numbered images/1.webp.. bank, or a direct URL. A sentence carries
+       one or the other, never both. */
+    if (r.sentence.sheet){
+      var fig = el('figure', 'figure');
+      fig.appendChild(GH.sprite.cell(r.sentence.sheet, r.sentence.pos));
+      card.appendChild(fig);
+    } else if (r.sentence.img){
       var fig = el('figure', 'figure');
       if (typeof r.sentence.img === 'number'){
         fig.appendChild(GH.sprite.tile(r.sentence.img));
@@ -406,7 +448,8 @@ GH.fillBlank = (function(){
     }
     card.appendChild(foot);
 
-    host.appendChild(card);
+    cardWrap.appendChild(card);
+    host.appendChild(cardWrap);
     if (state.solved) GH.nav.ready();
   }
 
@@ -421,6 +464,14 @@ GH.fillBlank = (function(){
       tone: state.run.streak >= SET ? 'perfect' : 'done',
       glyph: state.run.streak >= SET ? '\ud83c\udfc6' : '\u2713',
       title: t('fbSetTitle', { i:Math.floor(state.setStart / SET) + 1 }),
+      /* Where `set 1 of 6` went. It was unreadable in the round header and
+         it belongs on a summary screen anyway — this is the one place in
+         the topic where knowing how much of it is left is the question she
+         is actually being asked. Only when there IS more than one set. */
+      badge: state.rounds.length > SET
+        ? t('fbSetOf', { i:Math.floor(state.setStart / SET) + 1,
+                         n:Math.ceil(state.rounds.length / SET) })
+        : null,
       stats: GH.run.stats(state.run),
       /* Say why there are no Kronen here.
 

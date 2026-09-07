@@ -1,3 +1,4 @@
+/* js/howto.js */
 /* How to play — one overlay, shared by every game.
 
    Each game names a key prefix and the module collects prefix + 1, 2, 3…

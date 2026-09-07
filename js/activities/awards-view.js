@@ -1,3 +1,4 @@
+/* js/activities/awards-view.js */
 /* The achievements page.
 
    Earned ones first, then the ones still ahead. That order matters: a
@@ -22,8 +23,18 @@ GH.awardsView = (function(){
     return n;
   }
 
+  /* Tap a row, get a description of what it actually asks for \u2014 requested
+     directly, and the row had nowhere else to send a tap, so the whole
+     row is the target rather than a small button squeezed onto it.
+
+     The description key is the achievement's own key with 'Desc' on the
+     end (awFirstRound -> awFirstRoundDesc), so a new achievement only
+     needs the one new i18n key to be explained here too \u2014 nothing in this
+     file has to change to cover it. */
   function row(a){
-    var box = el('div', 'aw-row' + (a.got ? ' is-got' : ''));
+    var open_ = state.open === a.id;
+    var box = el('button', 'aw-row' + (a.got ? ' is-got' : '') + (open_ ? ' is-open' : ''));
+    box.type = 'button';
     box.appendChild(el('span', 'aw-mark', a.got ? '\u2605' : '\u2606'));
     var body = el('span', 'aw-body');
     body.appendChild(el('span', 'aw-name', t(a.key)));
@@ -33,8 +44,17 @@ GH.awardsView = (function(){
     } else {
       body.appendChild(el('span', 'aw-when', t('awLocked')));
     }
+    if (open_){
+      body.appendChild(el('span', 'aw-desc', t(a.key + 'Desc')));
+    }
     box.appendChild(body);
-    box.appendChild(el('span', 'aw-pay' + (a.got ? '' : ' is-dim'), '\u25c8 ' + a.pay));
+    var pay = el('span', 'aw-pay' + (a.got ? '' : ' is-dim'));
+    pay.appendChild(GH.coins.markWith(a.pay));
+    box.appendChild(pay);
+    box.addEventListener('click', function(){
+      state.open = open_ ? null : a.id;
+      paint();
+    });
     return box;
   }
 
@@ -86,7 +106,9 @@ GH.awardsView = (function(){
     var paid = got.reduce(function(a, b){ return a + b.pay; }, 0);
     if (GH.coins && paid){
       var purse = el('p', 'aw-paid');
-      purse.appendChild(el('span', 'aw-paid-n', '\u25c8 ' + paid));
+      var paidN = el('span', 'aw-paid-n');
+      paidN.appendChild(GH.coins.markWith(paid));
+      purse.appendChild(paidN);
       purse.appendChild(el('span', 'aw-paid-l', t('awFromAwards')));
       card.appendChild(purse);
     }
@@ -100,7 +122,7 @@ GH.awardsView = (function(){
        away from what coins.js actually pays. */
     if (GH.coins && GH.coins.rates){
       var rule = el('div', 'aw-rule');
-      rule.appendChild(el('span', 'aw-rule-glyph', '\u25c8'));
+      rule.appendChild(GH.coins.mark('aw-rule-glyph'));
       var txt = el('p', 'aw-rule-text');
       txt.appendChild(el('b', null, t('awFullDayIs', { n:GH.coins.rates.target })));
       txt.appendChild(document.createTextNode(' ' +
@@ -127,7 +149,7 @@ GH.awardsView = (function(){
 
   function open(container, onExit){
     host = container;
-    state = { onExit:onExit };
+    state = { onExit:onExit, open:null };
     if (GH.awards) GH.awards.check();
     paint();
   }

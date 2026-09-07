@@ -1,3 +1,4 @@
+/* js/progress.js */
 /* What she knows, kept locally.
 
    One store for every activity, so a verb she keeps missing in the

@@ -1,3 +1,4 @@
+/* js/events.js */
 /* The event log.
 
    The app already knew two things and could not join them.

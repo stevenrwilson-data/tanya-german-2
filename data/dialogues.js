@@ -1,3 +1,4 @@
+/* data/dialogues.js */
 /* Dialogues.
 
    Ten conversations, eight lines each, four turns per speaker. Everyday

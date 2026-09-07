@@ -1,3 +1,4 @@
+/* js/activities/settings.js */
 /* Settings: who is playing, and whether the app schedules.
 
    Kept deliberately small. The only two things here are the two that
@@ -26,6 +27,16 @@ GH.settings = (function(){
 
   function nameOf(p, i){
     return p.name || t('stPlayerN', { n:i + 1 });
+  }
+
+  /* A sentence the app already owns, so the sample is Steven's German and
+     not a line invented here. Falls back through the banks that exist. */
+  function sampleLine(){
+    var b = window.GH_BANK || {};
+    var ss = b.sentences || [];
+    if (ss.length && ss[0].de) return ss[0].de;
+    var v = (window.GH_VOCAB || [])[0];
+    return (v && v.de) || 'Guten Tag';
   }
 
   function paint(){
@@ -474,6 +485,82 @@ GH.settings = (function(){
       hb.type = 'button';
       hb.addEventListener('click', function(){ state.wiping = 'hard'; paint(); });
       card.appendChild(hb);
+    }
+
+    /* ---------- WHICH VOICE READS THE GERMAN ----------
+
+       The app scores the installed voices and picks the best it can infer
+       from their identifiers. That is a guess, and Steven's ear beats it.
+       This lists what the BROWSER is offering — which is not the same as
+       what iOS shows in its own Settings, and the difference is the whole
+       diagnosis when the good voices seem to be missing.
+
+       Tapping a name speaks a real sentence from the app's own bank rather
+       than an invented one, so the sample is German that already belongs
+       to this project and no new German had to be written for it. */
+    /* The language she is LEARNING, so the list is the voices that could
+       actually read a dialogue to her. Switching target switches the list
+       and her choices for the other language are kept, not overwritten. */
+    var vLang = (GH.player && GH.player.target) ? GH.player.target() : 'de';
+    var vList = (GH.speech && GH.speech.voiceList) ? GH.speech.voiceList(vLang) : [];
+    card.appendChild(el('h2', 'gr-group', t('stVoiceHead')));
+    /* Names the language, because the list changes with the target and a
+       list of Spanish voices under a bare heading would look like a bug. */
+    card.appendChild(el('p', 'gr-note', t('langName_' + vLang)));
+    card.appendChild(el('p', 'gr-note', t('stVoiceNote')));
+
+    if (!vList.length){
+      card.appendChild(el('p', 'st-warn-big', t('stVoiceNone')));
+    } else {
+      /* ONE VOICE, SAID PLAINLY, NOT LEFT TO LOOK LIKE A CHOICE.
+         Some browsers (iOS Safari, confirmed against Steven's phone —
+         three distinct German voices downloaded in the OS's own Settings,
+         still only one ever reached here, survived both a fresh download
+         and a full restart) hand a page exactly one voice per language no
+         matter how many are actually installed. Counted straight off THIS
+         list rather than off speech.js's cached oneVoiceOnly, because that
+         flag is only ever recomputed for whichever language pickVoice()
+         last ran against — this list is always the true one for vLang. */
+      var names = {};
+      vList.forEach(function(v){ names[v.name] = true; });
+      if (Object.keys(names).length < 2){
+        card.appendChild(el('p', 'st-warn-big', t('stVoiceOneOnly')));
+      }
+      var picked = GH.speech.chosenVoices(vLang);
+      var vBox = el('div', 'st-voices');
+      vList.forEach(function(v){
+        var row = el('div', 'st-voice');
+
+        var hear = el('button', 'st-voice-name');
+        hear.type = 'button';
+        hear.appendChild(el('span', 'st-voice-label', v.name));
+        if (v.quality) hear.appendChild(el('span', 'st-voice-q', v.quality));
+        hear.addEventListener('click', function(){
+          GH.speech.sampleVoice(v.uri, sampleLine(), null, vLang);
+        });
+        row.appendChild(hear);
+
+        /* Three speakers, so a dialogue can have three people in it. */
+        [['a', 'stVoiceMain'], ['b', 'stVoiceSecond'], ['c', 'stVoiceThird']].forEach(function(pair){
+          var on = (picked[pair[0]] === v.uri);
+          var b = el('button', 'st-voice-pick' + (on ? ' is-on' : ''), t(pair[1]));
+          b.type = 'button';
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          b.addEventListener('click', function(){
+            /* Tapping the one already chosen clears it and hands the slot
+               back to the automatic pick. */
+            GH.speech.chooseVoice(pair[0], on ? null : v.uri, vLang);
+            paint();
+          });
+          row.appendChild(b);
+        });
+
+        vBox.appendChild(row);
+      });
+      card.appendChild(vBox);
+      if (!picked.a && !picked.b && !picked.c){
+        card.appendChild(el('p', 'gr-note', t('stVoiceAuto')));
+      }
     }
 
     host.appendChild(card);

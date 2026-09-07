@@ -1,3 +1,4 @@
+/* js/activities/placement.js */
 /* Wo ist das? — the placement game.
 
    Pictures arranged on a board, and a sentence about where something is or

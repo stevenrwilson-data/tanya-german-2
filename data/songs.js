@@ -1,3 +1,4 @@
+/* data/songs.js */
 /* The songs, as a line inventory rather than as running text.
 
    Verses are cumulative — each one adds a line and then walks back down
@@ -1007,6 +1008,702 @@ window.GH_SONGS = [
     ],
 
     play:['chorus', 'verse1', 'chorus', 'verse2', 'bridge', 'chorus', 'outro']
+  },
+
+  {
+    audio:'wo-ist-mein-verdammtes-handy',
+    title:{ de:'Wo ist mein verdammtes Handy?', ru:'Где мой чёртов телефон?', en:'Where\'s My Damn Phone?' },
+
+    lines:{
+      s12l01:{ de:'Startklar, ich will raus durch die Tür',
+              ru:'Готова, я хочу выйти наружу через дверь',
+              en:'Ready to head on out that door' },
+      s12l02:{ de:'Doch mein verdammtes Handy ist weg',
+              ru:'Но мой чёртов телефон пропал',
+              en:'But I can\'t find where I put my damn phone' },
+      s12l03:{ de:'Ich sollte schon vor fünf Minuten los',
+              ru:'Мне следовало уйти уже пять минут назад',
+              en:'I needed to leave five minutes ago' },
+      s12l04:{ de:'Wo zur Hölle ist mein verdammtes Handy?',
+              ru:'Где, к чёрту, мой чёртов телефон?',
+              en:'But where the hell is my damn phone?' },
+      s12l05:{ de:'Wo ist es, wo ist es?',
+              ru:'Где он, где он?',
+              en:'Where is it, where is it?' },
+      s12l06:{ de:'Wo ist mein Handy?',
+              ru:'Где мой телефон?',
+              en:'Where\'s my phone?' },
+      s12l07:{ de:'Startklar, ich will raus durch die Tür',
+              ru:'Готова, я хочу выйти наружу через дверь',
+              en:'I am all ready to head out that door' },
+      s12l08:{ de:'Warum passiert das immer, wenn ich spät dran bin?',
+              ru:'Почему это всегда происходит, когда я опаздываю?',
+              en:'But why does this always happen when I\'m running late?' },
+      s12l09:{ de:'Ich fass es nicht, lauf hin und her',
+              ru:'Не могу поверить, хожу туда-сюда',
+              en:'I can\'t believe it, I\'m pacing the floor' },
+      s12l10:{ de:'Als ob bei einem Date Pünktlichkeit zählt',
+              ru:'Как будто на свидании пунктуальность имеет значение',
+              en:'Not like being on time matters when you\'re meeting a date' },
+      s12l11:{ de:'Ich such oben, ich such unten, schau unters Bett',
+              ru:'Я ищу наверху, я ищу внизу, смотрю под кровать',
+              en:'I look high, I look low, I look under the bed' },
+      s12l12:{ de:'Mal schnell, mal langsam, geh ich Schritt für Schritt zurück',
+              ru:'То быстро, то медленно, я иду шаг за шагом назад',
+              en:'I move fast, then slow, retracing my steps' },
+      s12l13:{ de:'Ich fass es nicht, ich find es einfach nicht',
+              ru:'Не могу поверить, я просто не могу его найти',
+              en:'I can\'t believe I cannot find it' },
+      s12l14:{ de:'Wo hab ich\'s hingelegt?',
+              ru:'Куда я его положила?',
+              en:'Where did I put it down?' },
+      s12l15:{ de:'Ich muss, muss es finden',
+              ru:'Я должна, должна его найти',
+              en:'I gotta, gotta find it' },
+      s12l16:{ de:'Ich renn im Kreis herum',
+              ru:'Я бегаю по кругу',
+              en:'I\'m running around' },
+      s12l17:{ de:'Wie ein kopfloses Huhn',
+              ru:'Как безголовая курица',
+              en:'Like a chicken with no head' },
+      s12l18:{ de:'Die Uhr zählt weiter runter',
+              ru:'Часы продолжают отсчитывать вниз',
+              en:'While the clock keeps counting down' },
+      s12l19:{ de:'Ich brauch den Segen von da oben',
+              ru:'Мне нужно благословение оттуда сверху',
+              en:'I need some blessings from heaven above' },
+      s12l20:{ de:'Oder Glück, das mir zufliegt',
+              ru:'Или удача, которая прилетает ко мне',
+              en:'Or a little luck thrown at me' },
+      s12l21:{ de:'Mein Handy und ich – wie Hand im Handschuh',
+              ru:'Мой телефон и я — как рука в перчатке',
+              en:'Me and my phone are like a hand and a glove' },
+      s12l22:{ de:'Doch wo es ist, bleibt ein Rätsel',
+              ru:'Но где он — остаётся загадкой',
+              en:'But where I left it is a mystery' },
+      s12l23:{ de:'Endlich, endlich, längst viel zu spät',
+              ru:'Наконец, наконец, уже давно слишком поздно',
+              en:'At last, at last, and I\'m already so late' },
+      s12l24:{ de:'Mein Handy klemmte tief im Sofa',
+              ru:'Мой телефон застрял глубоко в диване',
+              en:'I found my phone stuck inside the couch' },
+      s12l25:{ de:'Jemand spielt hier mit meinem Schicksal',
+              ru:'Кто-то здесь играет с моей судьбой',
+              en:'But someone\'s having fun with my fate' },
+      s12l26:{ de:'Der Akku: nur noch dreizehn Prozent',
+              ru:'Аккумулятор: осталось только тринадцать процентов',
+              en:'Just thirteen percent left on the battery' },
+      s12l27:{ de:'Dreizehn Prozent?!',
+              ru:'Тринадцать процентов?!',
+              en:'Thirteen percent?!' },
+      s12l28:{ de:'Das darf doch nicht wahr sein …',
+              ru:'Это же не может быть правдой…',
+              en:'Oh, you\'ve gotta be kidding me…' },
+      s12l29:{ de:'Wo ist es, wo ist es?',
+              ru:'Где оно, где оно?',
+              en:'Where is it, where is it?' },
+      s12l30:{ de:'Wo ist mein Ladegerät?',
+              ru:'Где моё зарядное устройство?',
+              en:'Where\'s my charger?' }
+    },
+
+    secs:[
+      { id:'chorus', label:'Chorus', lines:['s12l01', 's12l02', 's12l03', 's12l04', 's12l05', 's12l06', 's12l05', 's12l06'] },
+      { id:'verse1', label:'Verse 1', lines:['s12l07', 's12l08', 's12l09', 's12l10'] },
+      { id:'verse2', label:'Verse 2', lines:['s12l11', 's12l12', 's12l13', 's12l14', 's12l15', 's12l16', 's12l17', 's12l18'] },
+      { id:'bridge', label:'Bridge', lines:['s12l19', 's12l20', 's12l21', 's12l22'] },
+      { id:'outro', label:'Outro', lines:['s12l23', 's12l24', 's12l25', 's12l26', 's12l27', 's12l28', 's12l29', 's12l30', 's12l29', 's12l30'] }
+    ],
+
+    play:['chorus', 'verse1', 'chorus', 'verse2', 'bridge', 'chorus', 'outro']
+  },
+
+  {
+    audio:'mathe-rebellen',
+    title:{ de:'Mathe-Rebellen', ru:'Математические бунтари', en:'Math Rebels' },
+
+    lines:{
+      s13l01:{ de:'Mathe den ganzen Tag, keine Zeit zum Spielen,',
+              ru:'Математика весь день, нет времени играть,',
+              en:'Math all day, no time to play,' },
+      s13l02:{ de:'Der Lehrer ist gemein, zwingt uns zu bleiben,',
+              ru:'Учитель злой, заставляет нас оставаться,',
+              en:'Teacher\'s mean, makes us stay,' },
+      s13l03:{ de:'Kein Entkommen, nur endlose Summen,',
+              ru:'Никакого спасения, только бесконечные суммы,',
+              en:'No escape, just endless sums,' },
+      s13l04:{ de:'Mathe ist das Elend, da kommt es!',
+              ru:'Математика — это страдание, вот оно идёт!',
+              en:'Math is misery, here it comes!' },
+      s13l05:{ de:'Ich komme zum Matheunterricht, die Folter beginnt,',
+              ru:'Я прихожу на урок математики, пытка начинается,',
+              en:'I come to Math class, the torture begins,' },
+      s13l06:{ de:'Es ist, als würde ich für all meine Sünden bezahlen,',
+              ru:'Это как будто я плачу за все свои грехи,',
+              en:'It\'s like I\'m payin\' for all my sins,' },
+      s13l07:{ de:'In irgendeinem früheren Leben, in dem ich Schlechtes getan habe,',
+              ru:'В какой-то прошлой жизни, в которой я делала плохое,',
+              en:'In some past life where I did bad,' },
+      s13l08:{ de:'Und jetzt sitze ich hier, sehr traurig.',
+              ru:'И теперь я сижу здесь, очень грустная.',
+              en:'And now I sit here, very sad.' },
+      s13l09:{ de:'Einfach zu viele Zahlen für mein Gehirn',
+              ru:'Просто слишком много чисел для моего мозга',
+              en:'Just too many numbers for my brain' },
+      s13l10:{ de:'Ich wünschte, ich könnte aus diesen Ketten ausbrechen',
+              ru:'Я бы хотела, чтобы я могла вырваться из этих цепей',
+              en:'I wish I could break out of these chains' },
+      s13l11:{ de:'Endlose Zahlen, endloser Schmerz,',
+              ru:'Бесконечные числа, бесконечная боль,',
+              en:'Endless numbers, endless pain,' },
+      s13l12:{ de:'Die Regeln des Lehrers treiben uns in den Wahnsinn,',
+              ru:'Правила учителя сводят нас с ума,',
+              en:'Teacher\'s rules, drive us insane,' },
+      s13l13:{ de:'Mathe ist schwer; die Freude ist weg,',
+              ru:'Математика трудная; радость исчезла,',
+              en:'Math is hard; joy is gone,' },
+      s13l14:{ de:'Hölle auf Erden, lasst uns dieses Lied singen.',
+              ru:'Ад на Земле, давайте споём эту песню.',
+              en:'Hell on Earth, let\'s sing this song.' },
+      s13l15:{ de:'Probleme häufen sich, kein Ende in Sicht,',
+              ru:'Задачи накапливаются, конца не видно,',
+              en:'Problems pile, no end in sight,' },
+      s13l16:{ de:'Mathe den ganzen Tag und bis in die Nacht,',
+              ru:'Математика весь день и до самой ночи,',
+              en:'Math all day, and into night,' },
+      s13l17:{ de:'Unser Verstand ist taub, unser Geist ist schwach,',
+              ru:'Наш разум онемел, наш дух слаб,',
+              en:'Our minds are numb, our spirits weak,' },
+      s13l18:{ de:'Der Matheunterricht lässt uns trostlos zurück.',
+              ru:'Урок математики оставляет нас безутешными.',
+              en:'Math class leaves us feeling bleak.' },
+      s13l19:{ de:'Zahlen zählen, den Überblick verlieren,',
+              ru:'Считать числа, терять представление о происходящем,',
+              en:'Counting numbers, losing track,' },
+      s13l20:{ de:'Wir wünschen, wir könnten einfach weg,',
+              ru:'Мы хотим, чтобы мы могли просто уйти,',
+              en:'Wishing we could just turn back,' },
+      s13l21:{ de:'Nur ein wacher Albtraum, ganz schwarz!',
+              ru:'Только кошмар наяву, весь чёрный!',
+              en:'Just a waking nightmare all black!' },
+      s13l22:{ de:'Probleme stapeln sich, wir verlieren die Hoffnung,',
+              ru:'Задачи складываются в стопку, мы теряем надежду,',
+              en:'Problems stack, we\'re losing hope,' },
+      s13l23:{ de:'Der Lehrer ist streng, wir kommen einfach nicht zurecht,',
+              ru:'Учитель строгий, мы просто не справляемся,',
+              en:'Teacher\'s strict, we just can\'t cope,' },
+      s13l24:{ de:'Tag für Tag leiden wir weiter,',
+              ru:'День за днём мы продолжаем страдать,',
+              en:'Day by day, we suffer on,' },
+      s13l25:{ de:'Der Matheunterricht saugt uns aus, bis wir weg sind!',
+              ru:'Урок математики высасывает нас, пока мы не исчезнем!',
+              en:'Math class drains us till we\'re gone!' },
+      s13l26:{ de:'(Der Lehrer ist ein Vampir!)',
+              ru:'(Учитель — вампир!)',
+              en:'(The teacher\'s a vampire!)' },
+      s13l27:{ de:'Wir haben genug, wir werden uns nicht fügen,',
+              ru:'С нас достаточно, мы не будем подчиняться,',
+              en:'We\'ve had enough, we won\'t comply,' },
+      s13l28:{ de:'Wir werfen unsere Bücher, lassen Mathe vorbeiziehen,',
+              ru:'Мы бросаем наши книги, позволяем математике пройти мимо,',
+              en:'Toss our books, let math go by,' },
+      s13l29:{ de:'Rebellieren müssen wir, keine Verzweiflung mehr,',
+              ru:'Бунтовать мы должны, больше никакого отчаяния,',
+              en:'Rebel we must, no more despair,' },
+      s13l30:{ de:'Der Lehrer ist wütend, es ist uns einfach egal',
+              ru:'Учитель злой, нам просто всё равно',
+              en:'Teacher\'s mad, we just don\'t care' },
+      s13l31:{ de:'Bleistifte runter, und sie bleiben unten',
+              ru:'Карандаши вниз, и они остаются внизу',
+              en:'Pencils down they\'re gonna stay down' },
+      s13l32:{ de:'Wir sind fertig; wir halten stand',
+              ru:'Мы закончили; мы держим свою позицию',
+              en:'We are done; we\'re standing our ground' },
+      s13l33:{ de:'Jetzt schrubben wir und wischen den Boden,',
+              ru:'Теперь мы скребём и моем пол,',
+              en:'Now we scrub, and mop the floor,' },
+      s13l34:{ de:'Mathe ist weg, doch so viel mehr auch,',
+              ru:'Математика исчезла, но и намного больше тоже,',
+              en:'Math is gone, but so much more,' },
+      s13l35:{ de:'Jetzt sind wir Putzkräfte bei McDonald\'s,',
+              ru:'Теперь мы уборщики в McDonald\'s,',
+              en:'Janitors now, at McDonald\'s,' },
+      s13l36:{ de:'Unsere Rebellion endete nicht so gut.',
+              ru:'Наш бунт закончился не так хорошо.',
+              en:'Our rebellion didn\'t end so well.' },
+      s13l37:{ de:'Wir haben die Schlacht gewonnen, aber den Krieg verloren,',
+              ru:'Мы выиграли битву, но проиграли войну,',
+              en:'We won the battle, but lost the war,' },
+      s13l38:{ de:'Mathe war grausam, jetzt wischen wir den Boden,',
+              ru:'Математика была жестокой, теперь мы моем пол,',
+              en:'Math was cruel, now we mop the floor,' },
+      s13l39:{ de:'Lektionen gelernt, kein einfacher Weg,',
+              ru:'Уроки усвоены, никакого простого пути,',
+              en:'Lessons learned, no easy way,' },
+      s13l40:{ de:'Mathe ist der Boss, und wir gehorchen.',
+              ru:'Математика — босс, и мы подчиняемся.',
+              en:'Math\'s the boss, and we obey.' },
+      s13l41:{ de:'Also, wenn du im grausamen Griff der Mathematik feststeckst,',
+              ru:'Итак, если ты застрял в жестокой хватке математики,',
+              en:'So if you\'re stuck in math\'s cruel grip,' },
+      s13l42:{ de:'Geh auf die Reise und tritt die Fahrt an,',
+              ru:'Отправляйся в путешествие и начинай поездку,',
+              en:'Go on the journey and take the trip,' },
+      s13l43:{ de:'Lern die Zahlen, gib dein Bestes,',
+              ru:'Учи числа, делай всё возможное,',
+              en:'Learn the numbers, do your best,' },
+      s13l44:{ de:'Oder du wirst am Ende die Unordnung aufräumen.',
+              ru:'Или в конце ты будешь убирать беспорядок.',
+              en:'Or you\'ll end up cleaning the mess.' },
+    },
+
+    secs:[
+      { id:'chorus1', label:'Chorus 1', lines:['s13l01', 's13l02', 's13l03', 's13l04'] },
+      { id:'verse1', label:'Verse 1', lines:['s13l05', 's13l06', 's13l07', 's13l08', 's13l09', 's13l10'] },
+      { id:'chorus2', label:'Chorus 2', lines:['s13l11', 's13l12', 's13l13', 's13l14'] },
+      { id:'verse2', label:'Verse 2', lines:['s13l15', 's13l16', 's13l17', 's13l18', 's13l19', 's13l20', 's13l21'] },
+      { id:'chorus3', label:'Chorus 3', lines:['s13l22', 's13l23', 's13l24', 's13l25', 's13l26'] },
+      { id:'verse3', label:'Verse 3', lines:['s13l27', 's13l28', 's13l29', 's13l30', 's13l31', 's13l32'] },
+      { id:'bridge', label:'Bridge', lines:['s13l33', 's13l34', 's13l35', 's13l36'] },
+      { id:'outro', label:'Outro', lines:['s13l37', 's13l38', 's13l39', 's13l40', 's13l41', 's13l42', 's13l43', 's13l44'] }
+    ],
+
+    play:['chorus1', 'verse1', 'chorus2', 'verse2', 'chorus3', 'verse3', 'chorus1', 'bridge', 'outro']
+  }
+,
+
+  {
+    audio:'wer-braucht-schon-die-sonne',
+    title:{ de:'Wer braucht schon die Sonne?', ru:'Кому вообще нужно солнце?', en:'Who needs the sun?' },
+
+    lines:{
+      s14l01:{ de:'Wer braucht schon die Sonne? Ich liebe Regen, Regen, Regen',
+              ru:'Кому вообще нужно солнце? Я люблю дождь, дождь, дождь',
+              en:'Who needs the sun? I love the rain, rain, rain' },
+      s14l02:{ de:'Wer braucht warmen Sonnenschein, warmen, warmen Sonnenschein?',
+              ru:'Кому нужен тёплый солнечный свет, тёплый, тёплый солнечный свет?',
+              en:'Who needs warm sunshine, warm, warm sunshine?' },
+      s14l03:{ de:'Sonne, geh weg',
+              ru:'Солнце, уходи',
+              en:'Sunshine, go away' },
+      s14l04:{ de:'Sonne, geh weg',
+              ru:'Солнце, уходи',
+              en:'Sunshine, go away' },
+      s14l05:{ de:'Ich will den ganzen Tag nass sein',
+              ru:'Я хочу весь день быть мокрым',
+              en:'I want to be wet all day' },
+      s14l06:{ de:'Ich will den ganzen Tag nass sein',
+              ru:'Я хочу весь день быть мокрым',
+              en:'I want to be wet all day' },
+      s14l07:{ de:'Wer braucht schon Wärme?',
+              ru:'Кому вообще нужно тепло?',
+              en:'Who needs to be warm?' },
+      s14l08:{ de:'Es war ein schöner Tag, ich lief einfach so',
+              ru:'Это был прекрасный день, я просто шёл себе',
+              en:'It was a happy day, I was walking along' },
+      s14l09:{ de:'Der Himmel war blau und die Luft war warm',
+              ru:'Небо было голубым, и воздух был тёплым',
+              en:'And the sky was blue and the air was warm' },
+      s14l10:{ de:'Doch dann kamen Wolken und machten mir klar',
+              ru:'Но потом пришли облака и дали мне понять',
+              en:'But then the clouds came and made it clear' },
+      s14l11:{ de:'Der Himmel hatte genug von all dem Glück',
+              ru:'Что небу уже хватит всего этого счастья',
+              en:'The sky had had enough of all that cheer' },
+      s14l12:{ de:'Zeit, dass die Wolken mir die Parade verregnen',
+              ru:'Пора облакам испортить дождём мой праздник',
+              en:'Time for the clouds to rain on my parade' },
+      s14l13:{ de:'Zeit, dass die Sonne endlich verschwindet',
+              ru:'Пора солнцу наконец исчезнуть',
+              en:'Time for the sun to finally go away' },
+      s14l14:{ de:'Zeit, dass mein Tag zu einem Fluss vom Himmel wird',
+              ru:'Пора моему дню превратиться в реку с неба',
+              en:'Time for my day to become a river from the sky' },
+      s14l15:{ de:'Zeit, dass die Wolken mir ins Auge pissen',
+              ru:'Пора облакам нассать мне в глаз',
+              en:'Time for the clouds to piss in my eye' },
+      s14l16:{ de:'Später am Tag sah ich ein bisschen Sonne',
+              ru:'Позже в тот день я увидел немного солнца',
+              en:'Later that day, I saw a little bit of sun' },
+      s14l17:{ de:'Sie wollte durch die Wolken schauen, doch dann war sie weg',
+              ru:'Оно хотело выглянуть сквозь облака, но потом исчезло',
+              en:'It tried to peek through the clouds, but then it was gone' },
+      s14l18:{ de:'Die Wolken waren mit dem Regen noch nicht fertig',
+              ru:'Облака ещё не закончили со своим дождём',
+              en:'The clouds were not finished with all their rain' },
+      s14l19:{ de:'Sie wollten mir einfach noch mehr Wasser geben',
+              ru:'Они просто хотели дать мне ещё немного воды',
+              en:'They just wanted to give me some more water again' },
+      s14l20:{ de:'Etwas in meinen Schuh, und jede Menge in mein Haar',
+              ru:'Немного в мой ботинок и целую кучу в мои волосы',
+              en:'Some in my shoe, and lots in my hair' },
+      s14l21:{ de:'Ich hab wirklich überall genug Wasser',
+              ru:'У меня и правда воды уже повсюду хватает',
+              en:'I really have plenty of water everywhere' },
+      s14l22:{ de:'Der Regen hörte nicht mehr auf, nachdem er angefangen hatte',
+              ru:'Дождь так и не прекратился после того, как начался',
+              en:'The rain never stopped after it started' },
+      s14l23:{ de:'Die Sonne kam nicht zurück, die Wolken teilten sich nicht',
+              ru:'Солнце не вернулось, облака не разошлись',
+              en:'The sun didn\'t come back, the clouds never parted' },
+      s14l24:{ de:'Ich würde sagen, ich wäre gern warm',
+              ru:'Я бы сказал, что хотел бы быть в тепле',
+              en:'I would say I\'d like to be warm' },
+      s14l25:{ de:'Doch das wird niemals sein',
+              ru:'Но этого никогда не будет',
+              en:'But that will never be' },
+      s14l26:{ de:'Der Himmel hat entschieden',
+              ru:'Небо решило',
+              en:'The sky has decided' },
+      s14l27:{ de:'Er will mich einfach ertränken',
+              ru:'Что оно просто хочет меня утопить',
+              en:'It just wants to drown me' },
+      s14l28:{ de:'Wenn er mich schon nicht gewinnen lässt',
+              ru:'Если оно всё равно не даст мне победить',
+              en:'If it won\'t let me win' },
+      s14l29:{ de:'Muss ich wohl schwimmen lernen',
+              ru:'Значит, мне, наверное, придётся научиться плавать',
+              en:'I guess I just need to learn to swim' },
+      s14l30:{ de:'Der Tag ist fast vorbei, und die Wolken sind endlich fertig',
+              ru:'День почти закончился, и облака наконец-то тоже закончили',
+              en:'The day is nearly done, and the clouds are finally done' },
+      s14l31:{ de:'Doch für ein bisschen Sonne ist es jetzt zu spät',
+              ru:'Но теперь уже слишком поздно для хоть какого-нибудь солнца',
+              en:'But now it\'s too late to have any sun' },
+      s14l32:{ de:'Sie sinkt hinter den Horizont, und jetzt bekomme ich die Nacht',
+              ru:'Оно садится за горизонт, и теперь мне достаётся ночь',
+              en:'It sinks behind the horizon, and now I get the night' },
+      s14l33:{ de:'Also steh ich hier mit Wasser im Schuh und seufze nur',
+              ru:'Так что я просто стою здесь с водой в ботинке и вздыхаю',
+              en:'So with water in my shoe, I just stand here and sigh' },
+      s14l34:{ de:'Wer brauchte schon einen schönen sonnigen Tag?',
+              ru:'Кому вообще был нужен хороший солнечный день?',
+              en:'Who needed a nice sunny day?' },
+      s14l35:{ de:'Regen, Regen, Regen und Wolken',
+              ru:'Дождь, дождь, дождь и облака',
+              en:'Rain, rain, rain and clouds' },
+      s14l36:{ de:'Haben meine Sonne',
+              ru:'Моё солнце',
+              en:'Made my sun' },
+      s14l37:{ de:'Vertrieben',
+              ru:'Прогнали',
+              en:'Go away' },
+    },
+
+    secs:[
+      { id:'chorus', label:'Chorus', lines:['s14l01', 's14l02', 's14l03', 's14l04', 's14l05', 's14l06', 's14l07'] },
+      { id:'verse1', label:'Verse 1', lines:['s14l08', 's14l09', 's14l10', 's14l11', 's14l12', 's14l13', 's14l14', 's14l15'] },
+      { id:'verse2', label:'Verse 2', lines:['s14l16', 's14l17', 's14l18', 's14l19', 's14l20', 's14l21', 's14l22', 's14l23'] },
+      { id:'bridge', label:'Bridge', lines:['s14l24', 's14l25', 's14l26', 's14l27', 's14l28', 's14l29'] },
+      { id:'outro', label:'Outro', lines:['s14l30', 's14l31', 's14l32', 's14l33', 's14l34', 's14l35', 's14l36', 's14l37'] }
+    ],
+
+    play:['chorus', 'verse1', 'chorus', 'verse2', 'chorus', 'bridge', 'chorus', 'outro']
+  },
+
+  /* ------------------------------------------------------------------
+     15. MEIN HERZ WILL NACH HAUSE
+
+     Steven's, and the only song here that is not a lesson dressed up as
+     one — it is autobiographical, about leaving Ukraine. Everything else
+     in this file teaches a grammar point or a topic; this one is on the
+     site because it is hers.
+
+     THE CHORUS AND THE LAST LINE ARE STORED ONCE. `s15l01` and `s15l02`
+     close the chorus as well as opening it, and `s15l43` is the outro's
+     last two lines, so both appear twice in a `lines` array and once in
+     the data. That is the same shape der-kleine-ninja and
+     dein-koerper-braucht-liebe already use; storing a repeat twice would
+     mean two rows to keep in step for one lyric.
+
+     `play` names `chorus` four times. The lines are not duplicated for
+     that either — the section is played again, not copied.
+
+     Audio: audio/mein-herz-will-nach-hause.ogg. The filename is the
+     slugified German title, which every one of the other fourteen
+     follows; the audit reads the name out of this file, so a rename on
+     either side shows up as a missing file rather than as silence. */
+  {
+    n: 15,
+    audio: 'mein-herz-will-nach-hause',
+    title: {
+      de: 'Mein Herz will nach Hause',
+      ru: 'Моё сердце хочет домой',
+      en: 'My Heart Wants to Go Home'
+    },
+    lines: {
+    s15l01: { de:'Mein Herz singt und weint', ru:'Моё сердце поёт и плачет', en:'My heart sings and cries' },
+    s15l02: { de:'Es will nach Hause', ru:'Оно хочет домой', en:'It wants to go home' },
+    s15l03: { de:'An einen Ort mit vertrauten Dingen', ru:'Туда, где всё такое родное', en:'To a place of familiar things' },
+    s15l04: { de:'Wo ich ein kleines Mädchen war', ru:'Где я была маленькой девочкой', en:'Where I was a little girl' },
+    s15l05: { de:'Wo ich jedes Wort kannte', ru:'Где я знала каждое слово', en:'Where I knew every word' },
+    s15l06: { de:'Wo ich jeden Ort kannte', ru:'Где я знала каждое место', en:'Where I knew every place' },
+    s15l07: { de:'Ein kleines Mädchen lief unter der Sonne', ru:'Маленькая девочка бежала под солнцем', en:'A little girl ran under the sun' },
+    s15l08: { de:'Frische Luft, sorgenfrei, kindlicher Spaß', ru:'Свежий воздух, беззаботное детское счастье', en:'Fresh air, carefree, childish fun' },
+    s15l09: { de:'Ich kannte nichts als die Liebe', ru:'Я не знала ничего, кроме любви', en:'I knew nothing but the love' },
+    s15l10: { de:'Von Mama und Papa', ru:'Мамы и папы', en:'Of my mom and dad' },
+    s15l11: { de:'Der süße Duft von Sonnenblumen', ru:'Сладкий запах подсолнухов', en:'Sweet smell of sunflowers' },
+    s15l12: { de:'Wind in meinem Haar, diese schönen Tage', ru:'Ветер в волосах, те прекрасные дни', en:'Wind in my hair, those sweet days' },
+    s15l13: { de:'Ich zählte Wolken am Himmel', ru:'Я считала облака в небе', en:'Counting clouds across the sky' },
+    s15l14: { de:'Schöne Tage und schöne Gedanken', ru:'Светлые дни и светлые мысли', en:'Sweet days and sweet thoughts' },
+    s15l15: { de:'Die Schöne und das Biest', ru:'Красавица и Чудовище', en:'Beauty and the Beast' },
+    s15l16: { de:'Ich war Belle', ru:'Я была Белль', en:'I was Belle' },
+    s15l17: { de:'Das Leben ging weiter, mein Haar wurde lang', ru:'Жизнь шла вперёд, мои волосы стали длиннее', en:'Life moved on, I grew out my hair' },
+    s15l18: { de:'Ich dachte, ich hätte Liebe gefunden, doch ich täuschte mich', ru:'Я думала, что нашла любовь, но ошиблась', en:'I thought I found love, but was misled' },
+    s15l19: { de:'Stattdessen fand ich ein gebrochenes Herz', ru:'Вместо неё я нашла разбитое сердце', en:'I found a broken heart instead' },
+    s15l20: { de:'Doch ich ließ es nicht ganz zerbrechen', ru:'Но не позволила ему разбиться до конца', en:'But I didn’t let it break all the way' },
+    s15l21: { de:'Dann traf ich einen Mann, der sich um mich sorgte', ru:'Потом я встретила мужчину, который заботился обо мне', en:'I met another man who cared for me' },
+    s15l22: { de:'Der mich ich selbst sein ließ und mich frei sein ließ', ru:'Позволял мне быть собой, позволял мне быть свободной', en:'Let me be me, and let me be free' },
+    s15l23: { de:'In seinen Armen konnte ich noch ein kleines Mädchen sein', ru:'В его объятиях я всё ещё могла быть маленькой девочкой', en:'I could still be a little girl in his arms' },
+    s15l24: { de:'Und mit der Zeit wurde mein Herz wieder warm', ru:'И с годами моё сердце становилось теплее', en:'And as time flew by, my heart grew warm' },
+    s15l25: { de:'Doch während unsere Liebe wuchs', ru:'Но пока росла наша любовь', en:'But as our love grew' },
+    s15l26: { de:'Wurde die Welt grausam', ru:'Мир становился жестоким', en:'The world grew cruel' },
+    s15l27: { de:'Erst kam die Pandemie und dann', ru:'Сначала пришла пандемия, а потом', en:'First came the pandemic, and then' },
+    s15l28: { de:'Die schreckliche Invasion meiner Heimat', ru:'Страшное вторжение в мой дом', en:'The terrible invasion of my home' },
+    s15l29: { de:'Doch selbst als der Krieg kam', ru:'Но даже когда пришла война', en:'But even as the war came' },
+    s15l30: { de:'Kam meine Liebe zu mir zurück', ru:'Моя любовь вернулась ко мне', en:'My love came back for me' },
+    s15l31: { de:'Doch jetzt hatte ich meinen süßen Jungen', ru:'Но теперь у меня был мой милый мальчик', en:'But now I had my sweet boy' },
+    s15l32: { de:'Der mich auch brauchte', ru:'Которому я тоже была нужна', en:'Who also needed me' },
+    s15l33: { de:'Dann kam der Tag, an dem ich gehen musste', ru:'Потом настал день, когда мне пришлось уехать', en:'Then the day came when I had to leave' },
+    s15l34: { de:'Um meinen Jungen zu retten, der besondere Hilfe brauchte', ru:'Чтобы спасти моего мальчика, которому нужна была особая помощь', en:'To save my boy who needed special care' },
+    s15l35: { de:'Ich ließ die Heimat zurück, die ich kannte', ru:'Я оставила родной дом, который знала', en:'I left behind the home I knew' },
+    s15l36: { de:'Und nahm all meine Liebe mit', ru:'И унесла с собой всю свою любовь', en:'And carried all my love with me' },
+    s15l37: { de:'Jetzt lebe ich in einem Land, das kalt ist', ru:'Теперь я живу в холодной стране', en:'I now live in a land that is cold' },
+    s15l38: { de:'Und ich fühle, als hätte ich einen Teil meiner Seele verloren', ru:'И чувствую, будто потеряла часть своей души', en:'And I feel like I have lost a part of my soul' },
+    s15l39: { de:'Meine nackten Füße sehnen sich danach zu laufen', ru:'Мои босые ноги тоскуют по земле', en:'My bare feet long to walk' },
+    s15l40: { de:'Zwischen den Sonnenblumen meiner Kindheitsheimat', ru:'Среди подсолнухов моего детства', en:'Among the sunflowers of my childhood home' },
+    s15l41: { de:'Ich sehne mich danach, die freie ukrainische Luft zu atmen', ru:'Я хочу снова дышать свободным украинским воздухом', en:'I long to breathe the free Ukrainian air' },
+    s15l42: { de:'Die ukrainische Sonne in meinem Haar zu spüren', ru:'Чувствовать украинское солнце в своих волосах', en:'Feel the Ukrainian sun shine in my hair' },
+    s15l43: { de:'Mein Herz will nach Hause', ru:'Моё сердце хочет домой', en:'My heart wants to go home' }
+    },
+    secs: [
+      { id:'chorus', label:'Chorus',  lines:['s15l01', 's15l02', 's15l03', 's15l04', 's15l05', 's15l06', 's15l01', 's15l02'] },
+      { id:'verse1', label:'Verse 1', lines:['s15l07', 's15l08', 's15l09', 's15l10', 's15l11', 's15l12', 's15l13', 's15l14', 's15l15', 's15l16'] },
+      { id:'verse2', label:'Verse 2', lines:['s15l17', 's15l18', 's15l19', 's15l20', 's15l21', 's15l22', 's15l23', 's15l24'] },
+      { id:'verse3', label:'Verse 3', lines:['s15l25', 's15l26', 's15l27', 's15l28', 's15l29', 's15l30', 's15l31', 's15l32', 's15l33', 's15l34', 's15l35', 's15l36'] },
+      { id:'outro',  label:'Outro',   lines:['s15l37', 's15l38', 's15l39', 's15l40', 's15l41', 's15l42', 's15l43', 's15l43'] }
+    ],
+    play: ['chorus','verse1','chorus','verse2','chorus','verse3','chorus','outro']
+  },
+
+  /* ------------------------------------------------------------------
+     16. SO ZOG ICH IN EINEN KERKER
+
+     Steven's own, words and all three languages. The longest song in the
+     file by a distance: 79 unique lines, 115 as played, and the outro
+     alone is 35 of them.
+
+     THE CHORUS IS STORED ONCE and named four times in `play`. Twelve
+     lines x 4 would have been 48 rows to keep in step for twelve lyrics.
+
+     THE OUTRO IS NOT A SECTION THAT REPEATS — it is one long run that
+     counts upward, so every line of it is its own row.
+
+     NO `instrumental` MARKER. The draft transcript carried one where the
+     count pauses before resuming, and it is gone: the take Steven chose
+     has no break there, so the line would have put a pause on screen
+     that the audio never plays. A marker for something not in the
+     recording is worse than no marker at all.
+
+     `Groove` and `Grind` are left in English inside the German, as
+     written. They are what the line says.
+
+     Audio: audio/so-zog-ich-in-einen-kerker.ogg. */
+  {
+    n: 16,
+    audio: 'also-zog-ich-in-nen-kerker',
+    title: {
+      /* The chorus's own opening line, so the title matches what she
+         hears rather than being a tidied-up version of it. The audio
+         filename was renamed to match — `also-zog-ich-in-nen-kerker` —
+         so this song keeps the slugified-title convention every other
+         one follows, with the apostrophe in 'nen dropped the way every
+         other slug drops punctuation. */
+      de: "Also zog ich in 'nen Kerker",
+      ru: 'Вот я и въехала в подземелье',
+      en: 'So I Moved Into a Dungeon'
+    },
+    lines: {
+    s16l01: { de:'Also zog ich in \'nen Kerker', ru:'Вот я въехала в подземелье', en:'So I moved into a dungeon' },
+    s16l02: { de:'Und ließ zehn Kilo zurück', ru:'И оставила десять кило позади', en:'And I left ten kilos behind' },
+    s16l03: { de:'Farbe klebte auf meinem T-Shirt', ru:'Краска прилипла к моей футболке', en:'Got paint all on my T-shirt' },
+    s16l04: { de:'Und ein bisschen an der Wand', ru:'И немножко попало на стену', en:'And some got on the walls' },
+    s16l05: { de:'Ich hielt meinen Kopf schön hoch', ru:'Я держала голову высоко', en:'I held my head up high' },
+    s16l06: { de:'Dann ging ich runter auf den Boden', ru:'А потом опустилась к полу', en:'Then got down to the floor' },
+    s16l07: { de:'Da musste erst ein Boden hin', ru:'Потому что сначала надо было положить пол', en:'I had to put one down there' },
+    s16l08: { de:'Und noch so vieles mehr', ru:'И сделать ещё столько всего', en:'And had to do much more' },
+    s16l09: { de:'Ein Fuß ging nach links', ru:'Одна нога пошла налево', en:'I put one foot to the left' },
+    s16l10: { de:'Und der andere nach rechts', ru:'А другая направо', en:'And one foot to the right' },
+    s16l11: { de:'Ich musste mich bewegen, meinen Groove finden', ru:'Мне пришлось двигаться, искать свой грув', en:'I had to move and get my groove' },
+    s16l12: { de:'Und arbeiten Tag und Nacht', ru:'И работать день и ночь', en:'And work both day and night' },
+    s16l13: { de:'Nein, es war wirklich kein Palast', ru:'Нет, это точно был не дворец', en:'No, it sure was no palace' },
+    s16l14: { de:'Es war kein Taj Mahal', ru:'Это был не Тадж-Махал', en:'It was no Taj Mahal' },
+    s16l15: { de:'Es waren nicht die Pyramiden von Gizeh', ru:'Это были не пирамиды Гизы', en:'It wasn\'t the pyramids of Giza' },
+    s16l16: { de:'Es waren kaum vier Wände da', ru:'Там едва было четыре стены', en:'It was barely four walls' },
+    s16l17: { de:'Es brauchte Farbe, es brauchte \'nen Boden', ru:'Нужна была краска, нужен был пол', en:'It needed paint, it needed a floor' },
+    s16l18: { de:'Es brauchte eine Küche', ru:'Нужна была кухня', en:'It needed a kitchen' },
+    s16l19: { de:'Fast hätte auch die Tür gefehlt', ru:'И чуть было не оказалось даже двери', en:'It nearly needed a door' },
+    s16l20: { de:'Ich weiß nicht, wie ich das geschafft hab', ru:'Я не знаю, как я это сделала', en:'I don\'t know how I did it' },
+    s16l21: { de:'Ich weiß nicht, ob ich\'s noch mal könnte', ru:'Я не знаю, смогла бы я сделать это ещё раз', en:'I don\'t know if I could do it again' },
+    s16l22: { de:'Doch irgendwie hab ich\'s geschafft', ru:'Но каким-то образом я справилась', en:'But somehow I made it' },
+    s16l23: { de:'Und jetzt bin ich wieder dünn', ru:'И теперь я снова худая', en:'And now I\'m back to being thin' },
+    s16l24: { de:'Ich musste Kisten schleppen', ru:'Мне пришлось таскать коробки', en:'I had to move some boxes' },
+    s16l25: { de:'Und noch viel mehr Zeug', ru:'И ещё кучу вещей', en:'And had to move more stuff' },
+    s16l26: { de:'Ich schleppte und schleppte und schleppte', ru:'Я таскала, таскала и таскала', en:'I kept on moving, and moving and moving' },
+    s16l27: { de:'Und es schien einfach nie genug', ru:'И казалось, что этого никогда не кончится', en:'There never seemed to be enough' },
+    s16l28: { de:'Ich schuftete wie ein Hund', ru:'Я пахала как пёс', en:'I worked like a dog' },
+    s16l29: { de:'Und schuftete wie sein Knochen', ru:'И пахала как его кость', en:'And worked like his bone' },
+    s16l30: { de:'Und schuftete und schuftete und schuftete, bis es fertig war', ru:'И пахала, пахала и пахала, пока всё не было закончено', en:'And worked and worked and worked and did it' },
+    s16l31: { de:'Und ich tat es ganz allein', ru:'И я сделала всё совсем одна', en:'And I did it all alone' },
+    s16l32: { de:'Du denkst, Umziehen ist das Schlimmste?', ru:'Думаешь, переезд — это самое худшее?', en:'You think moving is the worst?' },
+    s16l33: { de:'Zieh mal eines Tages in \'nen Kerker', ru:'Попробуй однажды въехать в подземелье', en:'Try moving into a dungeon someday' },
+    s16l34: { de:'Und dreh dann den ganzen verdammten Ort um', ru:'А потом перевернуть всё это чёртово место', en:'Then turning the whole damn place around' },
+    s16l35: { de:'Bis man irgendwie drin wohnen kann', ru:'Чтобы там хоть как-то можно было жить', en:'Into somewhere you can stay' },
+    s16l36: { de:'Ich hab\'s gemacht, und ich kann nur sagen...', ru:'Я это сделала, и могу сказать только одно...', en:'I did it, and all I have to say is...' },
+    s16l37: { de:'Ich war oben, ich war unten', ru:'Я была наверху, я была внизу', en:'I moved up, I moved down' },
+    s16l38: { de:'Ich war überall', ru:'Я была повсюду', en:'I moved all around' },
+    s16l39: { de:'Kein einziger Fleck blieb unberührt', ru:'Не осталось ни одного нетронутого места', en:'There\'s not one spot that went untouched' },
+    s16l40: { de:'Nicht die Wände, nicht der Boden', ru:'Ни стены, ни пола', en:'Not the walls, not the ground' },
+    s16l41: { de:'Ich strich und schleppte, ich weiß nicht mal was', ru:'Я красила и таскала, сама не знаю что', en:'I painted and lifted, I don\'t even know what' },
+    s16l42: { de:'Ich kam richtig in den Grind', ru:'Я реально втянулась в эту пахоту', en:'I got myself into the grind' },
+    s16l43: { de:'Ich schleppte Kisten und Kisten und bewegte meinen Hintern', ru:'Я таскала коробки и коробки и двигала попой', en:'I moved boxes and boxes and moved my butt' },
+    s16l44: { de:'Und ließ diese zehn Kilo zurück', ru:'И оставила эти десять кило позади', en:'And left those ten kilos behind' },
+    s16l45: { de:'Wenn du mal Sorgen hast', ru:'Если у тебя когда-нибудь будут проблемы', en:'So if you ever have some worries' },
+    s16l46: { de:'Und irgendwann mal Zweifel', ru:'И когда-нибудь появятся сомнения', en:'And ever have some doubts' },
+    s16l47: { de:'Zieh einfach in einen Kerker', ru:'Просто въедь в подземелье', en:'Just try moving into a dungeon' },
+    s16l48: { de:'Und arbeite die Probleme raus', ru:'И выработай все эти проблемы', en:'And work those problems out' },
+    s16l49: { de:'Beweg dich hoch, beweg dich runter', ru:'Двигайся вверх, двигайся вниз', en:'Just move up, just move down' },
+    s16l50: { de:'Beweg dich überall herum', ru:'Двигайся повсюду', en:'Just move all around' },
+    s16l51: { de:'Streich einfach die Wände', ru:'Просто покрась стены', en:'Just paint the walls' },
+    s16l52: { de:'Und leg den Boden rein', ru:'И положи пол', en:'And lay the ground' },
+    s16l53: { de:'Setz einen Fuß hin, dann den anderen', ru:'Поставь одну ногу, потом другую', en:'Put one foot down, then put down another' },
+    s16l54: { de:'Und schuft wie ein Hund', ru:'И паши как пёс', en:'And work like a dog' },
+    s16l55: { de:'Dann schuft wie sein Bruder', ru:'Потом паши как его брат', en:'Then work like his brother' },
+    s16l56: { de:'Dann schuft wie der Knochen', ru:'Потом паши как кость', en:'Then work like the bone' },
+    s16l57: { de:'An dem die beiden zusammen kauen', ru:'Которую они оба вместе грызут', en:'That they both chew' },
+    s16l58: { de:'Und schuft und schuft immer weiter', ru:'И паши, и паши дальше', en:'And keep working and working' },
+    s16l59: { de:'Es gibt viel zu viel zu tun', ru:'Дел ещё слишком много', en:'There\'s way too much to do' },
+    s16l60: { de:'Beweg deine Hüften', ru:'Двигай бёдрами', en:'Move your hips' },
+    s16l61: { de:'Und beweg deinen Hintern herum', ru:'И двигай попой', en:'And move your butt around' },
+    s16l62: { de:'Und schlepp noch eine Kiste', ru:'И тащи ещё одну коробку', en:'And move another box' },
+    s16l63: { de:'Und die halbe Stadt', ru:'И половину города', en:'And half the town' },
+    s16l64: { de:'Dann ist ein Kilo weg', ru:'Вот один килограмм исчез', en:'You\'ll find a kilo gone and' },
+    s16l65: { de:'Und gleich noch eins hinterher', ru:'А за ним сразу ещё один', en:'Then another kilo down' },
+    s16l66: { de:'Das ist der Diätplan', ru:'Это тот самый план диеты', en:'It\'s the diet plan' },
+    s16l67: { de:'Von dem jetzt alle reden', ru:'О котором теперь говорят все', en:'They are talking about all around' },
+    s16l68: { de:'Und schlepp eine Kiste', ru:'И тащи коробку', en:'And move a box' },
+    s16l69: { de:'Und schlepp noch eine Kiste', ru:'И тащи ещё одну коробку', en:'And move another box' },
+    s16l70: { de:'Dann schlepp eine Kiste', ru:'Потом тащи коробку', en:'Then move a box' },
+    s16l71: { de:'Und schlepp eine Kiste!', ru:'И тащи коробку!', en:'And move a box!' },
+    s16l72: { de:'Oder zwei, oder drei', ru:'Или две, или три', en:'Or two, or three' },
+    s16l73: { de:'Oder vier, oder fünf', ru:'Или четыре, или пять', en:'Or four, or five' },
+    s16l74: { de:'Oder sechs, oder sieben', ru:'Или шесть, или семь', en:'Or six, or seven' },
+    s16l75: { de:'Oder acht, oder neun...', ru:'Или восемь, или девять...', en:'Or eight, or nine...' },
+    s16l76: { de:'Oder zehn!', ru:'Или десять!', en:'Or ten!' },
+        s16l78: { de:'oder elf, oder zwölf...', ru:'или одиннадцать, или двенадцать...', en:'or eleven, or twelve...' },
+    s16l79: { de:'oder dreizehn, oder vierzehn...', ru:'или тринадцать, или четырнадцать...', en:'or thirteen, or fourteen...' }
+    },
+    secs: [
+      { id:'chorus', label:'Chorus', lines:['s16l01', 's16l02', 's16l03', 's16l04', 's16l05', 's16l06', 's16l07', 's16l08', 's16l09', 's16l10', 's16l11', 's16l12'] },
+      { id:'verse1', label:'Verse 1', lines:['s16l13', 's16l14', 's16l15', 's16l16', 's16l17', 's16l18', 's16l19', 's16l20', 's16l21', 's16l22', 's16l23'] },
+      { id:'verse2', label:'Verse 2', lines:['s16l24', 's16l25', 's16l26', 's16l27', 's16l28', 's16l29', 's16l30', 's16l31', 's16l32', 's16l33', 's16l34', 's16l35', 's16l36'] },
+      { id:'bridge', label:'Bridge', lines:['s16l37', 's16l38', 's16l39', 's16l40', 's16l41', 's16l42', 's16l43', 's16l44'] },
+      { id:'outro', label:'Outro', lines:['s16l45', 's16l46', 's16l47', 's16l48', 's16l49', 's16l50', 's16l51', 's16l52', 's16l53', 's16l54', 's16l55', 's16l56', 's16l57', 's16l58', 's16l59', 's16l60', 's16l61', 's16l62', 's16l63', 's16l64', 's16l65', 's16l66', 's16l67', 's16l68', 's16l69', 's16l70', 's16l71', 's16l72', 's16l73', 's16l74', 's16l75', 's16l76', 's16l78', 's16l79'] }
+    ],
+    play: ['chorus', 'verse1', 'chorus', 'verse2', 'chorus', 'bridge', 'chorus', 'outro']
+  },
+
+  /* ------------------------------------------------------------------
+     17. HOL DIR GUTE LAUNE
+
+     Steven's own, all three languages.
+
+     EVERY LINE IS ITS OWN ROW, INCLUDING THE REPEATS. The chorus closes
+     with the same line four times and the bridge is four pairs said
+     twice; both are written out rather than stored once and referenced.
+
+     Steven, when I suggested collapsing them: "4 lines. This is a song.
+     So the reader needs to be fixed if it is so broken it can't handle a
+     song having repeated lines. The comma is in there for phrasing."
+
+     He is right and I was wrong: nothing in the reader dedupes, and 96
+     of the 98 sections in this file already work exactly this way. The
+     comma placement differs between the English repeats and carries the
+     phrasing, so collapsing them would have thrown away the one thing
+     that distinguishes them.
+
+     The CHORUS is still stored once as a section and named four times in
+     `play` — that is a section repeat, which is how the format works,
+     not a line-level trick.
+
+     `Groove`, `Move` and `Floor` stay in English inside the German, as
+     written.
+
+     Audio: audio/hol-dir-gute-laune.ogg. */
+  {
+    n: 17,
+    audio: 'hol-dir-gute-laune',
+    title: {
+      de: 'Hol dir gute Laune',
+      ru: 'Подними себе настроение',
+      en: 'Get Your Good Mood On'
+    },
+    lines: {
+    s17l01: { de:'Ich hab Pech in meiner Tasche', ru:'У меня невезение в кармане', en:'I have bad luck in my pocket' },
+    s17l02: { de:'Und ich lächle trotzdem weiter', ru:'Но я всё равно продолжаю улыбаться', en:'And I\'m still gonna keep my smile' },
+    s17l03: { de:'Ich hab ein Problem zu viel', ru:'У меня на одну проблему слишком много', en:'I got one too many problems' },
+    s17l04: { de:'Und ich halt den Kopf trotzdem hoch', ru:'Но я всё равно держу голову высоко', en:'And I\'m still gonna keep my head held high' },
+    s17l05: { de:'Ich mach einen Schritt nach links', ru:'Я делаю шаг налево', en:'I\'m gonna take one step to the left' },
+    s17l06: { de:'Und gleit dann wieder nach rechts', ru:'А потом скольжу обратно направо', en:'And then slide back to the right' },
+    s17l07: { de:'Ich find meinen Groove und mach meinen Move', ru:'Я нахожу свой грув и делаю свой мув', en:'I\'m gonna find my groove and make a move' },
+    s17l08: { de:'Und tanz durch die ganze Nacht', ru:'И танцую всю ночь напролёт', en:'Gonna dance right through the night' },
+    s17l09: { de:'Ich hol mir gute Laune', ru:'Я достаю хорошее настроение', en:'Gonna get my good mood on' },
+    s17l10: { de:'Ich hol mir gute Laune', ru:'Я достаю хорошее настроение', en:'Gonna get my good mood, on' },
+    s17l11: { de:'Ich hol mir gute Laune', ru:'Я достаю хорошее настроение', en:'Gonna get my good mood on' },
+    s17l12: { de:'Ich hol mir gute Laune', ru:'Я достаю хорошее настроение', en:'Gonna get my good mood, on' },
+    s17l13: { de:'Mein Tag brachte mir Probleme', ru:'Мой день нашёл несколько проблем', en:'My day sure found me some problems' },
+    s17l14: { de:'Die wollten einfach nicht weg', ru:'Они просто не хотели уходить', en:'They just won\'t go away' },
+    s17l15: { de:'Überall, wo ich auch hinsah', ru:'Он находил их, куда бы я ни посмотрела', en:'It found them everywhere I looked' },
+    s17l16: { de:'Und alle wollten bleiben', ru:'И все они хотели остаться', en:'They all wanted to stay' },
+    s17l17: { de:'Ein paar fand ich in der Tasche', ru:'Несколько я нашла в кармане', en:'I found some in my pocket' },
+    s17l18: { de:'Ein paar fand ich in meinem Schuh', ru:'Несколько я нашла в ботинке', en:'And found some in my shoe' },
+    s17l19: { de:'Ein paar sogar in der Unterwäsche', ru:'Несколько — в моём нижнем белье', en:'Found some in my underwear' },
+    s17l20: { de:'Die versteckten sich dort auch', ru:'Они прятались и там', en:'They were hiding in there too' },
+    s17l21: { de:'Ich halt meinen Kopf schön hoch', ru:'Я держу голову высоко', en:'I keep my head held high' },
+    s17l22: { de:'Und die Füße fest am Boden', ru:'А ноги — на земле', en:'And keep my feet on the ground' },
+    s17l23: { de:'Doch wenn ich diese Musik hör', ru:'Но когда я слышу эту музыку', en:'But when I hear that music' },
+    s17l24: { de:'Dann beweg ich mich zum Takt', ru:'Я начинаю двигаться под её звуки', en:'I start moving to the sound' },
+    s17l25: { de:'Ich schüttel alle Sorgen ab', ru:'Я стряхиваю все свои заботы', en:'I shake off all my worries' },
+    s17l26: { de:'Und geb mir selbst \'ne Chance', ru:'И даю себе шанс', en:'And give myself a chance' },
+    s17l27: { de:'Wenn Ärger mir noch folgen will', ru:'Если неприятности хотят идти за мной', en:'If trouble wants to follow me' },
+    s17l28: { de:'Dann sollte er tanzen lernen', ru:'Тогда им лучше научиться танцевать', en:'It better learn to dance' },
+    s17l29: { de:'Pech, Pech, zieh weiter', ru:'Невезение, невезение, иди дальше', en:'Bad luck, bad luck, move along' },
+    s17l30: { de:'Ich hol mir gute Laune', ru:'Я достаю хорошее настроение', en:'I got my good mood on' },
+    s17l31: { de:'Pech, Pech, zieh weiter', ru:'Невезение, невезение, иди дальше', en:'Bad luck, bad luck, move along' },
+    s17l32: { de:'Ich hol mir gute Laune', ru:'Я достаю хорошее настроение', en:'I got my good mood on' },
+    s17l33: { de:'Steh auf, steh auf, komm auf den Floor', ru:'Вставай, вставай, выходи на танцпол', en:'Get up, get up on the floor' },
+    s17l34: { de:'Lass deine Füße den Song spür\'n', ru:'Пусть твои ноги почувствуют эту песню', en:'Let your feet feel this song' },
+    s17l35: { de:'Steh auf, steh auf, komm auf den Floor', ru:'Вставай, вставай, выходи на танцпол', en:'Get up, get up on the floor' },
+    s17l36: { de:'Lass deine Füße den Song spür\'n', ru:'Пусть твои ноги почувствуют эту песню', en:'Let your feet feel this song' },
+    s17l37: { de:'Meine Probleme wissen, wo sie mich finden', ru:'Мои проблемы знают, где меня найти', en:'My troubles know where to find me' },
+    s17l38: { de:'Doch ich bleib bei guter Laune', ru:'Но я сохраняю своё хорошее настроение', en:'But I\'m gonna keep my good mood on' },
+    s17l39: { de:'Probleme, Probleme rings um mich', ru:'Проблемы, проблемы повсюду вокруг меня', en:'Troubles, troubles all around me' },
+    s17l40: { de:'Doch ich bleib bei guter Laune', ru:'Но я сохраняю своё хорошее настроение', en:'But gonna keep my good mood, on' },
+    s17l41: { de:'Steh auf, steh auf, folge mir', ru:'Вставай, вставай, следуй за мной', en:'Gotta get up, get up, follow me' },
+    s17l42: { de:'Lass deine Sorgen hinter dir', ru:'Оставь свои заботы позади', en:'Leave your worries behind' },
+    s17l43: { de:'Hol dir gute Laune', ru:'Достань хорошее настроение', en:'Get your good mood on' },
+    s17l44: { de:'Hol dir gute Laune', ru:'Достань хорошее настроение', en:'Get your good mood, on' },
+    s17l45: { de:'Steh auf, steh auf, folge mir', ru:'Вставай, вставай, следуй за мной', en:'Gotta get up, get up, follow me' },
+    s17l46: { de:'Hol dir gute Laune!', ru:'Достань хорошее настроение!', en:'Get your good mood, on!' }
+    },
+    secs: [
+      { id:'chorus', label:'Chorus', lines:['s17l01', 's17l02', 's17l03', 's17l04', 's17l05', 's17l06', 's17l07', 's17l08', 's17l09', 's17l10', 's17l11', 's17l12'] },
+      { id:'verse1', label:'Verse 1', lines:['s17l13', 's17l14', 's17l15', 's17l16', 's17l17', 's17l18', 's17l19', 's17l20'] },
+      { id:'verse2', label:'Verse 2', lines:['s17l21', 's17l22', 's17l23', 's17l24', 's17l25', 's17l26', 's17l27', 's17l28'] },
+      { id:'bridge', label:'Bridge', lines:['s17l29', 's17l30', 's17l31', 's17l32', 's17l33', 's17l34', 's17l35', 's17l36'] },
+      { id:'outro', label:'Outro', lines:['s17l37', 's17l38', 's17l39', 's17l40', 's17l41', 's17l42', 's17l43', 's17l44', 's17l45', 's17l46'] }
+    ],
+    play: ['chorus', 'verse1', 'chorus', 'verse2', 'chorus', 'bridge', 'chorus', 'outro']
   }
 
 ];

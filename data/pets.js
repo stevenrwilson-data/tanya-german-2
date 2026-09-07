@@ -1,3 +1,4 @@
+/* data/pets.js */
 /* The pets.
 
    Sixteen companions: five common, four rare, three epic, four legendary.

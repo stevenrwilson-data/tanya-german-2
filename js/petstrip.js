@@ -1,3 +1,4 @@
+/* js/petstrip.js */
 /* Her pets, in the header.
 
    Up to three small faces beside the theme and language pickers, and a

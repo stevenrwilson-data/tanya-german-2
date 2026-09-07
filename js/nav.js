@@ -1,3 +1,4 @@
+/* js/nav.js */
 /* Moving around, the same way everywhere.
 
    Two actions exist on every screen in the app, so they are defined once
@@ -27,7 +28,19 @@ GH.nav = (function(){
      most of the screen. */
   var KEEP = 'input, textarea, select, .backlink, .btn, .btn-quiet, .speak,' +
              ' .lp-play, .mode-toggle, .howto-btn, .chip, .jumpbar, .filterwrap,' +
-             ' .theme-swatch, .langswitch, .typeswitch,' +
+             /* THE HEADER CONTROLS OWN THEIR OWN TAPS.
+
+                `.theme-swatch` was here and matches NOTHING — theme.js
+                gives its buttons `swatch`, and it always has. So changing
+                the colour on any screen with a `.js-advance` button also
+                advanced that screen: one tap, two actions, exactly the
+                class of bug the note above this list describes.
+
+                `.pick` covers the collapsed picker, its trigger and its
+                panel in one, and `.lg-pair` is the L1 -> L2 control. The
+                header sits on every screen, so anything added to it must
+                be listed here or it inherits the same bug. */
+             ' .swatch, .pick, .lg-pair, .langswitch, .typeswitch,' +
              /* Anything with its own job on a screen that also has an
                 advance button has to be listed here, or one tap does two
                 things. Three screens were quietly wrong:
@@ -52,21 +65,44 @@ GH.nav = (function(){
              ' .sg-line, .sg-par-line, .sg-recur, .co-word, .es-item,' +
              ' .pt-say-de, .pt-say-btn, .co-earn-shop, .co-total-shop, .es-hear, .tile,' +
              ' .cm-card, .cm-prev, .cm-next, .cm-auto,' +
+             /* The comic-to-comic row, which is a different thing from
+                .cm-prev/.cm-next above — those move between LINES. Listed
+                here because the One-line view also has a `.js-advance`, so
+                without this one tap would open the next comic AND advance
+                the line behind it. */
+             ' .cm-cnav, .cm-cprev, .cm-cnext,' +
              /* The dialogues. Every one of these has its own job on a
                 screen that also has an advance button, which is the
                 condition that made the six above fire twice. */
              ' .dg-line, .dg-choice, .dg-play, .dg-next, .dg-again, .dg-mode,' +
+             /* The per-line mic and the two comparison buttons. Same
+                reason as everything else in this list: the dialogue screen
+                has its own advance, and a tap that recorded her voice AND
+                moved the conversation on would be unusable. */
+             ' .dg-rec, .dg-mic, .dg-cmp,' +
              /* The reader's translate button and its warning. The read
                 view arms nav, so without these one tap would translate
                 the piece AND start the questions it just spent. */
-             ' .rd-translate, .rd-warn-yes, .rd-warn-no, .sg-words, .sw-de, .sw-lens, .pt-buy,' +
+             ' .rd-translate, .rd-warn-yes, .rd-warn-no, .sg-words, .sg-fill, .sw-de, .sw-lens, .pt-buy,' +
              ' .sw-match,' +
              ' .gd-open, .gd-head, .gd-go, .purse,' +
+             /* The purse's panel and everything in it. `.purse` alone was
+                enough while the balance navigated away; now it opens a
+                panel that sits ON a screen which may have a
+                `.js-advance`, so a tap on "Go to Crystals" would both
+                open Crystals and advance the round behind it. Same reason
+                every other entry in this list is here. */
+             ' .purse-pop, .purse-pop-go,' +
              ' .bt-btn, .bt-perch, .bt-box,' +
              ' .pt-strip-say, .petstrip, .petstrip-btn, .ptg-cell, .ptg-close,' +
              ' .ptd-line, .ptd-go, .ptd-more, .ptd-x, .pt-ask, .rd-jump-b,' +
              ' .rd-words, .rw-de, .rw-lens, .rw-match, .rd-q-tr,' +
              ' .sp-opt, .sp-hear, .sp-rec, .sp-mode, .sp-cut, .ref-ex-de, .st-danger,' +
+             ' .tw-set, .tw-word, .tw-def, .tw-ear, .tw-send, .tw-type-in,' +
+             /* `.wl-tile` is the learn-round card, tappable since it had no
+                way to replay a sentence; `.wl-demo-tile` is the pair shown
+                after a correct match. Both own their own tap. */
+             ' .wl-group, .wl-w, .wl-p, .wl-tile, .wl-demo-tile,' +
              ' .ref-search, .ref-search-in, .ref-search-x,' +
              ' .gw-pic, .gw-guess, .gw-cat, .gw-val, .gw-ask-back, .gw-answer-q,' +
              ' .gw-size,' +
@@ -185,7 +221,11 @@ GH.nav = (function(){
     /* leave focus alone if she is on a replay button, unless that button is
        the primary action itself */
     if (inside(active, REPLAY) && !inside(active, '.js-advance')) return;
-    b.focus();
+    /* preventScroll, because focusing an element scrolls it into view by
+       default — and on a long screen the advance button is below the fold,
+       so arming the keyboard was yanking the page down every repaint. */
+    try { b.focus({ preventScroll:true }); }
+    catch (e){ b.focus(); }
   }
 
   function onKey(e){
@@ -252,6 +292,76 @@ GH.nav = (function(){
     if (dx < 0) leave(); else advance();
   }
 
+  /* ---------- A NEW SCREEN STARTS AT THE TOP ----------
+
+     Steven: "Opening a song should 100% of the time open at the top. Not
+     middle of screen."
+
+     Nothing in this app has ever scrolled to the top when a screen opens —
+     there was not one `scrollTo` in any file. Clearing the view and
+     painting something new leaves the window wherever it was, so opening
+     the ninth song in a list dropped her into the middle of it. Songs are
+     only where it is most obvious; it was true of every screen.
+
+     Called on entering a screen, never on a repaint within one: a filter,
+     a view toggle or a graded answer must not throw her back to the top of
+     what she is reading. */
+  /* ---------- A PANEL ANCHORED TO A CONTROL, KEPT ON SCREEN ----------
+
+     Steven, twice, about two different panels: "let's not let it get
+     chopped off no matter where it's being opened in whichever part of
+     the app."
+
+     Here rather than in either caller, because there are two of them now
+     — the theme picker and the purse — and a second copy of this is a
+     second thing to get wrong. This file already owns "how moving around
+     works, the same way everywhere", which is the same kind of claim.
+
+     WHAT IT REPLACED. Both panels used to choose between opening left or
+     opening right, measured once. That is a guess dressed as a
+     measurement: which side has room is not a property of the trigger, it
+     moves with the header wrap, the type variant, the translated title
+     and anything added to the controls row. The theme picker shipped
+     broken in BOTH directions on separate occasions.
+
+     So there is no side. The panel's offset is measured against the
+     viewport and set in pixels, pulled inside both edges. A panel wider
+     than the viewport is narrowed rather than centred, because something
+     that has to overhang should overhang nothing.
+
+     `panel` must be positioned (absolute) inside `wrap`, and must already
+     be visible — a hidden panel has no width to measure. */
+  function clampPanel(panel, trigger, wrap, margin){
+    if (!panel || !trigger || !wrap) return;
+    var M = (typeof margin === 'number') ? margin : 8;
+
+    /* Clear last time's answer, or this measurement is of where it was. */
+    panel.style.left = '';
+    panel.style.right = 'auto';
+    panel.style.maxWidth = '';
+
+    var vw = document.documentElement.clientWidth || window.innerWidth;
+    var room = vw - M * 2;
+    if (panel.offsetWidth > room) panel.style.maxWidth = room + 'px';
+
+    var w = panel.offsetWidth;
+    var t = trigger.getBoundingClientRect();
+    var box = wrap.getBoundingClientRect();
+
+    /* Left-aligned with the trigger, then pulled inside whichever edge it
+       crosses. `max` last, so on a viewport narrower than the panel the
+       LEFT edge wins — an unreachable left edge is worse than an
+       overhanging right one, because there is no way to scroll to it. */
+    var want = Math.min(t.left, vw - M - w);
+    want = Math.max(want, M);
+    panel.style.left = (want - box.left) + 'px';
+  }
+
+  function top(){
+    try { window.scrollTo(0, 0); }
+    catch (e){}
+  }
+
   function init(){
     document.addEventListener('keydown', onKey);
     document.addEventListener('click', onClick);
@@ -259,5 +369,6 @@ GH.nav = (function(){
     document.addEventListener('touchend', onTouchEnd, { passive:true });
   }
 
-  return { init:init, ready:ready, leave:leave, advance:advance };
+  return { init:init, ready:ready, leave:leave, advance:advance, top:top,
+           clampPanel:clampPanel };
 })();

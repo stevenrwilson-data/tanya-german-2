@@ -1,3 +1,4 @@
+/* js/activities/grammar.js */
 /* Grammar — the rules, laid out, with a way straight into practising them.
 
    The app had a word list and eight games and nothing in between. She could
@@ -127,7 +128,10 @@ GH.grammar = (function(){
       b.appendChild(el('span', 'tile-name', t(tp.key)));
       b.appendChild(el('span', 'tile-sub', t(tp.key + 'Sub')));
       b.appendChild(el('span', 'tile-foot', t('grItemsN', { n:n })));
-      b.addEventListener('click', function(){ state.topic = tp; paintTopic(); });
+      b.addEventListener('click', function(){
+        state.topic = tp; paintTopic();
+        if (GH.nav && GH.nav.top) GH.nav.top();
+      });
       grid.appendChild(b);
     });
     host.appendChild(grid);

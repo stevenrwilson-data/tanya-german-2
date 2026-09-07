@@ -1,3 +1,4 @@
+/* js/activities/gender.js */
 /* der · die · das
 
    German gender against a Russian speaker's instinct. In this vocabulary
@@ -514,8 +515,28 @@ GH.gender = (function(){
       items.push({
         n: v.n,
         de: v.de,
-        gloss: lang === 'de' ? '' : (v.ru || v.en || ''),
-        flag: differs(v) ? t('gnGender_' + v.rg) : ''
+        /* WAS `v.ru || v.en`, unconditionally — so English L1 still got
+           Russian here, because v.ru exists on almost every word and this
+           checked it before ever looking at which language is actually
+           active. Confirmed live: L1 set to English, review cards for
+           das Handy/der Kopf/das Restaurant all showed Russian glosses.
+           Now reads the ACTIVE language first, same as every other gloss
+           in this file (see the `ru`/side-by-side block above, which
+           already does this correctly with `v.ru || ''` only because it
+           is the dedicated Russian column). */
+        gloss: lang === 'de' ? '' : (v[lang] || v.en || v.ru || ''),
+        /* WAS `t('gnGender_' + v.rg)` — v.rg is the RUSSIAN word's gender
+           code, not the German one. This flag renders right next to the
+           GERMAN word (endscreen.js: `es-item-flag`), so showing v.rg
+           there told the learner the opposite of the truth whenever the
+           genders differ (which is the only time this flag shows at all):
+           das Handy (German NEUTER) was flagged MASCULINE because Russian
+           телефон is masculine; der Kopf (German MASCULINE) was flagged
+           FEMININE because Russian голова is feminine. Confirmed live and
+           reported directly. RU_OF maps the GERMAN article to its own
+           M/F/N code (see `agrees`/`differs` above) — that's the value
+           this flag needs, not v.rg. */
+        flag: differs(v) ? t('gnGender_' + RU_OF[article(v)]) : ''
       });
     });
 

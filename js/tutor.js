@@ -1,3 +1,4 @@
+/* js/tutor.js */
 /* The tutor: what to show her next, and when.
 
    Every game used to pick its rounds at random from the whole pool, which
@@ -382,9 +383,16 @@ GH.tutor = (function(){
     return limit ? out.slice(0, limit) : out;
   }
 
-  /* Which game drills a given area, so a due row has somewhere to go. */
+  /* Which game drills a given area, so a due row has somewhere to go.
+
+     Used to read a hand-written AREA_GAME table that was removed when
+     gamesFor()/freshestFor() below replaced it with the computed version —
+     nothing updated this to match, so every call threw a ReferenceError
+     and took the whole Progress screen down with it (anything after the
+     first thrown row() never rendered). freshestFor() is the same
+     "one game for this area" query the rest of this file already uses. */
   function gameFor(area){
-    return AREA_GAME[area] || null;
+    return freshestFor(area);
   }
 
   /* What has settled, not just how many.

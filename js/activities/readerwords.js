@@ -1,3 +1,4 @@
+/* js/activities/readerwords.js */
 /* READER WORDS — the word list for one piece.
 
    songvocab.js with three things changed: the data global, the key it looks
@@ -204,7 +205,7 @@ GH.readerWords = (function(){
 
        `.rw-lens` and not the bare div, so nav's KEEP list can stop this
        tap also advancing whatever is behind it. */
-    if (r.img && GH.sprite && GH.sprite.has(r.img)){
+    if (r.img && GH.sprite){
       var pic = el('button', 'rw-pic rw-lens');
       pic.type = 'button';
       pic.setAttribute('aria-label', r.de);

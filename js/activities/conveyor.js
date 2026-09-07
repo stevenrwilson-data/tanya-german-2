@@ -1,3 +1,4 @@
+/* js/activities/conveyor.js */
 /* Das Fließband — sentences arrive, she sorts them by tense.
 
    Not a quiz with a right answer waited on, but a belt that keeps feeding.

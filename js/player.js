@@ -1,3 +1,4 @@
+/* js/player.js */
 /* Who is playing.
 
    Everything the app remembers — what she has met, what she keeps missing,
@@ -128,6 +129,31 @@ GH.player = (function(){
     catch (e){ return 'de'; }
   }
 
+  /* CHANGING THIS SWITCHES COURSES. IT DOES NOT CONVERT ONE.
+
+     `scope()` below puts the target in front of every progress key, and
+     butler.js and events.js key their own stores the same way. That is the
+     design and it is the right one — `de:word:342` is a different record
+     from the same word in a Spanish course, and merging them would be
+     nonsense.
+
+     But it means switching target makes everything she has done APPEAR to
+     vanish: a different set of keys is being read, and the German ones are
+     sitting untouched under `de:`. Switching back brings all of it straight
+     back. Nothing is deleted here and nothing may be.
+
+     So anything that calls this owes her a sentence saying so. A silent
+     switch looks exactly like losing a year of work.
+
+     NOT scoped by target, deliberately: her coin balance and the coach's
+     day streak. Those belong to the person, not the course. */
+  function setTarget(code){
+    if (!code) return false;
+    try { window.localStorage.setItem('gh-target', code); }
+    catch (e){ return false; }
+    return true;
+  }
+
   /* Every progress key runs through here. */
   function scope(key){
     return id() + ':' + target() + ':' + key;
@@ -137,6 +163,6 @@ GH.player = (function(){
     all: all, current: current, id: id, shared: shared,
     add: add, rename: rename, use: use, remove: remove,
     gender: gender, setGender: setGender,
-    target: target, scope: scope
+    target: target, setTarget: setTarget, scope: scope
   };
 })();

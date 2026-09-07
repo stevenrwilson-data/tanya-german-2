@@ -1,3 +1,4 @@
+/* js/activities/jukebox.js */
 /* The Jukebox.
 
    Nine songs, in whatever order she wants, played one after another.
@@ -512,7 +513,26 @@ GH.jukebox = (function(){
            de:'Musikbox', en:'Jukebox' },
     sub:{ ru:'\u0421\u0432\u043e\u0439 \u0441\u043f\u0438\u0441\u043e\u043a \u043f\u0435\u0441\u0435\u043d \u043f\u043e\u0434\u0440\u044f\u0434',
           de:'Deine Liste, ein Lied nach dem anderen',
-          en:'Your own list, one after another' },
+          /* Steven's line. The Russian and German above still say "your
+             own list, one after another" — shorter, accurate, and NOT
+             blanked to force an English fallback: pick() would then show
+             Tanya English on her own hub, which is worse than a shorter
+             true sentence. His DE/RU to match when he wants to. */
+          en:'Make a playlist and order it any way you like, then play it even with your phone locked' },
+    /* What opens behind the + on the game guide. Steven's text.
+
+       Checked against the code before being pasted in, because a guide
+       that promises a feature the app does not have is worse than no
+       guide. All four claims hold: `state.loop` (persisted with the
+       queue), `scramble()` which reorders without stopping what is
+       playing, `move()` for up/down, and the MediaSession block that puts
+       title and transport on the lock screen — the file's own header
+       calls that "the point, not a garnish".
+
+       No `detailHead`: the card is already headed "Jukebox". */
+    detail:{ en:'Build your own playlist from the songs on the site and arrange them in any order you like. Play them one after another, loop or scramble the queue, and keep listening while using other parts of the site or when your phone is locked.',
+             de:'Stelle deine eigene Playlist aus den Liedern auf der Seite zusammen und ordne sie, wie du möchtest. Spiele sie nacheinander ab, wiederhole oder mische die Warteschlange. Die Musik läuft weiter, auch wenn du andere Bereiche der Seite nutzt oder dein Handy sperrst.',
+             ru:'Составь свой плейлист из песен на сайте и расположи их в любом порядке. Слушай их одну за другой, повторяй или перемешивай очередь. Музыка продолжит играть, даже если ты перейдёшь в другой раздел сайта или заблокируешь телефон.' },
     open:open
   };
 

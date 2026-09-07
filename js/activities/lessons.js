@@ -1,3 +1,4 @@
+/* js/activities/lessons.js */
 /* The lesson engine.
 
    Reads a lesson from data/curriculum.js and walks its steps. It knows

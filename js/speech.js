@@ -1,3 +1,4 @@
+/* js/speech.js */
 /* Speaks German with the browser's built-in voices */
 
 window.GH = window.GH || {};
@@ -35,6 +36,11 @@ GH.speech = (function(){
      than two voices and much better than nothing, and it never leaves a
      line silent. */
   var voice2 = null;
+  /* A THIRD SPEAKER. Steven wants dialogues with three people, so the
+     picker offers three slots and utter() takes `who` as 0, 1 or 2.
+     Unchosen, it falls back to the second voice, which falls back to the
+     first — a three-hander on a one-voice device is still audible. */
+  var voice3 = null;
   var oneVoiceOnly = false;
 
   /* THE NOVELTY VOICES, BY NAME.
@@ -67,11 +73,30 @@ GH.speech = (function(){
 
   function pickVoice(){
     if (!supported) return;
-    var list = window.speechSynthesis.getVoices() || [];
-    var de = list.filter(function(v){
-      return v.lang && v.lang.toLowerCase().indexOf('de') === 0;
-    });
-    if (!de.length){ voice = null; voice2 = null; return; }
+    /* THE TARGET LANGUAGE, NOT ALWAYS GERMAN. These three are the dialogue
+       speakers, and a dialogue is in the language she is learning. */
+    var de = voicesIn(target());
+    if (!de.length){ voice = null; voice2 = null; voice3 = null; return; }
+
+    /* THE NOVELTY CHECK NEVER RAN ON THE MAIN VOICE.
+
+       `isNovelty()` was written, documented at length, and then used in
+       exactly one place: choosing the SECOND speaker for dialogues. The
+       primary was `de[0]` straight off the sort, so the entire blocklist
+       was doing nothing for the voice that reads almost everything in the
+       app — the lyrics, the words, the sentences.
+
+       score() demotes anything with `eloquence` in its identifier and that
+       covers most of the German joke voices, but not one whose id carries
+       no marker: those fall to the final `else` at 200 and beat a genuine
+       compact voice on 100.
+
+       Filtered here rather than scored, and only if it leaves something —
+       a device whose only German voice is a novelty is better served by a
+       silly voice than by silence. */
+    var real = de.filter(function(v){ return !isNovelty(v); });
+    if (real.length) de = real;
+
     de.sort(function(a, b){ return score(b) - score(a); });
     voice = de[0];
 
@@ -96,6 +121,159 @@ GH.speech = (function(){
        and much better than a conversation in one. */
     voice2 = second || de[0];
     oneVoiceOnly = !second;
+
+    /* HER CHOICE WINS, and is applied last so it overrides every heuristic
+       above rather than competing with one. A stored voice that is no
+       longer installed falls through to what score() picked. */
+    voice3 = voice2;
+
+    var p = readPick();
+    var pa = p.a && byUri(p.a);
+    if (pa) voice = pa;
+    var pb = p.b && byUri(p.b);
+    if (pb) voice2 = pb;
+    var pc = p.c && byUri(p.c);
+    if (pc) voice3 = pc;
+    oneVoiceOnly = !!(voice && voice2 && voice.voiceURI === voice2.voiceURI);
+  }
+
+
+  /* ==================================================================
+     HER CHOICE, ABOVE ANY SCORE THIS FILE CAN COMPUTE
+
+     Steven: "I'd like to be able to pick my voices... I've gotten lots of
+     premium ones and lots of high-quality ones and they all sound better
+     than the shitty one that this website is picking by default."
+
+     Everything above this is the app GUESSING which of the installed
+     voices is best, from substrings in an identifier that Apple never
+     promised would mean anything. It is a reasonable guess and it will
+     always be a guess. The person listening knows.
+
+     IT IS ALSO THE ONLY WAY TO SEE THE LIST. What iOS shows in Settings
+     and what Safari hands to `getVoices()` are different sets — downloaded
+     enhanced voices frequently never reach the web API at all. A picker
+     showing the real list either fixes the problem or proves the good
+     voices are not on offer, and nothing else can tell those two apart.
+
+     Stored by voiceURI, and a stored URI that is no longer installed is
+     ignored rather than obeyed, so moving to a new phone degrades to the
+     automatic choice instead of to silence. */
+  var PICK_KEY = 'gh-voice';
+
+  /* THREE SPEAKERS, AND PER LANGUAGE.
+
+     Steven: "Make sure you do it for speaker number 1, 2 and three so we
+     can do dialogues with three people. This should work for other
+     languages as well."
+
+     So the store is `{ de:{a,b,c}, es:{a,b,c} }` rather than one flat pair.
+     Two reasons it has to be keyed by language and not global: the voices
+     installed for German are not the voices installed for Spanish, and a
+     `voiceURI` chosen for one is meaningless in the other. Switching the
+     target language must not hand her a German voice reading Spanish.
+
+     The first version stored a flat `{a,b}` for German only. That shape is
+     migrated on read rather than discarded, so a choice already made
+     survives. */
+  function readAll(){
+    var raw;
+    try { raw = JSON.parse(window.localStorage.getItem(PICK_KEY) || '{}') || {}; }
+    catch (e){ return {}; }
+    /* the flat German-only shape, promoted in place */
+    if (raw.a || raw.b){
+      raw = { de: { a:raw.a || null, b:raw.b || null } };
+      writeAll(raw);
+    }
+    return raw;
+  }
+
+  function writeAll(p){
+    try { window.localStorage.setItem(PICK_KEY, JSON.stringify(p)); } catch (e){}
+  }
+
+  function readPick(code){
+    var all = readAll();
+    return all[code || target()] || {};
+  }
+
+  /* WHICH LANGUAGE THE DIALOGUES ARE IN — the one she is learning, not the
+     one the interface is written in. */
+  function target(){
+    try {
+      if (GH.player && GH.player.target) return GH.player.target();
+    } catch (e){}
+    return 'de';
+  }
+
+  function voicesIn(code){
+    if (!supported) return [];
+    var c = (code || target()).toLowerCase();
+    return (window.speechSynthesis.getVoices() || []).filter(function(v){
+      return v.lang && v.lang.toLowerCase().indexOf(c) === 0;
+    });
+  }
+
+  function byUri(uri, code){
+    var g = voicesIn(code), i;
+    for (i = 0; i < g.length; i++) if (g[i].voiceURI === uri) return g[i];
+    return null;
+  }
+
+  /* What the picker draws: everything the browser is actually offering,
+     with the quality marker pulled out of the identifier so she can see
+     for herself whether the premium ones made it through. */
+  function list(code){
+    return voicesIn(code).map(function(v){
+      var uri = (v.voiceURI || '').toLowerCase();
+      var q = '';
+      if (uri.indexOf('premium') >= 0) q = 'premium';
+      else if (uri.indexOf('enhanced') >= 0) q = 'enhanced';
+      else if (uri.indexOf('compact') >= 0) q = 'compact';
+      else if (uri.indexOf('siri') >= 0) q = 'siri';
+      return { uri:v.voiceURI, name:v.name, lang:v.lang, quality:q,
+               novelty:isNovelty(v), local:!!v.localService };
+    });
+  }
+
+  /* `which` is 'a' for the main voice or 'b' for the second speaker.
+     A null uri clears the choice and hands that slot back to score(). */
+  function choose(which, uri, code){
+    var c = code || target();
+    var all = readAll();
+    if (!all[c]) all[c] = {};
+    if (uri) all[c][which] = uri; else delete all[c][which];
+    writeAll(all);
+    pickVoice();
+  }
+
+  function chosen(code){
+    var p = readPick(code);
+    return { a:p.a || null, b:p.b || null, c:p.c || null,
+             usingA: voice ? voice.voiceURI : null,
+             usingB: voice2 ? voice2.voiceURI : null,
+             usingC: voice3 ? voice3.voiceURI : null };
+  }
+
+  /* Speak one line in a NAMED voice, whatever is currently selected, so a
+     row in the picker can be heard before it is chosen. */
+  function sampleWith(uri, text, onDone, code){
+    if (!supported || !text){ if (onDone) onDone(); return; }
+    stop();
+    var v = byUri(uri, code);
+    var lang = LOCALE[code || target()] || 'de-DE';
+    var settled = false;
+    function fin(){ if (!settled){ settled = true; if (onDone) onDone(); } }
+    function build(){
+      var u = new SpeechSynthesisUtterance(text);
+      if (v) u.voice = v;
+      u.lang = lang;
+      u.rate = 0.85;
+      u.onend = fin; u.onerror = fin;
+      return u;
+    }
+    speakWatched(build);
+    setTimeout(fin, 400 + (1200 + text.length * 110) / 0.85);
   }
 
   /* both names, so a device that is not in front of us can be checked */
@@ -126,6 +304,46 @@ GH.speech = (function(){
     if (supported) window.speechSynthesis.cancel();
   }
 
+  /* ---------- when the engine swallows an utterance silently ----------
+
+     A documented iOS failure, different from ordinary silence: after some
+     interruption to the page's shared audio session, speak() can stop
+     actually producing sound — no error event, no end event, nothing said
+     — and every later speak() on the page does the same until she closes
+     the app entirely. There is no property to ask the engine "are you
+     actually working"; the only signal available is that `onstart` never
+     fires for a call that should take well under a second to begin.
+
+     So every speaking function below builds its utterance through this
+     instead of calling speak() directly. It watches for `onstart`, and if
+     it hasn't fired shortly after speak() was called, cancels whatever is
+     stuck and tries once more with a FRESH utterance — a spoken-to
+     utterance does not reliably replay, which is why this takes a builder
+     function rather than an utterance object, and rebuilds rather than
+     reuses.
+
+     ONE retry, not a loop. If the engine is genuinely wedged this does not
+     fix it — nothing running on the page can, only leaving and reopening
+     the app clears that — and retrying forever would just be a silent
+     battery drain pretending the button worked. A small pause before the
+     retry's speak() call, rather than calling it in the same tick as
+     cancel(), because cancel-then-immediately-speak is itself a known way
+     to get an utterance silently dropped on some engines. */
+  function speakWatched(build){
+    var started = false;
+    var u = build();
+    var realStart = u.onstart;
+    u.onstart = function(){ started = true; if (realStart) realStart(); };
+    window.speechSynthesis.speak(u);
+    setTimeout(function(){
+      if (started) return;
+      window.speechSynthesis.cancel();
+      setTimeout(function(){
+        window.speechSynthesis.speak(build());
+      }, 50);
+    }, 800);
+  }
+
   /* onDone runs whether it finished or failed, so buttons never get stuck */
   function say(text, onDone){ return utter(text, 0, onDone); }
 
@@ -136,7 +354,11 @@ GH.speech = (function(){
      Kept as one function rather than two so the rate, the safety net and
      the cancel-first behaviour cannot drift apart between them — which is
      exactly how a second speaker ends up talking over the first. */
-  function sayAs(text, who, onDone){ return utter(text, who === 1 ? 1 : 0, onDone); }
+  function sayAs(text, who, onDone){
+    /* 0, 1 or 2. Anything else is speaker one, so a caller that predates
+       the third speaker still works. */
+    return utter(text, (who === 1 || who === 2) ? who : 0, onDone);
+  }
 
   /* The same voice, deliberately slower.
 
@@ -157,19 +379,27 @@ GH.speech = (function(){
   function utter(text, who, onDone, rate){
     if (!supported || !text){ if (onDone) onDone(); return; }
     stop();
-    var u = new SpeechSynthesisUtterance(text);
-    u.lang = 'de-DE';
-    var v = who === 1 ? voice2 : voice;
-    if (v) u.voice = v;
-    u.rate = (typeof rate === 'number') ? rate : 0.85;
+    var v = who === 2 ? (voice3 || voice2 || voice)
+          : who === 1 ? (voice2 || voice)
+          : voice;
+    var lang = LOCALE[target()] || 'de-DE';
+    var r = (typeof rate === 'number') ? rate : 0.85;
     /* Only shifted when there is no second voice to shift away from. Two
        real voices should each sound like themselves. */
-    u.pitch = (who === 1 && oneVoiceOnly) ? 0.82 : 1;
+    var pitch = (who === 1 && oneVoiceOnly) ? 0.82 : 1;
     var settled = false;
     function finish(){ if (!settled){ settled = true; if (onDone) onDone(); } }
-    u.onend = finish;
-    u.onerror = finish;
-    window.speechSynthesis.speak(u);
+    function build(){
+      var u = new SpeechSynthesisUtterance(text);
+      if (v) u.voice = v;
+      u.lang = lang;
+      u.rate = r;
+      u.pitch = pitch;
+      u.onend = finish;
+      u.onerror = finish;
+      return u;
+    }
+    speakWatched(build);
     /* SAFETY NET FOR BROWSERS THAT DROP onend — SCALED BY THE RATE.
 
        This was `1200 + length * 110`, calibrated for the normal 0.85. At
@@ -182,7 +412,7 @@ GH.speech = (function(){
        Divided by the rate, so the estimate tracks the speed, plus a little
        headroom because being late costs a pause and being early truncates
        the audio. */
-    setTimeout(finish, 400 + (1200 + text.length * 110) / u.rate);
+    setTimeout(finish, 400 + (1200 + text.length * 110) / r);
   }
 
   /* ---------- speaking a language that is not German ----------
@@ -199,7 +429,12 @@ GH.speech = (function(){
      Added rather than folded into utter(): say() and sayAs() keep their
      exact behaviour, including the pitch shift for a second speaker, and
      nothing that already worked is touched. */
-  var LOCALE = { de:'de-DE', ru:'ru-RU', en:'en-GB' };
+  /* Every language the target picker offers, not just the three the
+     interface is written in. A target with no locale here would fall back
+     to German, which is how a Spanish course would have been read aloud in
+     a German accent. */
+  var LOCALE = { de:'de-DE', ru:'ru-RU', en:'en-GB',
+                 es:'es-ES', fr:'fr-FR', tl:'fil-PH', ga:'ga-IE' };
 
   /* Same tiers as score(), with two corrections that matter away from
      German: a novelty voice is worse than anything, and an unrecognised
@@ -247,20 +482,24 @@ GH.speech = (function(){
     if (!supported || !text){ if (onDone) onDone(); return; }
     if (!LOCALE[code]) code = 'de';
     stop();
-    var u = new SpeechSynthesisUtterance(text);
-    u.lang = LOCALE[code];
     var v = voiceFor(code);
-    if (v) u.voice = v;
     /* Slow for German because she is learning it. Her own languages are
        read at something closer to a normal pace — a translation drawled
        at 0.85 is irritating rather than helpful. */
-    u.rate = code === 'de' ? 0.85 : 0.95;
-    u.pitch = 1;
+    var rate = code === 'de' ? 0.85 : 0.95;
     var settled = false;
     function finish(){ if (!settled){ settled = true; if (onDone) onDone(); } }
-    u.onend = finish;
-    u.onerror = finish;
-    window.speechSynthesis.speak(u);
+    function build(){
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = LOCALE[code];
+      if (v) u.voice = v;
+      u.rate = rate;
+      u.pitch = 1;
+      u.onend = finish;
+      u.onerror = finish;
+      return u;
+    }
+    speakWatched(build);
     setTimeout(finish, 1200 + text.length * 110);
   }
 
@@ -286,9 +525,12 @@ GH.speech = (function(){
     return out.join('\n');
   }
 
+
   return { say:say, sayAs:sayAs, sayIn:sayIn, sayRate:sayRate, hasVoice:hasVoice,
            voiceReport:voiceReport,
            stop:stop, supported:supported,
            voiceName:voiceName, voiceNames:voiceNames,
-           twoVoices:function(){ return !oneVoiceOnly; } };
+           twoVoices:function(){ return !oneVoiceOnly; },
+           voiceList:list, chooseVoice:choose, chosenVoices:chosen,
+           sampleVoice:sampleWith };
 })();

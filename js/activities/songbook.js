@@ -1,3 +1,4 @@
+/* js/activities/songbook.js */
 /* Lieder — the songs, with their words.
 
    Three views of the same lines, because they answer different questions.
@@ -57,6 +58,190 @@ GH.songs = (function(){
 
   /* ---------- one line ---------- */
 
+
+  /* ==================================================================
+     LISTENING TO EVERY LINE PAYS
+
+     Steven: "If you click on and listen to every single line in German
+     through the entire song, that should be worth one exercise."
+
+     Tapping one line is a lookup. Tapping every line of a song is thirty
+     to a hundred lines of German heard deliberately, one at a time, which
+     is a session — so it pays like one and then rests for a week, the same
+     shape the comics use.
+
+     KEYED BY `audio`, NOT BY `n`. Eight of the eleven songs have no `n` at
+     all, so a store keyed by song number would file eight songs under
+     `undefined` and treat them as one. `audio` is the filename, unique
+     across all eleven and present on every one of them.
+     ================================================================== */
+  var SUNG_KEY  = 'gh-song-lines';
+  var SPAID_KEY = 'gh-song-paid';
+  var TOLD_KEY  = 'gh-song-told';
+  var SONG_COINS = 10;
+  var SONG_REST_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function songSlot(){
+    return (GH.player ? GH.player.id() + ':' + GH.player.target() : 'solo');
+  }
+  function songKey(song){ return song && song.audio ? song.audio : '?'; }
+
+  function jread(k){
+    try { var r = window.localStorage.getItem(k); return r ? JSON.parse(r) : {}; }
+    catch (e){ return {}; }
+  }
+  function jwrite(k, v){
+    try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (e){}
+  }
+
+  function heardLines(song){
+    var d = jread(SUNG_KEY)[songSlot()] || {};
+    return d[songKey(song)] || {};
+  }
+
+  function lineTotal(song){
+    return song && song.lines ? Object.keys(song.lines).length : 0;
+  }
+
+  function heardCount(song){ return Object.keys(heardLines(song)).length; }
+
+  function songResting(song){
+    var at = (jread(SPAID_KEY)[songSlot()] || {})[songKey(song)] || 0;
+    return !!at && (Date.now() - at) < SONG_REST_MS;
+  }
+
+  /* Marks one line and pays when the last one lands. Returns true only on
+     the tap that completed the song, so the caller can react once. */
+  function markLine(song, id){
+    if (!song || !id) return false;
+    var all = jread(SUNG_KEY), slot = songSlot(), k = songKey(song);
+    if (!all[slot]) all[slot] = {};
+    if (!all[slot][k]) all[slot][k] = {};
+    if (all[slot][k][id]) return false;            /* already heard */
+    all[slot][k][id] = 1;
+    jwrite(SUNG_KEY, all);
+
+    if (Object.keys(all[slot][k]).length < lineTotal(song)) return false;
+    if (songResting(song)) return false;
+    if (!GH.coins || !GH.coins.awardPart) return false;
+
+    /* One whole exercise: one partial against a threshold of one. */
+    GH.coins.awardPart('song', SONG_COINS, 1);
+    var paid = jread(SPAID_KEY);
+    if (!paid[slot]) paid[slot] = {};
+    paid[slot][k] = Date.now();
+    jwrite(SPAID_KEY, paid);
+    /* Cleared so the next week has to be earned again rather than being
+       already complete the moment the rest expires — the same trap the
+       comic units had. */
+    all[slot][k] = {};
+    jwrite(SUNG_KEY, all);
+    if (GH.purse) GH.purse.refresh();
+    return true;
+  }
+
+  /* Said once per profile, the first time she taps any line in any song. */
+  function toldYet(){
+    var d = jread(TOLD_KEY);
+    return !!d[songSlot()];
+  }
+  function markTold(){
+    var d = jread(TOLD_KEY);
+    d[songSlot()] = Date.now();
+    jwrite(TOLD_KEY, d);
+  }
+
+
+  /* ==================================================================
+     TEN LINES, FILLED IN
+
+     Steven: "have the song randomly pick 10 lines... make sure they're 10
+     different lines with different dialogue so if a line gets repeated, it
+     can't be used twice and prefer lines that are more than four words
+     long."
+
+     All three rules earn their place against the real songs:
+
+       DEDUPE BY TEXT, not by line id. A chorus is several ids carrying the
+       same words — one song is 101 lines and 92 distinct, another 63 and
+       52 — and drawing the same line twice would look like a bug and test
+       nothing the second time.
+
+       FOUR WORDS IS THE FLOOR because a three-word line with one word
+       removed is not a sentence to complete, it is a guess between the two
+       words left. Every song has at least thirteen lines that clear it, so
+       the preference never has to be broken; the fallback below exists for
+       a song added later that cannot fill ten.
+
+       RANDOM, so the second run through a song is not the first one again.
+
+     The exercise itself is `fill-blank`, unchanged. It already takes
+     `{de, ru, en}` and finds its own blanks and distractors, which is
+     exactly the shape a song line already has. */
+  var FILL_LINES = 10;
+  var FILL_MIN_WORDS = 4;
+
+  function normLine(x){
+    return String(x || '').toLowerCase()
+      .replace(/[^a-zäöüß ]/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  function fillCandidates(song){
+    var seen = {}, longEnough = [], shorter = [];
+    Object.keys(song.lines || {}).forEach(function(id){
+      var L = song.lines[id];
+      if (!L || !L.de) return;
+      var k = normLine(L.de);
+      if (!k || seen[k]) return;
+      seen[k] = 1;
+      var row = { de:L.de, ru:L.ru, en:L.en, blanks:null };
+      /* AND IT HAS TO HAVE A TRANSLATION. fill-blank prints her language
+         under the German, so an untranslated line shows a bare sentence
+         and quietly becomes a harder question than the ones around it.
+
+         Seven lines in the whole library fail this, all of them in `Das
+         Lied zweier Herzen`, whose chorus is five lines in German and four
+         in Russian — a documented mismatch in this file, not a gap to fill
+         in. 414 of the 420 long lines are complete, so excluding them
+         costs nothing. */
+      var whole = !!(L.ru && L.en);
+      if (whole && L.de.trim().split(/\s+/).length > FILL_MIN_WORDS) longEnough.push(row);
+      else shorter.push(row);
+    });
+    return { long:longEnough, short:shorter };
+  }
+
+  function pickFillLines(song){
+    var c = fillCandidates(song);
+    var out = GH.text.shuffle(c.long.slice()).slice(0, FILL_LINES);
+    /* Only if a song cannot field ten long ones. Never happens with the
+       eleven songs here; it is here so adding a short song degrades to a
+       shorter exercise rather than an empty one. */
+    if (out.length < FILL_LINES){
+      out = out.concat(GH.text.shuffle(c.short.slice())
+                        .slice(0, FILL_LINES - out.length));
+    }
+    return out;
+  }
+
+  function openFill(song){
+    var lines = pickFillLines(song);
+    if (!lines.length) return;
+    GH.speech.stop();
+    stopAudio();
+    host.textContent = '';
+    GH.fillBlank.mount(host, {
+      title: song.title.de,
+      subtitle: t('sgFillSub'),
+      sentences: lines,
+      onExit: function(){
+        host.textContent = '';
+        paintSong();
+        if (GH.nav && GH.nav.top) GH.nav.top();
+      }
+    });
+  }
+
   function lineRow(song, id, n){
     var L = song.lines[id];
     if (!L) return el('p', 'sg-line', '?');
@@ -68,7 +253,16 @@ GH.songs = (function(){
     var lang = GH.i18n.lang();
     if (lang !== 'de' && L[lang]) body.appendChild(el('span', 'sg-tr', L[lang]));
     row.appendChild(body);
-    row.addEventListener('click', function(){ GH.speech.say(L.de); });
+    row.addEventListener('click', function(){
+      GH.speech.say(L.de);
+      var first = !toldYet();
+      var done = markLine(song, id);
+      if (first) markTold();
+      /* Repaint only when something changed on screen — the counter, the
+         tip, or a payment. A repaint on every tap would rebuild a hundred
+         rows to speak one line. */
+      if (first || done) paintSong();
+    });
     return row;
   }
 
@@ -372,7 +566,27 @@ GH.songs = (function(){
                        : 'audio/' + song.audio + '.m4a';
     m4a.type = 'audio/mp4';
     a.appendChild(m4a);
-    a.addEventListener('error', function(){ wrap.style.display = 'none'; });
+    a.addEventListener('error', function(){
+      wrap.style.display = 'none';
+      /* Not just hidden — released. A media element left attached in an
+         error state, even hidden, can go on holding the page's shared
+         audio session. On iOS that session is also what speechSynthesis
+         runs through, and an <audio> stuck in error has been seen to leave
+         the WHOLE PAGE'S text-to-speech silent — every dialogue, every
+         sentence, every tapped word — until she leaves the app entirely.
+         removeAttribute + load() is the standard way to make the browser
+         let go of an element's media resource; clearing the cache too
+         means the next paintSong() for this song builds a genuinely fresh
+         <audio> instead of handing back the one that broke. */
+      while (a.firstChild) a.removeChild(a.firstChild);
+      a.removeAttribute('src');
+      a.load();
+      if (playerFor === song.audio){
+        playerWrap = null;
+        playerFor = null;
+        audio = null;
+      }
+    });
     /* WHICH song, and whether she actually played it.
 
        The log had an open and a leave for this screen and nothing else, so
@@ -417,12 +631,52 @@ GH.songs = (function(){
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, song.title.de));
+    /* Marked so the block below can be inserted after the header without
+       hunting for it again. */
     var lang = GH.i18n.lang();
     /* a song title, not a section label — the shared subtitle style is 0.8rem
        and meant for 'Section 1 · Sentences', which reads as small print here */
     if (lang !== 'de') titles.appendChild(el('p', 'sg-subtitle', song.title[lang]));
     head.appendChild(titles);
     host.appendChild(head);
+
+    /* ---------- what listening through is worth ----------
+
+       The counter first, because a number that moves is what makes tapping
+       every line feel like a thing rather than a habit. The explanation
+       only on her very first tap in any song, and never again — a tip that
+       reappears is a nag. */
+    /* ---------- ONE ROW, NOT A BAND ACROSS THE SCREEN ----------
+
+       The counter and the quiz share a line. The first version gave the
+       quiz its own full-width button ABOVE the card, which put it 66px
+       higher than the play button and made it the widest thing on screen —
+       so opening a song to listen to it offered homework first. A song
+       page's primary action is the song.
+
+       Side by side it is still the second thing she reads and one tap
+       away, and the player keeps the top of the card. */
+    var totalLines = lineTotal(song);
+    var row = el('div', 'sg-credit-row');
+    if (totalLines){
+      if (songResting(song)){
+        row.appendChild(el('p', 'sg-credit is-rest', t('sgRested')));
+      } else {
+        row.appendChild(el('p', 'sg-credit',
+          t('sgHeardN', { n:heardCount(song), of:totalLines })));
+      }
+    }
+    if (GH.fillBlank && GH.fillBlank.mount && GH.text && GH.text.shuffle){
+      var fb = el('button', 'btn btn-quiet sg-fill', t('sgFill', { n:FILL_LINES }));
+      fb.type = 'button';
+      fb.addEventListener('click', function(){ openFill(song); });
+      row.appendChild(fb);
+    }
+    if (row.children.length) host.appendChild(row);
+
+    if (!toldYet()){
+      host.appendChild(el('p', 'sg-tip', t('sgCreditTip')));
+    }
 
     var card = el('div', 'card');
 
@@ -494,6 +748,22 @@ GH.songs = (function(){
     sub:{ ru:'Слова песен на трёх языках',
           de:'Die Liedtexte in drei Sprachen',
           en:'The lyrics in three languages' },
+    /* What opens behind the + on the game guide. Steven's text.
+
+       NO `detailHead`: Word Lab's says "How Word Lab works" because that
+       card needed a title for a description of a nine-stage lesson. This
+       card is already headed "Songs" and a second heading saying the same
+       word would be furniture.
+
+       DELIBERATELY SAYS NOTHING ABOUT GERMAN. Steven: "Songs is supposed
+       to be a reusable activity, so the description shouldn't know what
+       language is being learned." So it is "in your language" and not "in
+       Russian", the same way `sub` above says three languages without
+       naming them. When there is a second target language this line needs
+       no edit. */
+    detail:{ en:'Listen to songs while following the lyrics in several different views, with line-by-line translation in your language. Explore vocabulary from each song and tap any lyric line to hear it spoken clearly, helping you connect the words you read with what you hear.',
+             de:'Höre Lieder und folge dem Liedtext in verschiedenen Ansichten mit einer zeilenweisen Übersetzung in deine Sprache. Entdecke den Wortschatz jedes Liedes und tippe auf eine beliebige Zeile, um sie deutlich gesprochen zu hören und so das Gelesene besser mit dem Gehörten zu verbinden.',
+             ru:'Слушай песни и следи за текстом в нескольких вариантах отображения с построчным переводом на твой язык. Изучай лексику каждой песни и нажимай на любую строку, чтобы услышать её в обычной речи и лучше связать написанные слова с их звучанием.' },
     open:GH.songs.open
   };
   function register(){ if (window.GH && GH.app && GH.app.register) GH.app.register(entry); }

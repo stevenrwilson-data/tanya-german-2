@@ -1,89 +1,157 @@
-/* Sprite sheets.
+/* js/sprite.js */
+/* One word out of a 3x3 sheet.
 
-   Images live nine to a sheet, in reading order (left to right, top to
-   bottom). An image's permanent number is all that's needed to find it:
+   Same idea as facepic.js, different grid — that one does 2x2 face sheets
+   and hardcodes its own arithmetic; this one does 3x3 vocabulary sheets.
+   Kept separate rather than generalised into one shared cropper for the
+   same reason facepic.js gives: a wrong number silently shows the wrong
+   picture, and in a matching game that is a wrong answer she cannot argue
+   with. Better two small files that are each obviously correct.
 
-     image 3   -> images/1.webp, row 0, col 2
-     image 137 -> images/16.webp, row 0, col 1
+   ------------------------------------------------------------------
+   TWO KINDS OF CALLER
 
-   So a sentence carries img:3 and nothing else. Layout comes from
-   GH_BANK.sheets, so a different grid only means editing that block. */
+   The 278-word bank in vocab.js addresses a picture with a single number,
+   `n` — "the image number, so the picture comes free" is the comment
+   there, and it is: `n` decomposes into (sheet, cell) by division, sheet
+   = ceil(n/9), cell = ((n-1) mod 9) + 1, sheet N living at `images/N.webp`.
+   `tile(n, word)` is that caller's door — packs.js's `imgOf()` is what
+   hands it the number.
+
+   Newer content (flowers, and everything after it) is generated and named
+   in named 3x3 batches instead of one running number — `flowers-01.webp`
+   is a sheet, not a word, and which of its 9 cells is which word is data,
+   not arithmetic. `cell(sheetName, pos, word)` is that caller's door —
+   `data/gallery.js` is what has the (sheet, pos) pairs. Both doors end up
+   at the same crop function once the sheet and position are known.
+
+   ------------------------------------------------------------------
+   HOW THE CROP WORKS — same technique as facepic.js
+
+   A box sized to the cell, the sheet as a background scaled to 300% in
+   both directions, offset to the right ninth. No canvas, no slicing, and
+   the browser decodes each sheet once no matter how many cells from it
+   are on screen at once.
+
+     pos 1 2 3   top row,    0% / 50% / 100%   0% down
+     pos 4 5 6   middle row, same across,      50% down
+     pos 7 8 9   bottom row, same across,     100% down
+
+   ------------------------------------------------------------------
+   A MISSING SHEET MUST NOT BREAK THE GAME
+
+   Sheets arrive over days and nights, not all at once, so a missing one is
+   a normal state, not a bug. Until a sheet is confirmed loaded, the cell
+   shows the word instead of a blank box — playable, and obviously a
+   placeholder rather than something broken. */
 
 window.GH = window.GH || {};
 
 GH.sprite = (function(){
 
-  function cfg(){
-    return (window.GH_BANK && GH_BANK.sheets) || {
-      prefix:'images/', ext:'.webp', cols:3, rows:3, pad:1, aspect:'2 / 3'
-    };
+  var DIR = 'images/';
+  var COLS = 3;
+  var PER_SHEET = 9;
+
+  /* sheet key (a number or a name, both used as strings) -> status */
+  var sheets = {};
+  var waiting = {};
+  var found = {};
+
+  function keyOf(sheet){ return String(sheet); }
+
+  function url(sheet){
+    var p = DIR + sheet + '.webp';
+    return GH.build ? GH.build.url(p) : p;
   }
 
-  function pad(n, width){
-    var s = String(n);
-    while (s.length < width) s = '0' + s;
-    return s;
-  }
-
-  /* Is there a picture at all?
-
-     0 means no. It used to mean image 1: locate(0) computed sheet 1, cell
-     0, so an abstract word with no drawing silently displayed der Kopf.
-     Nothing warned, because nothing was wrong — the maths worked. */
-  function has(n){ return !!n && n > 0; }
-
-  /* number -> { url, x, y, sizeX, sizeY, aspect, sheet, row, col } */
-  function locate(n){
-    var c = cfg();
-    var per = c.cols * c.rows;
-    var i = Math.max(1, Math.floor(n)) - 1;
-    var sheet = Math.floor(i / per) + 1;
-    var slot = i % per;
-    var row = Math.floor(slot / c.cols);
-    var col = slot % c.cols;
-    return {
-      /* Versioned, so a redrawn sheet is a different URL. Without this a
-         stale sheet can be served from cache indefinitely. */
-      url:(GH.build ? GH.build.url(c.prefix + pad(sheet, c.pad || 2) + c.ext)
-                    : c.prefix + pad(sheet, c.pad || 2) + c.ext),
-      x:c.cols > 1 ? (col * 100) / (c.cols - 1) : 0,
-      y:c.rows > 1 ? (row * 100) / (c.rows - 1) : 0,
-      sizeX:c.cols * 100,
-      sizeY:c.rows * 100,
-      aspect:c.aspect,
-      sheet:sheet,
-      row:row,
-      col:col
-    };
-  }
-
-  /* Builds the element that shows one tile.
-
-     With no picture it builds a word instead — the German set large on a
-     plain ground, which is what an abstract word has to be. `label` is
-     optional and the caller passes the German; without one the tile is
-     simply empty, which is still better than the wrong drawing. */
-  function tile(n, label){
-    var box = document.createElement('div');
-    if (!has(n)){
-      box.className = 'sprite sprite-word';
-      box.style.aspectRatio = cfg().aspect;
-      if (label){
-        var t = document.createElement('span');
-        t.className = 'sprite-word-text';
-        t.textContent = label;
-        box.appendChild(t);
-      }
-      return box;
+  function probe(sheet, then){
+    var k = keyOf(sheet);
+    if (sheets[k] === 'ok' || sheets[k] === 'missing'){
+      then(sheets[k]);
+      return;
     }
-    var s = locate(n);
-    box.className = 'sprite';
-    box.style.backgroundImage = 'url("' + s.url + '")';
-    box.style.backgroundSize = s.sizeX + '% ' + s.sizeY + '%';
-    box.style.backgroundPosition = s.x + '% ' + s.y + '%';
-    box.style.aspectRatio = s.aspect;
+    (waiting[k] = waiting[k] || []).push(then);
+    if (sheets[k] === 'loading') return;
+    sheets[k] = 'loading';
+    var img = new Image();
+    img.onload = function(){
+      found[k] = url(sheet);
+      settle(k, 'ok');
+    };
+    img.onerror = function(){ settle(k, 'missing'); };
+    img.src = url(sheet);
+  }
+
+  function settle(k, how){
+    sheets[k] = how;
+    var list = waiting[k] || [];
+    waiting[k] = [];
+    list.forEach(function(fn){ fn(how); });
+  }
+
+  /* The box, once sheet and 1-based position are both known. */
+  function crop(sheet, pos, word, cls){
+    var box = document.createElement('div');
+    box.className = 'sp' + (cls ? ' ' + cls : '');
+    box.setAttribute('role', 'img');
+    box.setAttribute('aria-label', word || '');
+
+    var fallback = document.createElement('span');
+    fallback.className = 'sp-word';
+    fallback.textContent = word || '';
+    box.appendChild(fallback);
+
+    probe(sheet, function(how){
+      if (how !== 'ok') return;
+      var col = (pos - 1) % COLS;
+      var row = Math.floor((pos - 1) / COLS);
+      box.style.backgroundImage = 'url("' + (found[keyOf(sheet)] || url(sheet)) + '")';
+      box.style.backgroundSize = (COLS * 100) + '% ' + (COLS * 100) + '%';
+      box.style.backgroundPosition = (col * 50) + '% ' + (row * 50) + '%';
+      box.className += ' has-art';
+    });
+
     return box;
   }
 
-  return { locate:locate, tile:tile, has:has };
+  /* THE OLD DOOR — a single running number, as every existing game already
+     calls it. 0 (or falsy) means no picture: a word-only tile, same shape
+     as a real one so callers do not have to branch. */
+  function tile(n, word, cls){
+    if (!n){
+      var box = document.createElement('div');
+      box.className = 'sp sp-noart' + (cls ? ' ' + cls : '');
+      box.setAttribute('role', 'img');
+      box.setAttribute('aria-label', word || '');
+      var span = document.createElement('span');
+      span.className = 'sp-word';
+      span.textContent = word || '';
+      box.appendChild(span);
+      return box;
+    }
+    var sheet = Math.ceil(n / PER_SHEET);
+    var pos = ((n - 1) % PER_SHEET) + 1;
+    return crop(sheet, pos, word, cls);
+  }
+
+  /* THE NEW DOOR — a named sheet plus its 1-based position, for
+     `data/gallery.js` and anything shaped like it. */
+  function cell(sheetName, pos, word, cls){
+    if (!sheetName || !pos) return tile(0, word, cls);
+    return crop(sheetName, pos, word, cls);
+  }
+
+  /* Which sheets have been asked for and come back missing — for the
+     audit, same purpose as facepic.js's `missing()`. Callers pass the
+     list of sheet keys they care about. */
+  function missing(sheetKeys){
+    var out = [];
+    (sheetKeys || []).forEach(function(k){
+      if (sheets[keyOf(k)] === 'missing') out.push(k);
+    });
+    return out;
+  }
+
+  return { tile:tile, cell:cell, url:url, missing:missing };
 })();

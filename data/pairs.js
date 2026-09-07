@@ -1,3 +1,4 @@
+/* data/pairs.js */
 /* Minimal pairs, and the sentences that tell them apart.
 
    Tested with the app's own voice on the device she uses. The article is

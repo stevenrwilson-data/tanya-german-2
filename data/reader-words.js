@@ -1,3 +1,4 @@
+/* data/reader-words.js */
 /* READER WORDS — the vocabulary of each piece in the reader.
 
    Her way in. Reading a story cold is hard; reading it after five minutes
@@ -32,6 +33,110 @@
 window.GH_READERWORDS = {
 
   words:{
+    /* Flowers (ar-08/ar-09/ar-10) — one shared vocabulary unit per
+       Steven, transferable words rather than more flower names. Each is
+       referenced only by the pieces whose own text actually uses it. */
+    'das Blütenblatt':
+      { en:'petal',
+        ru:'лепесток',
+        img:0, kind:'word', want:'def' },
+    'der Stiel':
+      { en:'stem',
+        ru:'стебель',
+        img:0, kind:'word', want:'def' },
+    'der Samen':
+      { en:'seed',
+        ru:'семя',
+        img:0, kind:'word', want:'def' },
+    'glatt':
+      { en:'smooth',
+        ru:'гладкий',
+        img:0, kind:'word', want:'def' },
+    'gebogen':
+      { en:'curved',
+        ru:'изогнутый',
+        img:0, kind:'word', want:'def' },
+    'gepunktet':
+      { en:'dotted',
+        ru:'в точках',
+        img:0, kind:'word', want:'def' },
+    'gestreift':
+      { en:'striped',
+        ru:'полосатый',
+        img:0, kind:'word', want:'def' },
+    'in Schichten':
+      { en:'layered',
+        ru:'слоями',
+        img:0, kind:'phrase', want:'def' },
+    'der Dorn':
+      { en:'thorn',
+        ru:'шип',
+        img:0, kind:'word', want:'def' },
+    'sich ausbreiten':
+      { en:'to spread',
+        ru:'распространяться',
+        img:0, kind:'phrase', want:'def' },
+
+    /* Why I Love Vegetables (ar-12) */
+    'die Mahlzeit':
+      { en:'meal',
+        ru:'приём пищи',
+        img:0, kind:'word', want:'def' },
+    'das Lieblingsgemüse':
+      { en:'favorite vegetable',
+        ru:'любимый овощ',
+        img:0, kind:'word', want:'def' },
+    'die Soße':
+      { en:'sauce',
+        ru:'соус',
+        img:0, kind:'word', want:'def' },
+    'der Geschmack':
+      { en:'taste / flavor',
+        ru:'вкус',
+        img:0, kind:'word', want:'def' },
+    'kräftiger Geschmack':
+      { en:'rich taste',
+        ru:'насыщенный вкус',
+        img:0, kind:'phrase', want:'def' },
+    'auf die gleiche Weise':
+      { en:'in the same way',
+        ru:'одинаковым способом',
+        img:0, kind:'phrase', want:'def' },
+
+    /* The Great Fruit Competition (ar-11) */
+    'der Wettbewerb':
+      { en:'competition',
+        ru:'конкурс',
+        img:0, kind:'word', want:'def' },
+    'die Regel':
+      { en:'rule',
+        ru:'правило',
+        img:0, kind:'word', want:'def' },
+    'der Gewinner':
+      { en:'winner',
+        ru:'победитель',
+        img:0, kind:'word', want:'def' },
+    'vergleichen':
+      { en:'to compare',
+        ru:'сравнивать',
+        img:0, kind:'word', want:'def' },
+    'wählen':
+      { en:'to choose',
+        ru:'выбирать',
+        img:0, kind:'word', want:'def' },
+    'verdienen':
+      { en:'to deserve',
+        ru:'заслуживать',
+        img:0, kind:'word', want:'def' },
+    'die Top Fünf':
+      { en:'top five',
+        ru:'пятёрка лучших',
+        img:0, kind:'phrase', want:'def' },
+    'wissenschaftlich':
+      { en:'scientific',
+        ru:'научный',
+        img:0, kind:'word', want:'def' },
+
     'der Spaziergang':
       { en:'walk',
         ru:'прогулка',
@@ -1216,6 +1321,44 @@ window.GH_READERWORDS = {
       { en:'ingredient',
         ru:'ингредиент',
         img:0, kind:'word', want:'def' },
+
+    /* Kitchen Wars (ar-13, ar-14) — Steven's own 12-word shortlist out of
+       a fuller 20-word table; die Zutat/probieren/bevorzugen/gewinnen/
+       wählen/der Gewinner/der Wettbewerb are already above from earlier
+       pieces and simply get referenced again here. */
+    'der Juror':
+      { en:'judge',
+        ru:'судья',
+        img:0, kind:'word', want:'def' },
+    'die Runde':
+      { en:'round',
+        ru:'раунд',
+        img:0, kind:'word', want:'def' },
+    'gegeneinander antreten':
+      { en:'to compete',
+        ru:'соревноваться',
+        img:0, kind:'phrase', want:'def' },
+    'einwickeln':
+      { en:'to wrap',
+        ru:'заворачивать',
+        img:0, kind:'word', want:'def' },
+    'knusprig':
+      { en:'crisp',
+        ru:'хрустящий',
+        img:0, kind:'word', want:'def' },
+    'braten':
+      { en:'to fry',
+        ru:'жарить',
+        img:0, kind:'word', want:'def' },
+    'unentschieden':
+      { en:'tied / equal',
+        ru:'ничья / равный счёт',
+        img:0, kind:'word', want:'def' },
+    'der Punkt':
+      { en:'point',
+        ru:'балл',
+        img:0, kind:'word', want:'def' },
+
     'zubereiten':
       { en:'to prepare',
         ru:'готовить',
@@ -1727,6 +1870,305 @@ window.GH_READERWORDS = {
     'entdecken':
       { en:'to discover',
         ru:'открывать',
+        img:0, kind:'word', want:'def' },
+    'der Alkohol':
+      { en:'alcohol',
+        ru:'алкоголь',
+        img:0, kind:'word', want:'def' },
+    'das alkoholische Getränk':
+      { en:'alcoholic drink',
+        ru:'алкогольный напиток',
+        img:0, kind:'phrase', want:'def' },
+    'der Rotwein':
+      { en:'red wine',
+        ru:'красное вино',
+        img:0, kind:'word', want:'def' },
+    'der Weißwein':
+      { en:'white wine',
+        ru:'белое вино',
+        img:0, kind:'word', want:'def' },
+    'der Roséwein':
+      { en:'rosé wine',
+        ru:'розовое вино',
+        img:0, kind:'word', want:'def' },
+    'der Champagner':
+      { en:'champagne',
+        ru:'шампанское',
+        img:0, kind:'word', want:'def' },
+    'der Bierkrug':
+      { en:'beer mug',
+        ru:'пивная кружка',
+        img:0, kind:'word', want:'def' },
+    'der Cider':
+      { en:'cider',
+        ru:'сидр',
+        img:0, kind:'word', want:'def' },
+    'die Trauben':
+      { en:'grapes',
+        ru:'виноград',
+        img:0, kind:'word', want:'def' },
+    'die Traubenschale':
+      { en:'grape skin',
+        ru:'кожица винограда',
+        img:0, kind:'word', want:'def' },
+    'zerdrücken':
+      { en:'to crush',
+        ru:'давить',
+        img:0, kind:'word', want:'def' },
+    'trocken':
+      { en:'dry',
+        ru:'сухой',
+        img:0, kind:'word', want:'def' },
+    'süß':
+      { en:'sweet',
+        ru:'сладкий',
+        img:0, kind:'word', want:'def' },
+    'der Schaumwein':
+      { en:'sparkling wine',
+        ru:'игристое вино',
+        img:0, kind:'word', want:'def' },
+    'die Bläschen':
+      { en:'bubbles',
+        ru:'пузырьки',
+        img:0, kind:'word', want:'def' },
+    'das Getreide':
+      { en:'grain',
+        ru:'зерно',
+        img:0, kind:'word', want:'def' },
+    'der Hopfen':
+      { en:'hops',
+        ru:'хмель',
+        img:0, kind:'word', want:'def' },
+    'die Hefe':
+      { en:'yeast',
+        ru:'дрожжи',
+        img:0, kind:'word', want:'def' },
+    'bitter':
+      { en:'bitter',
+        ru:'горький',
+        img:0, kind:'word', want:'def' },
+    'die Feier':
+      { en:'celebration',
+        ru:'праздник, торжество',
+        img:0, kind:'word', want:'def' },
+    'der besondere Anlass':
+      { en:'special occasion',
+        ru:'особый случай',
+        img:0, kind:'phrase', want:'def' },
+    'der Löwenzahn':
+      { en:'dandelion',
+        ru:'одуванчик',
+        img:0, kind:'word', want:'def' },
+    'das Vergissmeinnicht':
+      { en:'forget-me-not',
+        ru:'незабудка',
+        img:0, kind:'word', want:'def' },
+    'das Veilchen':
+      { en:'violet',
+        ru:'фиалка',
+        img:0, kind:'word', want:'def' },
+    'der Mohn':
+      { en:'poppy',
+        ru:'мак',
+        img:0, kind:'word', want:'def' },
+    'das Gänseblümchen':
+      { en:'daisy',
+        ru:'маргаритка',
+        img:0, kind:'word', want:'def' },
+    'der Lavendel':
+      { en:'lavender',
+        ru:'лаванда',
+        img:0, kind:'word', want:'def' },
+    'das Immergrün':
+      { en:'periwinkle',
+        ru:'барвинок',
+        img:0, kind:'word', want:'def' },
+    'die Kapuzinerkresse':
+      { en:'nasturtium',
+        ru:'настурция',
+        img:0, kind:'word', want:'def' },
+    'die Tagetes':
+      { en:'marigold',
+        ru:'бархатцы',
+        img:0, kind:'word', want:'def' },
+    'die Geranie':
+      { en:'geranium',
+        ru:'герань',
+        img:0, kind:'word', want:'def' },
+    'die Chrysantheme':
+      { en:'chrysanthemum',
+        ru:'хризантема',
+        img:0, kind:'word', want:'def' },
+    'die Dahlie':
+      { en:'dahlia',
+        ru:'георгин',
+        img:0, kind:'word', want:'def' },
+    'die rote Rose':
+      { en:'red rose',
+        ru:'красная роза',
+        img:0, kind:'word', want:'def' },
+    'die rote Tulpe':
+      { en:'red tulip',
+        ru:'красный тюльпан',
+        img:0, kind:'word', want:'def' },
+    'die Sonnenblume':
+      { en:'sunflower',
+        ru:'подсолнух',
+        img:0, kind:'word', want:'def' },
+    'die Narzisse':
+      { en:'daffodil',
+        ru:'нарцисс',
+        img:0, kind:'word', want:'def' },
+    'die Nelke':
+      { en:'carnation',
+        ru:'гвоздика',
+        img:0, kind:'word', want:'def' },
+    'die Pfingstrose':
+      { en:'peony',
+        ru:'пион',
+        img:0, kind:'word', want:'def' },
+    'die Magnolie':
+      { en:'magnolia',
+        ru:'магнолия',
+        img:0, kind:'word', want:'def' },
+    'der Jasmin':
+      { en:'jasmine',
+        ru:'жасмин',
+        img:0, kind:'word', want:'def' },
+    'der Hibiskus':
+      { en:'hibiscus',
+        ru:'гибискус',
+        img:0, kind:'word', want:'def' },
+    'die Iris':
+      { en:'iris',
+        ru:'ирис',
+        img:0, kind:'word', want:'def' },
+    'die Hortensie':
+      { en:'hydrangea',
+        ru:'гортензия',
+        img:0, kind:'word', want:'def' },
+    'der Flieder':
+      { en:'lilac',
+        ru:'сирень',
+        img:0, kind:'word', want:'def' },
+    'die Lilie':
+      { en:'lily',
+        ru:'лилия',
+        img:0, kind:'word', want:'def' },
+    'die Orchidee':
+      { en:'orchid',
+        ru:'орхидея',
+        img:0, kind:'word', want:'def' },
+    'der Lotus':
+      { en:'lotus',
+        ru:'лотос',
+        img:0, kind:'word', want:'def' },
+    'die Banane':
+      { en:'banana',
+        ru:'банан',
+        img:0, kind:'word', want:'def' },
+    'die Wassermelone':
+      { en:'watermelon',
+        ru:'арбуз',
+        img:0, kind:'word', want:'def' },
+    'die Erdbeere':
+      { en:'strawberry',
+        ru:'клубника',
+        img:0, kind:'word', want:'def' },
+    'die Ananas':
+      { en:'pineapple',
+        ru:'ананас',
+        img:0, kind:'word', want:'def' },
+    'die Mango':
+      { en:'mango',
+        ru:'манго',
+        img:0, kind:'word', want:'def' },
+    'saftig':
+      { en:'juicy',
+        ru:'сочный',
+        img:0, kind:'word', want:'def' },
+    'der Kern':
+      { en:'seed, pit',
+        ru:'косточка',
+        img:0, kind:'word', want:'def' },
+    'die Schale':
+      { en:'peel',
+        ru:'кожура',
+        img:0, kind:'word', want:'def' },
+    'die Sauerei':
+      { en:'mess',
+        ru:'беспорядок',
+        img:0, kind:'word', want:'def' },
+    'riesig':
+      { en:'enormous',
+        ru:'огромный',
+        img:0, kind:'word', want:'def' },
+    'die Tomate':
+      { en:'tomato',
+        ru:'помидор',
+        img:0, kind:'word', want:'def' },
+    'die Zwiebel':
+      { en:'onion',
+        ru:'лук',
+        img:0, kind:'word', want:'def' },
+    'der Knoblauch':
+      { en:'garlic',
+        ru:'чеснок',
+        img:0, kind:'word', want:'def' },
+    'der Brokkoli':
+      { en:'broccoli',
+        ru:'брокколи',
+        img:0, kind:'word', want:'def' },
+    'der Rotkohl':
+      { en:'red cabbage',
+        ru:'краснокочанная капуста',
+        img:0, kind:'word', want:'def' },
+    'der Pilz':
+      { en:'mushroom',
+        ru:'гриб',
+        img:0, kind:'word', want:'def' },
+    'der Spinat':
+      { en:'spinach',
+        ru:'шпинат',
+        img:0, kind:'word', want:'def' },
+    'das Kraut':
+      { en:'herb',
+        ru:'трава, зелень',
+        img:0, kind:'word', want:'def' },
+    'rösten':
+      { en:'to roast',
+        ru:'запекать',
+        img:0, kind:'word', want:'def' },
+
+    /* The Mushroom Test (ar-15) — the mushroom names are the actual point
+       of this piece, not incidental ingredients like in Kitchen Wars, so
+       they're referenced here where Kitchen Wars deliberately left them
+       out. 'braune Champignons' matches the exact phrase used in the
+       article and in the fruit/veg fill-blank sentences (04 Sep), not
+       gallery.js's slash-combined 'Cremini-Pilze / braunen Champignons'. */
+    'braune Champignons':
+      { en:'cremini mushrooms',
+        ru:'кремини',
+        img:0, kind:'phrase', want:'def' },
+    'die Pfifferlinge':
+      { en:'chanterelles',
+        ru:'лисички',
+        img:0, kind:'word', want:'def' },
+    'die Austernpilze':
+      { en:'oyster mushrooms',
+        ru:'вёшенки',
+        img:0, kind:'word', want:'def' },
+    'die Kräuterseitlinge':
+      { en:'king oyster mushrooms',
+        ru:'королевские вёшенки',
+        img:0, kind:'word', want:'def' },
+    'getrennt':
+      { en:'separately',
+        ru:'отдельно',
+        img:0, kind:'word', want:'def' },
+    'die Textur':
+      { en:'texture',
+        ru:'текстура',
         img:0, kind:'word', want:'def' }
   },
 
@@ -2946,6 +3388,184 @@ window.GH_READERWORDS = {
       'tragen',
       'falsch',
       'schwer'
+    ],
+    'ar-06': [
+      'der Alkohol',
+      'der Rotwein',
+      'der Weißwein',
+      'der Roséwein',
+      'der Champagner',
+      'der Bierkrug',
+      'der Cider',
+      'die Trauben',
+      'die Traubenschale',
+      'trocken',
+      'süß',
+      'fruchtig',
+      'die Bläschen',
+      'das Getreide',
+      'der Hopfen',
+      'die Hefe',
+      'bitter'
+    ],
+    'ar-07': [
+      'der Alkohol',
+      'das alkoholische Getränk',
+      'der Rotwein',
+      'der Weißwein',
+      'der Roséwein',
+      'der Champagner',
+      'der Bierkrug',
+      'der Cider',
+      'die Trauben',
+      'die Traubenschale',
+      'zerdrücken',
+      'trocken',
+      'süß',
+      'fruchtig',
+      'der Schaumwein',
+      'die Bläschen',
+      'das Getreide',
+      'der Hopfen',
+      'die Hefe',
+      'bitter',
+      'mild',
+      'die Feier',
+      'der besondere Anlass'
+    ],
+    'ar-08': [
+      'der Löwenzahn',
+      'das Vergissmeinnicht',
+      'das Veilchen',
+      'der Mohn',
+      'das Gänseblümchen',
+      'der Lavendel',
+      'das Immergrün',
+      'die Kapuzinerkresse',
+      'die Tagetes',
+      'das Blütenblatt',
+      'der Stiel',
+      'der Samen',
+      'der Frühling',
+      'der Duft',
+      'sich ausbreiten'
+    ],
+    'ar-09': [
+      'die Geranie',
+      'die Chrysantheme',
+      'die Dahlie',
+      'die rote Rose',
+      'die rote Tulpe',
+      'die Sonnenblume',
+      'die Narzisse',
+      'die Nelke',
+      'die Pfingstrose',
+      'das Blütenblatt',
+      'der Stiel',
+      'der Samen',
+      'der Frühling',
+      'der Herbst',
+      'glatt',
+      'in Schichten',
+      'der Dorn'
+    ],
+    'ar-10': [
+      'die Magnolie',
+      'der Jasmin',
+      'der Hibiskus',
+      'die Iris',
+      'die Hortensie',
+      'der Flieder',
+      'die Lilie',
+      'die Orchidee',
+      'der Lotus',
+      'das Blütenblatt',
+      'der Stiel',
+      'der Frühling',
+      'der Duft',
+      'glatt',
+      'gebogen',
+      'gepunktet',
+      'gestreift'
+    ],
+    'ar-11': [
+      'die Banane',
+      'die Wassermelone',
+      'die Erdbeere',
+      'die Ananas',
+      'die Mango',
+      'reif',
+      'saftig',
+      'der Kern',
+      'die Schale',
+      'die Sauerei',
+      'riesig',
+      'der Wettbewerb',
+      'die Regel',
+      'der Gewinner',
+      'vergleichen',
+      'wählen',
+      'verdienen',
+      'die Top Fünf',
+      'wissenschaftlich'
+    ],
+    'ar-12': [
+      'die Tomate',
+      'die Zwiebel',
+      'der Knoblauch',
+      'der Brokkoli',
+      'die Karotte',
+      'der Rotkohl',
+      'der Pilz',
+      'der Spinat',
+      'saftig',
+      'das Kraut',
+      'rösten',
+      'zubereiten',
+      'die Mahlzeit',
+      'das Lieblingsgemüse',
+      'die Soße',
+      'der Geschmack',
+      'kräftiger Geschmack',
+      'auf die gleiche Weise',
+      'stark',
+      'weich',
+      'frisch',
+      'der Ofen',
+      'der Koch'
+    ],
+    'ar-13': [
+      'die Zutat',
+      'der Wettbewerb',
+      'der Juror',
+      'probieren',
+      'wählen',
+      'der Gewinner'
+    ],
+    'ar-14': [
+      'die Zutat',
+      'der Juror',
+      'die Runde',
+      'gegeneinander antreten',
+      'einwickeln',
+      'knusprig',
+      'braten',
+      'probieren',
+      'bevorzugen',
+      'unentschieden',
+      'der Punkt',
+      'gewinnen'
+    ],
+    'ar-15': [
+      'braune Champignons',
+      'die Pfifferlinge',
+      'die Austernpilze',
+      'die Kräuterseitlinge',
+      'getrennt',
+      'der Geschmack',
+      'die Textur',
+      'braten',
+      'probieren'
     ]
   }
 };

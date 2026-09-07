@@ -1,3 +1,4 @@
+/* js/activities/scramble.js */
 /* Bau den Satz — put the words in order.
 
    Word order is the largest untested thing in the app and the hardest

@@ -1,3 +1,4 @@
+/* js/verbtable.js */
 /* A verb's six forms, laid out.
 
    Two places want this: the conjugation game, which opens it after a wrong

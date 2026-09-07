@@ -1,3 +1,4 @@
+/* js/activities/songvocab.js */
 /* A song's vocabulary, on its own page.
 
    Row Your Boat has four words worth teaching. Sending her to a bank of
@@ -200,9 +201,20 @@ GH.songWords = (function(){
      `say` carries the readable form for the five entries that have a
      placeholder in them — sayable() already exists here for the card's own
      speak button, and Word Matching honours the field. */
+  /* `noGame:true` in data/song-words.js keeps a word in the song and out
+     of this pool — see the note at the top of that file. Checked against
+     the song-words table whichever source ends up answering for the word,
+     so a word later promoted into GH_VOCAB stays excluded. */
+  function barred(de){
+    var d = data();
+    var w = d && d.words && d.words[de];
+    return !!(w && w.noGame);
+  }
+
   function matchWords(song){
     var out = [];
     refs(song).forEach(function(de){
+      if (barred(de)) return;
       var v = fromBank(de);
       if (v){ out.push(v); return; }
 
@@ -311,7 +323,7 @@ GH.songWords = (function(){
 
        `.sw-lens` and not the bare div, so nav's KEEP list can stop this
        tap also advancing whatever is behind it. */
-    if (r.img && GH.sprite && GH.sprite.has(r.img)){
+    if (r.img && GH.sprite){
       var pic = el('button', 'sw-pic sw-lens');
       pic.type = 'button';
       pic.setAttribute('aria-label', r.de);

@@ -1,3 +1,4 @@
+/* js/activities/reader.js */
 /* The Reader — short stories, medium stories, poems.
 
    Everything she reads for comprehension, in one place. Three sections
@@ -428,6 +429,9 @@ GH.reader = (function(){
   /* ---------- reading ---------- */
 
   function openPiece(sec, piece){
+    /* A new screen, so it starts at the top rather than inheriting the
+       index's scroll offset. */
+    if (GH.nav && GH.nav.top) GH.nav.top();
     state.sec = sec;
     state.piece = piece;
     state.phase = 'read';
@@ -819,7 +823,15 @@ GH.reader = (function(){
        only ones worth opening. */
     var score = asked ? Math.round(sec.score * (right / asked)) : 0;
 
-    var paid = GH.coins ? GH.coins.award('reader', state.run, { units:1 }) : null;
+    /* `tag` is the TIER, for the daily quests — Steven: "only the small
+       short stories on the reader should ever be eligible". The quest for
+       reading lists 'short' and nothing else, so finishing an article or
+       a poem pays the round normally and completes no quest. That also
+       settles the B1 rule without reading levels: every B1 piece in the
+       app is an article or the long Kitchen Wars. */
+    var paid = GH.coins
+      ? GH.coins.award('reader', state.run, { units:1, tag:(sec && sec.id) || '' })
+      : null;
     var won = GH.awards ? GH.awards.afterRound('reader', state.run) : [];
 
     GH.endScreen.render(host, {
@@ -878,6 +890,19 @@ GH.reader = (function(){
     sub:{ ru:'Рассказы и стихи, с вопросами',
           de:'Geschichten und Gedichte, mit Fragen',
           en:'Stories and poems, with questions' },
+    /* What opens behind the + on the game guide. Steven's text.
+
+       `sub` says "Stories and poems, with questions" and undersells the
+       tier badly: articles are a fourth kind of piece and there are 15 of
+       them, the long stories are their own tier, and the per-piece word
+       list is the cheapest help in the app — free, where a passage
+       translation rests that piece's questions for five days. None of
+       that was discoverable from the hub.
+
+       No `detailHead`: the card is already headed "The Reader". */
+    detail:{ en:'Read short and longer stories, poems, and articles on a variety of topics. Each text includes audio, vocabulary, and comprehension questions. An L1 translation is available when needed, but using it locks the questions for five days.',
+             de:'Lies kurze und längere Geschichten, Gedichte und Artikel zu verschiedenen Themen. Jeder Text enthält Audio, Wortschatz und Verständnisfragen. Bei Bedarf kannst du eine Übersetzung in deine Muttersprache öffnen, danach bleiben die Fragen jedoch fünf Tage lang gesperrt.',
+             ru:'Читай короткие и более длинные рассказы, стихи и статьи на самые разные темы. Каждый текст включает аудио, словарь и вопросы на понимание. При необходимости можно открыть перевод на родной язык, но после этого вопросы будут недоступны в течение пяти дней.' },
     open:open
   };
 

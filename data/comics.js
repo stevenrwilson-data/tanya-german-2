@@ -1,3 +1,4 @@
+/* data/comics.js */
 /* The Alina and Stella comics.
 
    Generated from the unit .md files by comic-parse.py — do not hand-edit,
@@ -1514,6 +1515,380 @@ window.GH_COMICS = [
       { n:6, lines:[
         { who:'Narrative bubble, top', de:'Max ist sehr amüsiert.', ru:'Макса это очень забавляет.', en:'Max is very amused.' },
         { who:'Max', de:'Ich habe geputzt! Gern geschehen!', ru:'Я же убирал! Не благодарите!', en:'I was cleaning! You’re welcome!' },
+      ] },
+    ] },
+
+  /* ==================================================================
+     UNIT 8 — MILA'S BIRTHDAY PARTY.  Added 05 Sep 2026.
+
+     Ten comics, sixty panels, eighty-five lines. Steven's own German and
+     Russian; the English is transcribed from the original art rather than
+     translated back, which is why it is the one that had to be checked
+     against the other two rather than trusted.
+
+     THREE REPAIRS THE JOIN CAUGHT, all confirmed by Steven:
+
+       - the English transcript omitted the narration line on all 25
+         panels that also carry dialogue. Restored from the German. The
+         rule was exact — every one of the 25 had speech — which is what
+         showed it was an abbreviation rather than the art differing.
+       - page 6 panel 2 was missing its narration in the GERMAN, not the
+         English. Added.
+       - page 7 panel 5 had `Max: (kleines Nicken)` in the German. A
+         stage direction, not printed in the art, so it is not a line.
+         The narration already says he agrees.
+
+     LABELS ARE KEYS AND STAY ENGLISH. `Everyone`, not `Alle` or `Все`;
+     `Narrative bubble`, not `Повествование`. comic-parse.py joins the
+     three languages on unit/comic/panel/speaker, so a translated label
+     shifts every line after it onto the wrong picture.
+
+     `Narrative bubble` with NO position. Steven: "The narrative bubble
+     won't need a position after unit 3 because even if it moves around
+     there will only be one of them." The four positional variants in
+     units 1-3 exist only to tell two boxes apart in one panel, and from
+     unit 4 on there is never more than one.
+
+     CHARACTER DESCRIPTIONS ARE ENGLISH-ONLY, copied verbatim from unit 4
+     rather than reworded. That is a pre-existing gap across all units —
+     only Alina and Stella have German and Russian — and it wants fixing
+     once for all eight units, not per unit. `Everyone` is the one new
+     entry, and it exists because the parser rejects a speaker who is not
+     in Characters.
+     ================================================================== */
+  { unit:8, comic:1,
+    scene:{ en:'Mila’s apartment', de:'Milas Wohnung', ru:'Квартира Милы' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Es ist Milas Geburtstagsmorgen in ihrer Wohnung.', ru:'Утро дня рождения Милы в её квартире.', en:'It is Mila’s birthday morning at her apartment.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Milas Mama schmückt die Wohnung.', ru:'Мама Милы украшает квартиру.', en:'Mila’s mom decorates the apartment.' },
+        { who:'Mila', de:'Mama! Heute ist mein Geburtstag!', ru:'Мама! Сегодня мой день рождения!', en:'Mama! It’s my birthday!' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Alina kommt, um mit ihrer besten Freundin zu feiern.', ru:'Алина приходит отпраздновать день рождения со своей лучшей подругой.', en:'Alina comes to celebrate with her best friend.' },
+        { who:'Mila', de:'Du bist da! Das wird der beste Geburtstag aller Zeiten!', ru:'Ты пришла! Это будет лучший день рождения!', en:'You’re here! This is going to be the best birthday ever!' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Oma Sofie backt den Kuchen.', ru:'Бабушка Софи печёт торт.', en:'Grandma Sofie is making the cake.' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Max ist auch da.', ru:'Макс тоже здесь.', en:'Max is here too.' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Mila ist so glücklich.', ru:'Мила очень счастлива.', en:'Mila is so happy.' },
+        { who:'Mila', de:'Dass ihr alle hier seid, macht das jetzt schon zum schönsten Tag!', ru:'То, что вы все здесь, уже делает этот день самым лучшим!', en:'Having everyone here already makes this the best day!' },
+      ] },
+    ] },
+  { unit:8, comic:2,
+    scene:{ en:'Shop', de:'Geschäft', ru:'Магазин' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Während Oma Sofie den Kuchen backt, gehen die Mädchen noch ein paar Sachen einkaufen.', ru:'Пока бабушка Софи печёт торт, девочки идут купить ещё несколько вещей.', en:'While Grandma Sofie makes the cake, the girls go out to buy a few more things.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Sie kaufen Blumen und Partyzubehör.', ru:'Они покупают цветы и всё необходимое для праздника.', en:'They buy flowers and party supplies.' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Mila sucht Blumen aus.', ru:'Мила выбирает цветы.', en:'Mila chooses flowers.' },
+        { who:'Mila', de:'Die werden wunderschön auf dem Tisch aussehen!', ru:'Они будут прекрасно смотреться на столе!', en:'These will look beautiful on the table!' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Sie kaufen noch mehr Partyzubehör.', ru:'Они покупают ещё несколько вещей для праздника.', en:'They buy more party supplies.' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Sie gehen zurück zur Wohnung.', ru:'Они возвращаются в квартиру.', en:'They return to the apartment.' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Mila ist begeistert.', ru:'Мила в восторге.', en:'Mila is excited.' },
+        { who:'Mila', de:'Mit Omas Kuchen und diesen extra Sachen wird das perfekt!', ru:'С бабушкиным тортом и всем этим всё будет идеально!', en:'With Grandma’s cake and these extra things, everything will be perfect!' },
+      ] },
+    ] },
+  { unit:8, comic:3,
+    scene:{ en:'Mila’s apartment', de:'Milas Wohnung', ru:'Квартира Милы' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Die Mädchen helfen, die Wohnung für die Party zu schmücken.', ru:'Девочки помогают украшать квартиру к празднику.', en:'The girls help decorate the apartment for the party.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Mila ist total aufgeregt.', ru:'Мила очень взволнована.', en:'Mila is very excited.' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Mila spricht mit Max.', ru:'Мила говорит с Максом.', en:'Mila talks to Max.' },
+        { who:'Mila', de:'Max, du musst heute auf meiner Party mit mir tanzen! Versprich es?', ru:'Макс, ты сегодня должен потанцевать со мной на моей вечеринке! Обещаешь?', en:'Max, you have to dance with me at my party today! Promise?' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Max wird nervös.', ru:'Макс начинает нервничать.', en:'Max gets nervous.' },
+        { who:'Max', de:'Tanzen …? Ich weiß nicht so recht … äh …', ru:'Танцевать…? Не знаю… э-э…', en:'Dance…? I don’t know… um…' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Die Mädchen ziehen Max auf.', ru:'Девочки поддразнивают Макса.', en:'The girls tease Max.' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Max ist verlegen.', ru:'Макс смущён.', en:'Max is embarrassed.' },
+        { who:'Max', de:'Mal sehen … vielleicht.', ru:'Посмотрим… может быть.', en:'We’ll see… maybe.' },
+      ] },
+    ] },
+  { unit:8, comic:4,
+    scene:{ en:'Mila’s apartment', de:'Milas Wohnung', ru:'Квартира Милы' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Die Mädchen schmücken die Wohnung weiter.', ru:'Девочки продолжают украшать квартиру.', en:'The girls continue decorating the apartment.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Mila neckt Max wieder.', ru:'Мила снова дразнит Макса.', en:'Mila teases Max again.' },
+        { who:'Mila', de:'Du wirst später wirklich mit mir tanzen, oder, Max?', ru:'Ты ведь правда потом потанцуешь со мной, да, Макс?', en:'You’re really going to dance with me later, right, Max?' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Max wird wegen des Tanzens nervös.', ru:'Макс нервничает из-за танцев.', en:'Max gets nervous about dancing.' },
+        { who:'Max', de:'Äh … mal sehen.', ru:'Э-э… посмотрим.', en:'Um… we’ll see.' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Mehr Freunde kommen zur Party.', ru:'На праздник приходят ещё друзья.', en:'More friends arrive for the party.' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Die Party beginnt.', ru:'Праздник начинается.', en:'The party begins.' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Mila freut sich auf die Party … und aufs Tanzen.', ru:'Мила с нетерпением ждёт праздника… и танцев.', en:'Mila is looking forward to the party… and dancing.' },
+      ] },
+    ] },
+  { unit:8, comic:5,
+    scene:{ en:'Mila’s apartment', de:'Milas Wohnung', ru:'Квартира Милы' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Die Partyspiele beginnen.', ru:'Начинаются праздничные игры.', en:'The party games begin.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Mila zieht Max mit in die Spiele hinein.', ru:'Мила втягивает Макса в игры.', en:'Mila pulls Max into the games.' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Mila spricht wieder mit Max.', ru:'Мила снова говорит с Максом.', en:'Mila talks to Max again.' },
+        { who:'Mila', de:'Du musst mir später einen Tanz aufheben, okay?', ru:'Оставь для меня один танец на потом, хорошо?', en:'You have to save me a dance later, okay?' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Max wird noch nervöser.', ru:'Макс нервничает ещё сильнее.', en:'Max gets even more nervous.' },
+        { who:'Max', de:'Äh …', ru:'Э-э…', en:'Um…' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Alle haben Spaß auf der Party.', ru:'Все веселятся на празднике.', en:'Everyone is having fun at the party.' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Mila freut sich aufs Tanzen.', ru:'Мила с нетерпением ждёт танцев.', en:'Mila is looking forward to dancing.' },
+      ] },
+    ] },
+  { unit:8, comic:6,
+    scene:{ en:'Mila’s apartment', de:'Milas Wohnung', ru:'Квартира Милы' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Es ist Zeit, die Geschenke zu öffnen.', ru:'Пришло время открывать подарки.', en:'It is time to open the presents.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Mila öffnet Alinas Geschenk.', ru:'Мила открывает подарок Алины.', en:'Mila opens Alina’s present.' },
+        { who:'Mila', de:'Alina! Es ist so schön! Ich liebe es!', ru:'Алина! Он такой красивый! Мне очень нравится!', en:'Alina! It’s so beautiful! I love it!' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Mila öffnet Max’ Geschenk.', ru:'Мила открывает подарок Макса.', en:'Mila opens Max’s present.' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Mila freut sich riesig über ihre Geschenke.', ru:'Мила очень рада своим подаркам.', en:'Mila is very happy with her presents.' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Mila neckt Max wieder.', ru:'Мила снова дразнит Макса.', en:'Mila teases Max again.' },
+        { who:'Mila', de:'Nachdem wir den Kuchen angeschnitten haben, musst du mit mir tanzen, okay, Max? Du hast es versprochen!', ru:'После того как мы разрежем торт, ты должен потанцевать со мной, хорошо, Макс? Ты обещал!', en:'After we cut the cake, you have to dance with me, okay, Max? You promised!' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Max wird wegen des Tanzens noch nervöser.', ru:'Макс ещё больше нервничает из-за танцев.', en:'Max gets even more nervous about dancing.' },
+        { who:'Max', de:'Äh … mal sehen … vielleicht.', ru:'Э-э… посмотрим… может быть.', en:'Um… we’ll see… maybe.' },
+      ] },
+    ] },
+  { unit:8, comic:7,
+    scene:{ en:'Mila’s apartment', de:'Milas Wohnung', ru:'Квартира Милы' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Es ist Zeit für den Geburtstagskuchen.', ru:'Пришло время праздничного торта.', en:'It is time for the birthday cake.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Alle singen Mila „Happy Birthday to You“.', ru:'Все поют Миле «Happy Birthday to You».', en:'Everyone sings “Happy Birthday to You” to Mila.' },
+        { who:'Everyone', de:'♪ Happy Birthday to you, Happy Birthday to you, Happy Birthday dear Mila, Happy Birthday to you! ♪', ru:'♪ Happy Birthday to you, Happy Birthday to you, Happy Birthday dear Mila, Happy Birthday to you! ♪', en:'♪ Happy Birthday to you, Happy Birthday to you, Happy Birthday dear Mila, Happy Birthday to you! ♪' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Mila wünscht sich etwas und bläst die Kerzen aus.', ru:'Мила загадывает желание и задувает свечи.', en:'Mila makes a wish and blows out the candles.' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Mila erinnert Max wieder daran.', ru:'Мила снова напоминает Максу.', en:'Mila reminds Max again.' },
+        { who:'Mila', de:'Nach dem Kuchen musst du mit mir tanzen, Max! Keine Ausreden mehr!', ru:'После торта ты должен потанцевать со мной, Макс! Больше никаких отговорок!', en:'After cake, you have to dance with me, Max! No more excuses!' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Max ist nervös, stimmt aber zu.', ru:'Макс нервничает, но соглашается.', en:'Max is nervous, but agrees.' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Die Party ist voller Freude.', ru:'Праздник полон радости.', en:'The party is full of joy.' },
+      ] },
+    ] },
+  { unit:8, comic:8,
+    scene:{ en:'Mila’s apartment', de:'Milas Wohnung', ru:'Квартира Милы' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Die Musik beginnt.', ru:'Начинает играть музыка.', en:'The music starts.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Mila zieht Max zum Tanzen.', ru:'Мила тянет Макса танцевать.', en:'Mila pulls Max to dance.' },
+        { who:'Max', de:'Ich weiß nicht, wie …', ru:'Я не знаю, как…', en:'I don’t know how…' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Mila zeigt Max, wie man tanzt.', ru:'Мила показывает Максу, как танцевать.', en:'Mila shows Max how to dance.' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Max fängt an, Spaß zu haben.', ru:'Максу начинает нравиться.', en:'Max starts to have fun.' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Max hat Spaß.', ru:'Макс веселится.', en:'Max is having fun.' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Mila küsst Max auf die Wange.', ru:'Мила целует Макса в щёку.', en:'Mila kisses Max on the cheek.' },
+        { who:'Mila', de:'Danke, dass du mit mir getanzt hast!', ru:'Спасибо, что потанцевал со мной!', en:'Thanks for dancing with me!' },
+      ] },
+    ] },
+  { unit:8, comic:9,
+    scene:{ en:'Mila’s apartment', de:'Milas Wohnung', ru:'Квартира Милы' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Die Kinder räumen nach der Party auf.', ru:'После праздника дети убирают квартиру.', en:'The children clean up after the party.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Mila ist glücklich, aber müde.', ru:'Мила счастлива, но устала.', en:'Mila is happy but tired.' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Alina neckt Mila.', ru:'Алина поддразнивает Милу.', en:'Alina teases Mila.' },
+        { who:'Alina', de:'Du wolltest heute unbedingt mit Max tanzen, oder?', ru:'Ты сегодня очень хотела потанцевать с Максом, да?', en:'You really wanted to dance with Max today, didn’t you?' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Mila wird schüchtern.', ru:'Мила смущается.', en:'Mila gets shy.' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Die Freunde umarmen sich.', ru:'Друзья обнимаются.', en:'The friends hug.' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Mila ist dankbar.', ru:'Мила благодарна.', en:'Mila is grateful.' },
+        { who:'Mila', de:'Das war der beste Geburtstag überhaupt … weil ich ihn mit euch allen verbringen konnte.', ru:'Это был лучший день рождения… потому что я смогла провести его со всеми вами.', en:'This was the best birthday ever… because I got to spend it with all of you.' },
+      ] },
+    ] },
+  { unit:8, comic:10,
+    scene:{ en:'Alina’s apartment', de:'Alinas Wohnung', ru:'Квартира Алины' },
+    chars:{
+      'Mila':{ en:'Alina\'s friend.' },
+      'Alina':{ en:'A little girl with a magical red purse called Stella.' },
+      'Max':{ en:'Alina\'s older brother.' },
+      'Grandma Sofie':{ en:'Alina and Max\'s grandmother on Mom\'s side.' },
+      'Anila':{ en:'Alina\'s mirror-world counterpart.' },
+      'Stella':{ en:'Alina\'s magical red purse.' },
+      'Everyone':{ en:'Everyone at the party, singing together.' },
+    },
+    panels:[
+      { n:1, lines:[
+        { who:'Narrative bubble', de:'Später an diesem Abend in Alinas Wohnung.', ru:'Позже вечером в квартире Алины.', en:'Later that evening at Alina’s apartment.' },
+      ] },
+      { n:2, lines:[
+        { who:'Narrative bubble', de:'Alina öffnet Stella und holt den Spiegel heraus.', ru:'Алина открывает Стеллу и достаёт зеркало.', en:'Alina opens Stella and takes out the mirror.' },
+      ] },
+      { n:3, lines:[
+        { who:'Narrative bubble', de:'Alina spricht mit Anila.', ru:'Алина говорит с Анилой.', en:'Alina talks to Anila.' },
+        { who:'Alina', de:'Anila! Milas Geburtstag war heute so toll!', ru:'Анила! День рождения Милы сегодня был просто замечательным!', en:'Anila! Mila’s birthday was so much fun today!' },
+      ] },
+      { n:4, lines:[
+        { who:'Narrative bubble', de:'Anila antwortet.', ru:'Анила отвечает.', en:'Anila answers.' },
+        { who:'Anila', de:'Ich weiß! Ich war auch auf Alims Party.', ru:'Я знаю! Я тоже была на празднике Алима.', en:'I know! I was at Alim’s party too.' },
+      ] },
+      { n:5, lines:[
+        { who:'Narrative bubble', de:'Anila erzählt ihr, was sie gesehen hat.', ru:'Анила рассказывает ей, что видела.', en:'Anila tells her what she saw.' },
+        { who:'Anila', de:'Es war so lustig, Xam mit ihr tanzen zu sehen!', ru:'Было так смешно смотреть, как Ксам танцевал с ней!', en:'It was so funny watching Xam dance with her!' },
+      ] },
+      { n:6, lines:[
+        { who:'Narrative bubble', de:'Alina ist glücklich.', ru:'Алина счастлива.', en:'Alina is happy.' },
+        { who:'Alina', de:'Beste Geburtstagsparty überhaupt … in beiden Welten!', ru:'Лучший день рождения… в обоих мирах!', en:'Best birthday party ever… in both worlds!' },
       ] },
     ] },
 ];

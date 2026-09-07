@@ -1,3 +1,4 @@
+/* js/conjugate.js */
 /* Present-tense conjugation.
 
    Regular verbs are generated, because the rule is genuinely reliable once

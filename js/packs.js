@@ -1,3 +1,4 @@
+/* js/packs.js */
 /* Content packs: everything the app knows, released in waves.
 
    Four hundred words is what the app has. Four hundred words is not what a
@@ -466,10 +467,35 @@ GH.packs = (function(){
     return n;
   }
 
+  /* ---------- the picture-word gallery (data/gallery.js) ----------
+
+     New content — flowers, and whatever categories come after it —
+     kept in its own file on purpose (see the header there). Same shape
+     of question as catsOf/inCat/ofCat above, answered against that list
+     instead of GH_VOCAB.
+
+     `galleryCats()` returns EVERY declared category, including ones with
+     no words in them yet — GH_GALLERY_CATS is the registry, filled in
+     ahead of the content, so a category exists (and a picker can offer
+     it) before it has a single entry. `galleryOf(cat)` is the words
+     actually in one — a word's `cats` is an array (a word can belong to
+     more than one category, e.g. a river is both 'nature' and 'water';
+     there is no hierarchy between categories, just per-word tagging), so
+     this checks membership rather than equality. */
+  function galleryCats(){
+    return (window.GH_GALLERY_CATS || []).slice();
+  }
+  function galleryOf(cat){
+    var G = window.GH_GALLERY || [];
+    if (!cat) return G.slice();
+    return G.filter(function(w){ return (w.cats || []).indexOf(cat) !== -1; });
+  }
+
   return {
     all: all, on: on, setOn: setOn, vocab: vocab,
     catsOf: catsOf, inCat: inCat, ofCat: ofCat, shareCat: shareCat,
     imgOf: imgOf, imgsOf: imgsOf, hasPicture: hasPicture,
+    galleryCats: galleryCats, galleryOf: galleryOf,
     readiness: readiness, suggest: suggest, packOf: packOf,
     tenses: tenses, setTense: setTense,
     sentencesOf: sentencesOf, tenseCounts: tenseCounts,

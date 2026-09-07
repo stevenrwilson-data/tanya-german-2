@@ -1,3 +1,4 @@
+/* js/wordlook.js */
 /* What word is that?
 
    The fill-in-the-blank exercises show a German sentence with a word

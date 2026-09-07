@@ -1,3 +1,4 @@
+/* js/build.js */
 /* The build number, and what depends on it.
 
    index.html carries `?v=219` on every script and stylesheet, so the build

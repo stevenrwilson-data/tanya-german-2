@@ -1,3 +1,4 @@
+/* js/coach.js */
 /* The coach: someone noticing.
 
    A learner alone with a scoreboard gets one message from it, which is how
@@ -196,7 +197,11 @@ GH.coach = (function(){
        keep going is the useful thing */
     if (run.wrong >= HELP_AT && run.sinceHelp >= QUIET){
       run.sinceHelp = 0; run.sinceCheer = 0; run.wrong = 0;
-      return { kind:'help' };
+      /* `key` is THE ANSWER THAT JUST TRIPPED THE THRESHOLD, carried
+         through so help() can react to the actual mistake she just made
+         rather than only ever showing the accumulated pool — see
+         singleMiss() below. */
+      return { kind:'help', key:key };
     }
     if (run.wrong === CHEER_AT && run.sinceCheer >= QUIET){
       run.sinceCheer = 0;
@@ -274,6 +279,33 @@ GH.coach = (function(){
       if (v && out.indexOf(v) < 0) out.push(v);
     });
     return out;
+  }
+
+  /* THE ONE THING SHE JUST GOT WRONG, not the pool.
+
+     missedWords() and focusOf() both answer "what has been going wrong
+     lately" by looking across the whole run — right for the end-of-round
+     offers, wrong for the moment help() fires, when the honest answer is
+     the specific question in front of her a second ago. Same two mappings
+     as focusOf(), applied to one key instead of counted across many, so
+     a vocabulary miss points at that one word and a grammar miss points
+     at that one rule — never both, and never the accumulated pool. */
+  function singleMiss(key){
+    if (!key) return null;
+    var wm = key.match(/^(?:word|gender):(\d+)$/);
+    if (wm){
+      var v = (window.GH_VOCAB || []).filter(function(x){ return String(x.n) === wm[1]; })[0];
+      if (v) return { kind:'word', word:v };
+    }
+    var bits = key.split(':');
+    var topic;
+    if (bits[0] === 'skill') topic = SKILL_TOPIC[bits[1]];
+    else if (bits[0] === 'verbkind'){
+      topic = bits[1] === 'irregular' ? 'irregular'
+            : bits[1] === 'regular' ? 'regular' : 'shift';
+    }
+    else topic = TO_TOPIC[bits[0]];
+    return topic ? { kind:'topic', topic:topic } : null;
   }
 
   /* ---------- the panel ---------- */
@@ -392,25 +424,45 @@ GH.coach = (function(){
     setTimeout(function(){ if (box) close(); }, 6000);
   }
 
-  /* ---------- MID-ROUND: A WORD, NOT A DOOR ----------
+  /* ---------- MID-ROUND: THE ONE MISTAKE, THEN THE POOL ON REQUEST ----------
 
-     This used to be the intervention itself: the words, a grammar button
-     and a way out, in the middle of a round. Every one of those buttons
-     threw the round away to go somewhere else, which is a strange thing to
-     do to someone who is struggling and still going.
+     This used to show the whole missed-word pool as the reaction to ANY
+     mistake, no matter what kind — which meant a grammar slip surfaced a
+     grid of unrelated vocabulary from something else played earlier in
+     the session, because the pool has no idea which mistake just
+     happened. Confirmed live: Steven picked the wrong form of "haben" in
+     Which Form? and got shown breakfast/city-center/train-station words
+     that had nothing to do with it.
 
-     So mid-round it says one thing — this is hard, and we will look at it
-     when the round is over — and shows her the words, because seeing them
-     is itself the smallest useful help and costs her nothing. The offers
-     moved to the end screen, where finishing is no longer at stake.
+     So the specific miss comes first: singleMiss() resolves the ONE key
+     that just tripped the threshold into either the one word or the one
+     rule it actually points at. The accumulated pool is still valuable —
+     it is the only place that shows the session's whole pattern rather
+     than one slip — it just is not the first thing she sees for a single
+     mistake. It moves behind a button, revealed only if she asks.
+
+     Still no doors mid-round: the word card speaks in place, and the rule
+     button opens the grammar overlay ON TOP of this panel (same
+     `GH.grammar.overlay` the end screen already uses), never navigating
+     away from the round she is still in the middle of.
 
      `armed` is what the end screen reads to know it was promised. */
   var armed = false;
 
-  function help(){
+  function wordButton(v){
+    var b = el('button', 'co-word');
+    b.type = 'button';
+    if (GH.sprite) b.appendChild(GH.sprite.tile(GH.packs.imgOf(v), v.de));
+    b.appendChild(el('span', 'co-word-de', v.de));
+    var lang = GH.i18n.lang();
+    if (lang !== 'de') b.appendChild(el('span', 'co-word-tr', v[lang] || v.en || ''));
+    b.addEventListener('click', function(){ GH.speech.say(v.de); });
+    return b;
+  }
+
+  function help(key){
     armed = true;
     var p = shell();
-    var words = missedWords();
 
     var said = petHead(p, 'stuck');
     if (!said){
@@ -422,20 +474,33 @@ GH.coach = (function(){
        genuinely hard and she is not failing at it. */
     p.appendChild(el('p', 'co-line', t('coHelpLine')));
 
-    if (words.length){
-      p.appendChild(el('p', 'co-sub', t('coTheseWords', { n:words.length })));
-      var grid = el('div', 'co-words');
-      words.slice(0, 8).forEach(function(v){
-        var b = el('button', 'co-word');
-        b.type = 'button';
-        if (GH.sprite) b.appendChild(GH.sprite.tile(GH.packs.imgOf(v), v.de));
-        b.appendChild(el('span', 'co-word-de', v.de));
-        var lang = GH.i18n.lang();
-        if (lang !== 'de') b.appendChild(el('span', 'co-word-tr', v[lang] || v.en || ''));
-        b.addEventListener('click', function(){ GH.speech.say(v.de); });
-        grid.appendChild(b);
+    /* THE ONE MISTAKE — word or rule, never the pool, never both. */
+    var single = singleMiss(key);
+    if (single && single.kind === 'word'){
+      var one = el('div', 'co-words');
+      one.appendChild(wordButton(single.word));
+      p.appendChild(one);
+    } else if (single && single.kind === 'topic' && GH.grammar){
+      var ruleBtn = el('button', 'btn btn-quiet', t('coShowRule'));
+      ruleBtn.type = 'button';
+      ruleBtn.addEventListener('click', function(){
+        if (GH.grammar.overlay) GH.grammar.overlay(single.topic);
       });
-      p.appendChild(grid);
+      p.appendChild(ruleBtn);
+    }
+
+    /* THE POOL, ON REQUEST. A one-way reveal — she asked, here it is —
+       rather than a toggle nobody needed. */
+    var words = missedWords();
+    if (words.length){
+      var more = el('button', 'btn btn-ghost co-more', t('coRecentMisses'));
+      more.type = 'button';
+      more.addEventListener('click', function(){
+        var grid = el('div', 'co-words');
+        words.slice(0, 8).forEach(function(v){ grid.appendChild(wordButton(v)); });
+        more.parentNode.replaceChild(grid, more);
+      });
+      p.appendChild(more);
     }
 
     /* The promise. Said plainly, so the end screen appearing with two extra
@@ -551,7 +616,7 @@ GH.coach = (function(){
     var what = saw(key, ok);
     if (!what) return;
     if (what.kind === 'cheer') cheer();
-    else help();
+    else help(what.key);
   }
 
   return {

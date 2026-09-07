@@ -1,3 +1,4 @@
+/* data/stories-medium.js */
 /* MEDIUM STORIES — twelve lines each, 20 points.
 
    The tier reader.js has always declared and nothing has ever filled.

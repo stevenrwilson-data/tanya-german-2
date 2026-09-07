@@ -1,3 +1,4 @@
+/* data/tenses.js */
 /* Three tenses of the same verb, for the sorting conveyor.
 
    Ninety verbs, two hundred and seventy cards. Each verb gets one sentence

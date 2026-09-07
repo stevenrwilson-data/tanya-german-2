@@ -1,3 +1,4 @@
+/* data/case.js */
 /* Case: one preposition, two cases, decided by whether anything moves.
 
    Nine German prepositions take either case. Dative answers wo — where a

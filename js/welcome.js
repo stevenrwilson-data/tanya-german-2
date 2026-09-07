@@ -1,3 +1,4 @@
+/* js/welcome.js */
 /* The first thing she ever sees.
 
    Before this, a fresh install created a profile silently with an empty

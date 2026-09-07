@@ -1,3 +1,4 @@
+/* data/faces.js */
 /* Guess Who — twenty-seven people, three board sizes.
 
    A deduction game where German is the tool, not the subject. The app picks

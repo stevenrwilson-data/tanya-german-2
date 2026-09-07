@@ -1,3 +1,4 @@
+/* js/endscreen.js */
 /* The end of a round, built the same way everywhere.
 
    Seven games had written seven of these and they had drifted badly: two
@@ -369,7 +370,16 @@ GH.endScreen = (function(){
        First in the row, because on the left is where the default sits, and
        the words offer is the one she is likeliest to need. */
     var list = (spec.actions || []).slice();
-    if (GH.coach && GH.coach.endActions){
+    /* `showCoach:false` is how a round that asked her nothing opts out.
+       Steven, on Word Lab's round 1 (pure watch, nothing to get right or
+       wrong): "I don't want it flagging you for having the wrong words
+       when you're just watching it give you the words and definitions."
+       The coach's offer draws from `run.missed`, which is SESSION-wide —
+       it was showing misses from whatever she'd played earlier, on a
+       screen that explicitly has no numbers because nothing was asked.
+       Every other caller passes nothing here and keeps getting the offer
+       exactly as before. */
+    if (spec.showCoach !== false && GH.coach && GH.coach.endActions){
       try {
         var offers = GH.coach.endActions();
         if (offers && offers.length) list = offers.concat(list);

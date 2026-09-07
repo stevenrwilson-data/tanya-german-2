@@ -1,3 +1,4 @@
+/* js/awards.js */
 /* Achievements.
 
    Things worth marking, each paid once. Not a score — a score already
@@ -98,7 +99,66 @@ GH.awards = (function(){
       is:function(f){ return f.packs >= 1; } },
 
     { id:'past-tense',    pay:100,  key:'awPastTense',
-      is:function(f){ return f.tenses >= 1; } }
+      is:function(f){ return f.tenses >= 1; } },
+
+    /* WORD LAB — the three that mark a course chapter finished rather
+       than a habit kept.
+
+       Seven stages at ten points is 170, which is more than a full day's
+       150, so 150 for finishing all seven is a shade under the third that
+       the rest of this list pays. The two bonus stages are outside the
+       first achievement on purpose: nothing is gated behind word order,
+       so nobody is stuck on the hardest thing in the lesson to finish.
+
+       CLEAN means every sentence inside its first two tries. A sentence
+       inside the typo allowance counts as passed, so clean is not the
+       same as flawless typing — it means she never needed a second lap.
+       `wordlab.progress()` is what knows; this file only asks. */
+    { id:'wordlab-stages', pay:150, key:'awWordLab',
+      is:function(f){ return f.wordlab.allStages; } },
+
+    { id:'wordlab-bonus',  pay:100, key:'awWordLabBonus',
+      is:function(f){ return f.wordlab.bonus1; } },
+
+    { id:'wordlab-master', pay:400, key:'awWordLabMaster',
+      is:function(f){ return f.wordlab.mastery; } },
+
+    /* ---------- THE COMICS, IN THREE ----------
+
+       Read from the never-cleared store, NOT the one the weekly credit
+       resets — otherwise finishing a unit and being paid for it would
+       un-earn the achievement.
+
+       THREE RANGES, NOT ONE "ALL". `comic-all` used to ask for every unit
+       in the file, which quietly re-raised the bar every time a unit was
+       added and left anyone who had earned it looking at a finished
+       achievement she could no longer satisfy. Steven: "change the
+       achievement for comics to reading any full unit, and one for
+       reading 1-5. And another for 6-8."
+
+       `comic-all` KEEPS ITS ID even though its test is now units 1 to 5.
+       The id is what the earned flag is stored under, so renaming it
+       would orphan the flag and un-earn the achievement for anyone who
+       already has it — the exact thing this change exists to prevent. Its
+       meaning narrows and its pay is unchanged, so nobody loses anything.
+
+       The 6-to-8 one is UNEARNABLE UNTIL THAT CONTENT EXISTS, by design:
+       inRange() is false for a range with no units in it. An achievement
+       that paid for reading nothing would be worse than one that waits.
+
+       PAY, and these three numbers are mine to justify: 100 for a first
+       unit, matching the other first-time markers on this list; 500 for
+       1-5, unchanged from what it already paid; 200 for 6-8, which is
+       three units against five and priced between the two. */
+
+    { id:'comic-unit', pay:100, key:'awComicUnit',
+      is:function(f){ return !!f.comics.anyUnit; } },
+
+    { id:'comic-all', pay:500, key:'awComicAll',
+      is:function(f){ return !!(f.comics.inRange && f.comics.inRange(1, 5)); } },
+
+    { id:'comic-late', pay:200, key:'awComicLate',
+      is:function(f){ return !!(f.comics.inRange && f.comics.inRange(6, 8)); } }
   ];
 
   var cache = null;
@@ -136,7 +196,21 @@ GH.awards = (function(){
       ? GH.packs.all().filter(function(p){ return p.on && !p.core; }).length : 0;
     var tn = GH.packs ? GH.packs.tenses() : {};
     var tenses = ['perfekt','prat','future'].filter(function(k){ return tn[k]; }).length;
+    /* Guarded: awards.js loads before the activities do, and the app has
+       to work with Word Lab absent. */
+    var wl = (GH.wordlab && GH.wordlab.progress) ? GH.wordlab.progress()
+           : { stages:0, allStages:false, bonus1:false, mastery:false };
+    /* Same guard, same reason: awards.js loads before the activities do. */
+    /* Same guard, same reason: awards.js loads before the activities do.
+       The fallback has to carry the new fields too — an absent `inRange`
+       would throw inside the achievement tests rather than reading as
+       "not yet". */
+    var cm = (GH.comic && GH.comic.progress) ? GH.comic.progress()
+           : { unitsEver:0, units:0, allComics:false, unitsRead:{},
+               anyUnit:false, inRange:function(){ return false; } };
     return {
+      wordlab: wl,
+      comics: cm,
       run: GH.coins ? GH.coins.bestRun() : 0,
       fullDays: GH.coins ? GH.coins.fullDays() : 0,
       rounds: m.counts.rounds,

@@ -1,47 +1,142 @@
+/* js/text.js */
 /* Tokenizing, blank selection, answer matching */
 
 window.GH = window.GH || {};
 
 GH.text = (function(){
 
-  var WORD = /[A-Za-zÄÖÜäöüßẞ]+(?:[-'’][A-Za-zÄÖÜäöüßẞ]+)*/g;
-  var BREAK = /[,.;:!?„“”"«»()]/;
+  /* ==================================================================
+     ONE TABLE PER TARGET LANGUAGE
+
+     Everything in here used to be German constants at the top of the
+     file: the word regex, the determiners, the function words. That was
+     right while there was one target language and is the thing that
+     stops there being two.
+
+     Steven is adding English as a second target before branching to a
+     multi-language build, so the German is now a ROW rather than the
+     file. Adding Spanish is another row and no change to any function
+     below.
+
+     WHAT EACH FIELD IS FOR, because none of it is decoration:
+
+       word     the regex that decides what a word IS. `[A-Za-z]` alone
+                would split `Mädchen` into `M` and `dchen` and blank the
+                fragment, and Cyrillic or accented Latin fails the same
+                way. Every language needs its own alphabet here.
+       det      words that can open a noun phrase. `nounPhrases()` uses
+                these to keep `der Apfel` together as ONE blank instead
+                of two, which is most of what makes a blank worth having.
+       glue     never worth a blank alone.
+       openers  pronouns skipped when they START a sentence — blanking
+                the `Ich` of `Ich gehe` teaches nothing.
+       lowvalue ranked down when choosing which blanks to keep.
+       adjEnd   the endings an attributive adjective carries. German has
+                five; English has none, which is why it is empty rather
+                than guessed at.
+       fold     spelling that answer-matching should forgive. German
+                folds umlauts to ae/oe/ue and ß to ss because a learner
+                typing `Strasse` has spelled it a real way. English has
+                nothing to fold.
+
+     A LANGUAGE WITH NO ROW FALLS BACK TO GERMAN, not to empty. An empty
+     `det` would silently stop keeping noun phrases together and the
+     blanks would quietly get worse, which is far harder to notice than
+     a missing language.
+     ================================================================== */
+  var LANG = {
+
+    de: {
+      word: /[A-Za-zÄÖÜäöüßẞ]+(?:[-'\u2019][A-Za-zÄÖÜäöüßẞ]+)*/g,
+      det: 'der die das den dem des ' +
+           'ein eine einen einem einer eines ' +
+           'kein keine keinen keinem keiner keines ' +
+           'mein meine meinen meinem meiner meines ' +
+           'dein deine deinen deinem deiner deines ' +
+           'sein seine seinen seinem seiner seines ' +
+           'ihr ihre ihren ihrem ihrer ihres ' +
+           'unser unsere unseren unserem unserer ' +
+           'euer eure euren eurem eurer ' +
+           'dieser diese dieses diesen diesem ' +
+           'jeder jede jedes jeden jedem ' +
+           'welcher welche welches welchen welchem ' +
+           'am im zum zur ins beim vom aufs',
+      glue: 'und oder aber denn sondern es',
+      openers: 'ich du er sie es wir ihr man',
+      lowvalue: 'ist sind bin bist war waren hat habe haben hast ' +
+                'mit auf in an von zu nach für über unter bei aus vor ' +
+                'noch sehr auch nicht dann jetzt hier dort so als wie ' +
+                'wo wann was wer da ja nein um mir mich sich ihm ihn ihr ' +
+                'ein eine einen einem einer der die das den dem ' +
+                'mein meine sein seine ihre zwei',
+      adjEnd: /(e|en|er|es|em)$/,
+      fold: [[/ä/g,'ae'], [/ö/g,'oe'], [/ü/g,'ue'], [/ß/g,'ss']]
+    },
+
+    /* English as a target. `adjEnd` is empty because an English
+       attributive adjective carries no ending — `the big house`, not
+       `the bige house` — so the German test would match `little`,
+       `bigger` and `these` and treat them as adjectives. `fold` is
+       empty for the same kind of reason: there is no alternative
+       spelling of an English word that a learner has spelled right. */
+    en: {
+      word: /[A-Za-z]+(?:[-'\u2019][A-Za-z]+)*/g,
+      det: 'the a an this that these those ' +
+           'my your his her its our their ' +
+           'each every some any no another ' +
+           'which whose',
+      glue: 'and or but so nor yet it',
+      openers: 'i you he she it we they one',
+      lowvalue: 'is are am was were has have had ' +
+                'with on in at of to from for over under by out before ' +
+                'still very also not then now here there as like ' +
+                'where when what who there yes no about me my him her ' +
+                'a an the this that two',
+      adjEnd: null,
+      fold: []
+    }
+
+    /* Ready to add, and nothing below changes:
+
+    , ru: { word:/[А-Яа-яЁё]+.../g, det:'', glue:'и или но', ... }
+    , es: { word:/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+.../g, det:'el la los las un una ...', ... }
+    */
+  };
+
+  /* Turns a row into the lookup shape the functions below want. Built
+     once per language on first use rather than on every call — this is
+     read inside the blank-ranking loop for every word of every
+     sentence. */
+  var built = {};
+
+  function set(str){
+    var o = {};
+    String(str || '').split(' ').forEach(function(w){ if (w) o[w] = true; });
+    return o;
+  }
+
+  function rules(){
+    var code = (GH.player && GH.player.target) ? GH.player.target() : 'de';
+    if (!LANG[code]) code = 'de';
+    if (built[code]) return built[code];
+    var L = LANG[code];
+    built[code] = {
+      code: code,
+      word: L.word,
+      det: set(L.det),
+      glue: set(L.glue),
+      openers: set(L.openers),
+      lowvalue: set(L.lowvalue),
+      adjEnd: L.adjEnd,
+      fold: L.fold || []
+    };
+    return built[code];
+  }
+
+  var BREAK = /[,.;:!?\u201e\u201c\u201d"\u00ab\u00bb()]/;
 
   /* how many blanks each sentence contributes */
   var PER_SENTENCE = 3;
-
-  /* words that can open a noun phrase */
-  var DET = {};
-  ('der die das den dem des ' +
-   'ein eine einen einem einer eines ' +
-   'kein keine keinen keinem keiner keines ' +
-   'mein meine meinen meinem meiner meines ' +
-   'dein deine deinen deinem deiner deines ' +
-   'sein seine seinen seinem seiner seines ' +
-   'ihr ihre ihren ihrem ihrer ihres ' +
-   'unser unsere unseren unserem unserer ' +
-   'euer eure euren eurem eurer ' +
-   'dieser diese dieses diesen diesem ' +
-   'jeder jede jedes jeden jedem ' +
-   'welcher welche welches welchen welchem ' +
-   'am im zum zur ins beim vom aufs').split(' ').forEach(function(w){ DET[w] = true; });
-
-  /* never worth a blank on their own */
-  var GLUE = {};
-  'und oder aber denn sondern es'.split(' ').forEach(function(w){ GLUE[w] = true; });
-
-  /* pronouns skipped when they open the sentence */
-  var OPENERS = {};
-  'ich du er sie es wir ihr man'.split(' ').forEach(function(w){ OPENERS[w] = true; });
-
-  /* low-value words when ranking which blanks to keep */
-  var LOWVALUE = {};
-  ('ist sind bin bist war waren hat habe haben hast ' +
-   'mit auf in an von zu nach für über unter bei aus vor ' +
-   'noch sehr auch nicht dann jetzt hier dort so als wie ' +
-   'wo wann was wer da ja nein um mir mich sich ihm ihn ihr ' +
-   'ein eine einen einem einer der die das den dem ' +
-   'mein meine sein seine ihre zwei').split(' ').forEach(function(w){ LOWVALUE[w] = true; });
 
   /* ---------- tokenizing ---------- */
 
@@ -49,6 +144,7 @@ GH.text = (function(){
      so it can be rebuilt exactly. { text, isWord } */
   function tokenize(str){
     var out = [], last = 0, m;
+    var WORD = rules().word;
     WORD.lastIndex = 0;
     while ((m = WORD.exec(str)) !== null){
       if (m.index > last) out.push({ text:str.slice(last, m.index), isWord:false });
@@ -60,7 +156,7 @@ GH.text = (function(){
   }
 
   function words(str){
-    var m = str.match(WORD);
+    var m = str.match(rules().word);
     return m ? m : [];
   }
 
@@ -70,8 +166,14 @@ GH.text = (function(){
   }
 
   /* attributive adjectives carry one of these endings */
+  /* Attributive adjectives carry one of these endings — in a language
+     that has them. `adjEnd` is null for English, and then nothing is
+     adjective-shaped, which is correct rather than a gap: the German
+     test would call `little`, `bigger` and `these` adjectives. */
   function adjectiveShaped(w){
-    return !capitalized(w) && /(e|en|er|es|em)$/.test(w) && !DET[w.toLowerCase()];
+    var R = rules();
+    if (!R.adjEnd) return false;
+    return !capitalized(w) && R.adjEnd.test(w) && !R.det[w.toLowerCase()];
   }
 
   function hash(str){
@@ -106,7 +208,7 @@ GH.text = (function(){
 
     for (k = 0; k < wIdx.length; k++){
       var i = wIdx[k];
-      if (!DET[toks[i].text.toLowerCase()]) continue;
+      if (!rules().det[toks[i].text.toLowerCase()]) continue;
       var n1 = wIdx[k + 1], n2 = wIdx[k + 2];
       if (isNoun(n1) && cleanBetween(toks, i, n1)){
         spans.push({ start:i, end:n1 });
@@ -128,8 +230,9 @@ GH.text = (function(){
   function worthBlanking(toks, unit, wIdx){
     if (unit.wordCount > 1) return true;
     var w = toks[unit.start].text.toLowerCase();
-    if (GLUE[w]) return false;
-    if (OPENERS[w] && opensSentence(toks, unit.start, wIdx)) return false;
+    var R = rules();
+    if (R.glue[w]) return false;
+    if (R.openers[w] && opensSentence(toks, unit.start, wIdx)) return false;
     return true;
   }
 
@@ -138,7 +241,7 @@ GH.text = (function(){
     var w = toks[unit.start].text;
     if (capitalized(w) && unit.start !== 0) return 4;
     var lw = w.toLowerCase();
-    if (LOWVALUE[lw]) return w.length >= 4 ? 2 : 1;
+    if (rules().lowvalue[lw]) return w.length >= 4 ? 2 : 1;
     return w.length >= 4 ? 3 : 2;
   }
 
@@ -191,14 +294,16 @@ GH.text = (function(){
 
   /* ---------- answer matching ---------- */
 
+  /* Spelling that answer-matching forgives, per language. German folds
+     umlauts and ß because `Strasse` for `Straße` is a real spelling a
+     learner has typed correctly; English has nothing to fold, so the
+     list is empty rather than the German one applied to it. */
   function normalize(str){
-    return String(str)
-      .toLowerCase()
-      .replace(/[’']/g, '')
-      .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue')
-      .replace(/ß/g,'ss')
-      .replace(/\s+/g,' ')
-      .trim();
+    var out = String(str).toLowerCase().replace(/[’']/g, '');
+    rules().fold.forEach(function(pair){
+      out = out.replace(pair[0], pair[1]);
+    });
+    return out.replace(/\s+/g, ' ').trim();
   }
 
   function distance(a, b){
@@ -268,6 +373,10 @@ GH.text = (function(){
   }
 
   return {
+    /* Which target languages have their own blanking rules. Anything
+       else falls back to German — see the note on LANG. */
+    langs: function(){ return Object.keys(LANG); },
+    rules: rules,
     tokenize:tokenize,
     words:words,
     capitalized:capitalized,

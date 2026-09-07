@@ -1,3 +1,4 @@
+/* css/style.css */
 /* ============================================================
    Deutsch für Tanya
 
@@ -489,20 +490,22 @@ button{font-family:inherit;font-size:inherit;cursor:pointer}
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:16px;
+  gap:10px 16px;
   flex-wrap:wrap;
-  padding:18px clamp(16px,4vw,40px);
+  /* 18px top and bottom was 36px of nothing above a screen whose first
+     real thing already sat two thirds of the way down. */
+  padding:10px clamp(16px,4vw,40px);
   max-width:900px;
   margin:0 auto;
 }
 
-.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
 
 .brand-mark{
   flex:none;
-  width:44px;height:44px;
+  width:38px;height:38px;
   display:grid;place-items:center;
-  border-radius:13px;
+  border-radius:11px;
   background:var(--flame);
   color:var(--ink-on-accent);
   font-weight:700;
@@ -526,30 +529,93 @@ button{font-family:inherit;font-size:inherit;cursor:pointer}
   font-weight:600;
 }
 
-.langswitch{
-  display:flex;
-  padding:4px;
-  gap:2px;
+/* ---------- L1 → L2 ----------
+
+   Was three buttons — РУС DEU ENG — permanently in the header, naming only
+   the interface language and never the one she is learning. Now one string
+   naming both, written in L1.
+
+   The old buttons were 31px tall, under the 40px every other control in
+   this header meets. This one is a single target and gets the full height. */
+.langswitch{ display:flex }
+
+.lg-pair{
+  display:flex; align-items:center; gap:6px;
+  min-height:40px;
+  padding:7px 12px;
+  border-radius:999px;
   background:rgb(var(--paper-rgb) / .8);
   border:1.5px solid rgb(var(--mauve-rgb) / .45);
-  border-radius:999px;
-}
-.langswitch button{
-  border:0;
-  background:transparent;
   color:var(--fg);
-  font-weight:600;
-  font-size:0.92rem;
-  letter-spacing:.06em;
-  padding:7px 13px;
-  border-radius:999px;
-  transition:background .15s, color .15s;
+  font-weight:600; font-size:.92rem; letter-spacing:.04em;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
-.langswitch button:hover{background:rgb(var(--sand-rgb) / .55)}
-.langswitch button[aria-pressed="true"]{
-  background:var(--liver);
-  color:var(--sand);
+.lg-pair:hover{ background:rgb(var(--sand-rgb) / .55) }
+.lg-pair:focus-visible{ outline:2px solid var(--flame); outline-offset:2px }
+
+/* The eye should land on the two languages, not the connector: lighter,
+   smaller, and given room on both sides so it reads as a relation rather
+   than a third word. */
+.lg-arrow{
+  color:var(--fg-soft);
+  font-size:.85em;
+  line-height:1;
+  transform:translateY(-.5px);
 }
+/* L2 is the point of the app, so it carries the accent and L1 does not. */
+.lg-l2{ color:var(--fg-accent) }
+
+/* ---------- the two-step picker ---------- */
+.lg-wrap{
+  position:fixed; inset:0; z-index:120;
+  display:grid; place-items:center;
+  padding:20px;
+  background:rgb(var(--ink-rgb) / .55);
+}
+.lg-panel{
+  width:min(360px, 100%);
+  max-height:86vh; overflow-y:auto;
+  padding:20px;
+  border-radius:var(--r-md);
+  box-shadow:0 18px 48px rgb(var(--ink-rgb) / .35);
+}
+.lg-step{
+  margin:0 0 4px;
+  font-size:.8rem; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+  color:var(--fg-soft);
+}
+.lg-q{ margin:0 0 14px; font-size:1.2rem; line-height:1.25 }
+.lg-opts{ display:flex; flex-direction:column; gap:6px }
+
+.lg-opt{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  min-height:48px;                     /* a list read with a thumb */
+  padding:10px 14px;
+  border-radius:var(--r-sm);
+  border:1.5px solid rgb(var(--mauve-rgb) / .35);
+  background:transparent; color:var(--fg);
+  font:600 1rem/1.2 var(--ff-ui);
+  text-align:left; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.lg-opt:hover:not(:disabled){ background:rgb(var(--sand-rgb) / .35) }
+.lg-opt.is-on{ border-color:var(--flame); background:rgb(var(--sand-rgb) / .28) }
+/* A language with no course behind it. Shown rather than hidden, because
+   "coming" and "does not exist" are different promises. */
+.lg-opt.is-soon{ opacity:.45; cursor:default }
+.lg-opt-note{
+  font-size:.78rem; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase;
+  color:var(--fg-soft);
+}
+.lg-note{
+  margin:14px 0 0;
+  font-size:.86rem; line-height:1.4;
+  color:var(--fg-soft);
+}
+.lg-x{ margin-top:14px; width:100% }
 
 /* ---------- layout ---------- */
 
@@ -614,15 +680,45 @@ h2{
 .hub-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
 .hub-count{font-size:0.94rem;font-weight:600;color:var(--fg-accent)}
 
+/* TWO PER ROW ON A PHONE, ALWAYS.
+
+   This was `repeat(auto-fill, minmax(215px,1fr))` at every width, and on a
+   phone that can only ever produce ONE column: 390px less the 16px page
+   padding each side is 358, and two 215px columns plus the 14px gap need
+   444. So every tile in every section got a full row to itself and the hub
+   was twice as long as it needed to be — Steven counted the scrolling
+   before I did.
+
+   `repeat(2, minmax(0,1fr))` rather than a smaller `auto-fill` floor,
+   because a floor low enough to give two columns at 320px gives FOUR on a
+   tablet, and 215px is a good tile on a wide screen. Two is stated for the
+   phone and the original rule takes over above it.
+
+   `minmax(0,1fr)` and not `1fr`: a grid track's default minimum is its
+   content, so one long unbroken word — a German compound, which this app is
+   full of — would push the column wider than its share and break the row. */
 .tiles{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(215px,1fr));
+  grid-template-columns:repeat(2, minmax(0,1fr));
   gap:14px;
 }
+@media (min-width:620px){
+  .tiles{ grid-template-columns:repeat(auto-fill,minmax(215px,1fr)) }
+}
+
 
 .tile{
   position:relative;
   text-align:left;
+  /* A LONG GERMAN COMPOUND MUST BREAK RATHER THAN PUSH THE PAGE SIDEWAYS.
+
+     `minmax(0,1fr)` on the grid track stops the COLUMN growing to fit its
+     content, but it does nothing about the content itself: at two columns
+     on a 320px phone a tile is 137px wide, and `Haushaltsgegenstände`
+     simply rendered past its own edge and past the viewport, giving the
+     whole page a horizontal scrollbar. Both halves are needed. */
+  min-width:0;
+  overflow-wrap:break-word;
   border:1.5px solid rgb(var(--mauve-rgb) / .42);
   background:var(--paper);
   border-radius:var(--r-lg);
@@ -659,12 +755,44 @@ h2{
   margin-top:12px;
   font-size:0.9rem;
   font-weight:700;
-  letter-spacing:.06em;
-  text-transform:uppercase;
   color:var(--fg-accent);
   border-top:1.5px dotted rgb(var(--flame-rgb) / .45);
   padding-top:8px;
 }
+
+/* ---------- AND TIGHTER, ON A PHONE ONLY ----------
+
+   Two per row halved the hub. This is the rest of it: a 159px tile at
+   390px spends 38px on a glyph sitting alone on its own line, and 38px of
+   padding, for 24px of name. Measured, not guessed.
+
+   PLACED AFTER THE RULES IT OVERRIDES, and that is not cosmetic: the
+   first attempt sat above `.tile{padding:20px 18px 18px}`, which is equal
+   specificity and later in the file, so it lost the cascade and the tiles
+   shrank by 8px instead of 24. Third time this file has done that.
+
+   Scoped under 620px deliberately. On a wide screen a 215px tile has the
+   room and the generous version looks better; on a phone the same spacing
+   is what makes eight sections feel endless. Nothing here changes `display`
+   — `.tile` is reused in the songbook and elsewhere this file cannot see,
+   and a layout change would reach all of it. Whitespace only. */
+/* The button that opens the rest of a capped section. Full width so it
+   reads as the end of the grid rather than a ninth tile, and quiet so it
+   never competes with the things it is holding back. */
+.sec-more{
+  display:block;
+  width:100%;
+  margin-top:12px;
+  min-height:44px;
+}
+
+@media (max-width:619px){
+  .tile{ padding:14px 14px 13px }
+  .tile-glyph{ font-size:1.35rem; margin-bottom:5px }
+  .tile-de{ padding-top:6px; font-size:0.82rem }
+  .tiles{ gap:10px }
+}
+
 
 /* ---------- buttons ---------- */
 
@@ -724,6 +852,44 @@ h2{
 .practice-title{min-width:0}
 .practice-title h2{font-size:1.1rem;line-height:1.25}
 .practice-title p{margin:2px 0 0;font-size:0.94rem;color:var(--fg-accent);font-weight:600}
+
+/* ---------- THE STREAK RIDES THE CARD'S TOP EDGE ----------
+
+   `.card` is `overflow:hidden`, so a badge positioned to straddle its top
+   edge from inside gets cut in half — and `.card` is shared by every
+   activity, so unclipping it to suit one screen would reach all of them.
+   The wrapper carries the badge over the card from outside instead.
+
+   `right` rather than `left`: the eye is reading the German, which starts
+   at the left, and a number sitting on top of the first word is in the way
+   of the one thing on the screen that matters.
+
+   `.fb-cardwrap .fb-streak` AND NOT `.fb-streak`, and the descendant is
+   load-bearing. `.run-streak` sets its own background and colour three
+   thousand lines below this, so a single-class rule here loses the cascade
+   however carefully it is written and the badge renders in the run-line's
+   translucent mauve, invisible against the card. Specificity rather than
+   position, because position is what has failed three times already in
+   this file.
+
+   `.run-streak.is-hot` is deliberately left to win: at a streak of three
+   the badge turns flame, and that should still happen here. */
+.fb-cardwrap{ position:relative }
+.fb-cardwrap .fb-streak{
+  position:absolute;
+  top:0; right:18px;
+  transform:translateY(-50%);
+  z-index:3;
+  padding:6px 13px;
+  border-radius:999px;
+  /* Opaque, and the PAGE's paper rather than the card's: it has to read as
+     sitting on top of the card, which means not sharing its colour. */
+  background:var(--paper);
+  color:var(--fg);
+  border:1.5px solid rgb(var(--mauve-rgb) / .45);
+  box-shadow:0 3px 10px rgb(var(--ink-rgb) / .28);
+  white-space:nowrap;
+}
 
 .progress{
   display:flex;align-items:center;gap:10px;
@@ -938,21 +1104,21 @@ h2{
    beside the image, and never a square. Size is controlled by capping the
    grid that holds them, so the pictures scale with the layout instead of
    being pinned small. */
-.sprite{
-  display:block;
-  width:100%;
-  height:auto;
-  aspect-ratio:2 / 3;
-  background-repeat:no-repeat;
-  border-radius:var(--r-md);
-  background-color:rgb(var(--shade-rgb) / .18);
-}
-.figure .sprite{
+/* THE BASE RULE FOR A SPRITE IS NOT HERE. It used to be, written as
+   `.sp` — a class nothing in the app has ever carried, because
+   sprite.js emits `sp`. So this rule matched nothing for its whole life
+   and a second, live `.sp` base rule was written further down this file.
+
+   Removed rather than renamed: two base rules for one class, one of them
+   with a translucent background, is exactly the specificity trap the
+   notes at the top of this file record biting twice. The live one is
+   opaque and is the one that has actually been in effect. */
+.figure .sp{
   width:clamp(190px, 46vw, 300px);
 }
 @media (min-width:561px){
   .figure img{max-height:430px}
-  .figure .sprite{width:clamp(230px, 24vw, 300px)}
+  .figure .sp{width:clamp(230px, 24vw, 300px)}
 }
 
 /* answers */
@@ -1155,7 +1321,17 @@ h2{
    that one screen sets its own padding.
 
    No :has, no @supports, works in every browser that can render the site. */
-.practice-head{ padding-top:52px }
+/* 52px OF NOTHING, RESERVED FOR A BUTTON THAT IS NOT THERE.
+
+   `.backlink` is `position:fixed` at `top:8px`, so it is pinned to the
+   VIEWPORT — and at the top of the page the 110px topbar already occupies
+   that band. Back floats over the topbar, not over this header, so the gap
+   was clearing a collision that cannot happen. Word Lab is the only user of
+   this class, so nothing else moves.
+
+   6px rather than 0: the first thing under it is an h1, and its own margin
+   does the rest. */
+.practice-head{ padding-top:6px }
 .cm-bar{ padding-top:52px }
 .cm-intro{ margin-top:52px }
 
@@ -1182,6 +1358,248 @@ h2{
 /* --- theme picker ------------------------------------------- */
 
 .topbar-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+/* The listening counter above a song, and the one-off explanation of what
+   tapping every line is worth. The tip is a note, not a dialog: it appears
+   once ever and vanishing quietly is the right exit for it. */
+.sg-credit{
+  margin:10px 0 0;
+  font:700 .86rem/1.3 var(--ff-ui);
+  letter-spacing:.04em; text-transform:uppercase;
+  color:var(--fg-accent);
+}
+.sg-credit.is-rest{ color:var(--fg-soft) }
+/* The counter and the quiz on one line: the counter takes the room it
+   needs, the button takes what it needs, and neither becomes a banner. */
+.sg-credit-row{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; flex-wrap:wrap; margin-top:10px;
+}
+.sg-credit-row .sg-credit{ margin:0; flex:1 1 auto; min-width:0 }
+.sg-fill{ flex:none; min-height:44px; padding:10px 16px; font-size:.9rem }
+.sg-tip{
+  margin:8px 0 0;
+  padding:11px 14px;
+  border-radius:var(--r-md);
+  background:rgb(var(--sand-rgb) / .32);
+  border:1.5px solid rgb(var(--mauve-rgb) / .4);
+  font-size:.9rem; line-height:1.4; color:var(--fg);
+}
+
+/* ---------- THE VOICE PICKER IN SETTINGS ----------
+
+   One row per German voice the BROWSER is offering. The name is a button
+   that speaks a sample; the two chips assign it to the main voice or the
+   second dialogue speaker. Tapping a chip that is already on clears it and
+   hands the slot back to the automatic pick, so there is always a way out
+   of a choice she regrets. */
+.st-voices{ display:flex; flex-direction:column; gap:6px; margin:10px 0 0 }
+.st-voice{ display:flex; align-items:center; gap:6px }
+.st-voice-name{
+  flex:1 1 auto; min-width:0;
+  display:flex; align-items:center; gap:8px;
+  min-height:44px; padding:8px 12px;
+  border:1.5px solid rgb(var(--mauve-rgb) / .38);
+  border-radius:var(--r-sm);
+  background:transparent; color:var(--fg);
+  font:600 .98rem/1.2 var(--ff-ui);
+  text-align:left; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.st-voice-label{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+/* The quality marker, straight off the identifier — this is the line that
+   tells him whether his premium voices reached the web API at all. */
+.st-voice-q{
+  flex:none;
+  font:700 .7rem/1 var(--ff-ui);
+  letter-spacing:.08em; text-transform:uppercase;
+  color:var(--fg-soft);
+  border:1px solid rgb(var(--mauve-rgb) / .45);
+  border-radius:999px; padding:4px 7px;
+}
+.st-voice-pick{
+  flex:none;
+  min-height:44px; min-width:52px; padding:8px 10px;
+  border:1.5px solid rgb(var(--mauve-rgb) / .38);
+  border-radius:var(--r-sm);
+  background:transparent; color:var(--fg-soft);
+  font:700 .82rem/1 var(--ff-ui);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.st-voice-pick.is-on{
+  background:var(--flame); border-color:var(--flame); color:var(--on-flame);
+}
+
+/* A THIRD SPEAKER DOES NOT FIT BESIDE THE NAME ON A SMALL PHONE.
+
+   Three 52px chips plus their gaps leave 64px for the voice name at 320px,
+   which is not a name, it is an ellipsis. The row wraps instead: the name
+   takes the full width and the three chips sit under it. Shrinking the
+   chips was the other option and it is the wrong one — they are already at
+   the minimum tap size. */
+@media (max-width:389px){
+  .st-voice{ flex-wrap:wrap }
+  .st-voice-name{ flex:1 0 100% }
+  .st-voice-pick{ flex:1 1 0 }
+}
+
+/* ---------- COLLAPSED HEADER PICKERS ----------
+
+   The colour picker and the type picker are both one control that opens
+   into its own list. Twelve swatches wrapped to three rows and four `Aa`
+   in a permanent row cost roughly 190px of the first screen between them,
+   above content she actually came for, for two settings she touches once.
+
+   OUT OF FLOW, and that is the point. A panel that expands in the document
+   pushes everything below it down by its own height — which is exactly the
+   problem this replaces, just moved one tap later.
+
+   WHICH EDGE IT HANGS FROM DEPENDS ON WHERE THE CONTROLS SIT, and getting
+   this wrong put the panel half off the phone twice.
+
+   Attempt one anchored `right:0` to the trigger. The colour trigger is the
+   LEFTMOST control, so the panel ran off the left edge.
+
+   Attempt two anchored `right:0` to `.topbar-controls` instead. That fit
+   only because the language control was still three wide buttons. Replacing
+   them with the narrow `Eng → Ger` pair shrank the row, and the panel went
+   off the left edge again — this time far enough to lose a whole column of
+   swatches and an `Aa`.
+
+   So it follows the controls instead of guessing. On a phone the brand and
+   the controls wrap onto separate rows and the controls sit at the LEFT, so
+   the panel opens rightward from the trigger. Above the wrap the controls
+   are right-aligned, so it opens leftward. Either way it opens INTO the
+   page and never off it, and it does not care how wide the controls are —
+   which is what broke it the first two times. */
+.pick{ position:relative; display:flex; align-items:center }
+
+.pick-now{
+  width:40px; height:40px;              /* 40px tap target, same as a swatch */
+  flex:none; padding:0;
+  display:grid; place-items:center;
+  border-radius:999px;
+  background:rgb(var(--paper-rgb) / .8);
+  border:1.5px solid rgb(var(--mauve-rgb) / .45);
+  color:var(--fg);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+/* The letters are the preview: they render in whichever face is applied,
+   so the trigger shows the setting rather than merely naming it. */
+.pick-now-aa{ font-family:var(--ff-display); font-weight:600; font-size:.95rem; line-height:1 }
+.pick-now:hover{ background:rgb(var(--sand-rgb) / .55) }
+.pick-now:focus-visible{ outline:2px solid var(--flame); outline-offset:2px }
+.pick.is-open .pick-now{ border-color:var(--flame) }
+
+/* ONE PANEL, TWO AXES. The palette and the type scale are both "how the
+   app looks", so they share a card rather than each having their own
+   control in the header.
+
+   AN EXPLICIT WIDTH is required, not cosmetic: an absolutely positioned
+   flex container with `flex-wrap` shrinks to its narrowest item instead of
+   wrapping, and the twelve swatches came out as one 40px column twelve
+   rows tall. 230px holds five per row — 5x40 + 4x2 gap = 208, plus 16
+   padding and 3 border = 227. */
+.pick .pick-panel{
+  display:none;
+  position:absolute;
+  top:calc(100% + 6px);
+  /* Phone: controls have wrapped to their own row and sit at the left, so
+     the panel opens rightward from the trigger. Flipped above the wrap by
+     the media query at the end of this block. */
+  left:0;
+  right:auto;
+  z-index:60;
+  flex-direction:column;
+  gap:8px;
+  width:244px;
+  /* A BACKSTOP, in case place() has not run yet — the first paint of a
+     panel happens before it is measured. `max-width` in viewport units
+     cannot be exceeded whatever the offset works out to, so the worst
+     case is a panel that is narrower than it wants rather than one that
+     is off the screen. */
+  max-width:calc(100vw - 16px);
+  box-sizing:border-box;
+  padding:8px;
+  border-radius:var(--r-md);
+  /* Opaque, unlike the old inline row: this floats over content now, and
+     content reading through a settings panel is unreadable. */
+  background:rgb(var(--paper-rgb));
+  border:1.5px solid rgb(var(--mauve-rgb) / .45);
+  box-shadow:0 10px 28px rgb(var(--ink-rgb) / .22);
+}
+.pick.is-open .pick-panel{ display:flex }
+
+/* Inside the card the two rows are bare — the card already carries the
+   border, the background and the padding, and a bordered box inside a
+   bordered box reads as a mistake. */
+.pick-panel .themeswitch,
+.pick-panel .typeswitch{
+  background:none; border:0; padding:0;
+  max-width:none; width:auto;
+  justify-content:flex-start;
+}
+/* A hairline between the colours and the faces, so the four `Aa` read as a
+   second choice rather than a thirteenth swatch. */
+.pick-panel .typeswitch{
+  border-top:1px solid rgb(var(--mauve-rgb) / .35);
+  padding-top:8px;
+}
+
+/* ---------- BIGGER INSIDE THE PANEL THAN IN THE HEADER ----------
+
+   Steven, on the first version: "could be a tiny bit larger so things are
+   more easily clickable".
+
+   The header is where space is scarce and the trigger stays 40px. The
+   panel is a deliberate stop — she has already decided to change something
+   — so it can spend the room, and a 40px swatch with a 22px dot inside it
+   is a small target for a thumb on a phone.
+
+   FOUR PER ROW, NOT FIVE, and the size was chosen to get there: twelve
+   swatches divide into three clean rows of four, where five per row left an
+   orphaned row of two. Bigger targets and a tidier grid from one change.
+
+     4 x 52 + 3 x 4 gap = 220, inside 244 - 16 padding - 3 border = 225.
+
+   The faces get a real 40px height for the same reason: `padding:7px 10px`
+   on a .8rem line is a 27px target, the smallest thing in the panel and
+   the one furthest from a fingertip.
+
+   The width lives in the `.pick .pick-panel` rule above, NOT here — a
+   `.pick-panel{width:...}` override at lower specificity silently lost and
+   the grid stayed at three per row while claiming to be four.
+
+   Horizontal padding is 12px and not 16px because four faces at 16px came
+   to 240 against 225 of usable width and quietly compressed. */
+.pick-panel .themeswitch{ gap:4px }
+.pick-panel .swatch{ width:52px; height:52px }
+.pick-panel .swatch-dot{ width:28px; height:28px }
+.pick-panel .typeswitch button{
+  padding:13px 12px;         /* 14.4px line + 26 = 40.4px, a real target */
+  font-size:.9rem;
+}
+
+/* WHICH WAY IT OPENS IS MEASURED, NOT GUESSED.
+
+   A media query was tried and was wrong at exactly 560px, because the
+   breakpoint has to predict where the header flex-wraps — and that moves
+   with the type variant (Large and Loud widen the title), with the
+   translated title, and with anything added to the controls. A rule that
+   has to guess a layout it cannot see is a rule that is wrong at some
+   width nobody tested.
+
+   NO FLIP CLASS EITHER. `.pick.opens-left{ left:auto; right:0 }` stood here and
+   is deleted: theme.js's place() now MEASURES the panel against the
+   viewport and sets `left` in pixels, clamped inside both edges. See the
+   long note there — the flip failed in both directions because which side
+   has room is not a property of the trigger.
+
+   Nothing may reintroduce a fixed side here. `left` is written by
+   place(); a rule setting `right` would fight it and win on the first
+   paint. */
 
 /* Wraps rather than shrinking: nine targets will not fit one phone
    row at a size a finger can hit, so they go to two rows instead. */
@@ -1241,14 +1659,14 @@ h2{
 
 .vpics{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:repeat(2, minmax(0,1fr));
   gap:10px;
   margin-top:6px;
   max-width:min(100%, 460px);
   margin-inline:auto;
 }
 @media (min-width:561px){
-  .vpics{grid-template-columns:repeat(4,1fr);max-width:min(100%, 800px)}
+  .vpics{grid-template-columns:repeat(4, minmax(0,1fr));max-width:min(100%, 800px)}
 }
 
 .vopt-pic{
@@ -1258,7 +1676,7 @@ h2{
   transition:transform .12s ease, border-color .12s ease;
   -webkit-tap-highlight-color:transparent;
 }
-.vopt-pic .sprite{border-radius:var(--r-sm)}
+.vopt-pic .sp{border-radius:var(--r-sm)}
 .vopt-pic:hover{transform:translateY(-2px);border-color:var(--sand)}
 .vopt-pic:active{transform:scale(.97)}
 
@@ -1289,16 +1707,16 @@ h2{
    picture fills its column. Wide enough that the images are worth looking
    at, narrow enough that nine of them still fit on a screen. */
 .lp-grid{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;
+  display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:10px;margin-top:14px;
   max-width:min(100%, 460px);margin-inline:auto;
 }
 .lp-grid.lp-nine{
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(3, minmax(0,1fr));
   max-width:min(100%, 620px);
 }
 @media (min-width:561px){
-  .lp-grid{grid-template-columns:repeat(4,1fr);max-width:min(100%, 800px)}
-  .lp-grid.lp-nine{grid-template-columns:repeat(3,1fr);max-width:min(100%, 780px)}
+  .lp-grid{grid-template-columns:repeat(4, minmax(0,1fr));max-width:min(100%, 800px)}
+  .lp-grid.lp-nine{grid-template-columns:repeat(3, minmax(0,1fr));max-width:min(100%, 780px)}
 }
 
 .lp-pic{
@@ -1308,7 +1726,7 @@ h2{
   transition:transform .12s ease, border-color .12s ease, opacity .2s ease;
   -webkit-tap-highlight-color:transparent;
 }
-.lp-pic .sprite{border-radius:var(--r-sm)}
+.lp-pic .sp{border-radius:var(--r-sm)}
 .lp-pic:hover:not(:disabled){transform:translateY(-2px);border-color:var(--sand)}
 .lp-pic:active:not(:disabled){transform:scale(.97)}
 .lp-pic:disabled{opacity:.45;cursor:default}
@@ -1359,9 +1777,27 @@ h2{
 .ref-group-note{font-size:0.92rem;color:var(--fg-soft);font-style:italic}
 
 .ref-row{
-  display:flex;align-items:stretch;gap:9px;width:100%;
+  /* WRAPS, and it has to. `.ref-ex` — the example sentences revealed on
+     tap — is appended as a THIRD child of this row by reference.js, so
+     without wrapping it laid out BESIDE the word as a flex item: the body
+     was squeezed to a couple of characters wide and the sentence printed
+     over the top of it. Steven, with two screenshots: "words getting
+     murdered when you clicked on them."
+
+     Wrapping plus `flex:0 0 100%` on the example block below puts it on
+     its own full-width line under the word, which is where it was always
+     meant to be. Fixed here rather than by restructuring the DOM: the row
+     is built in one pass and an inner wrapper would mean touching every
+     caller of row().
+
+     ALSO NOW OPAQUE. `rgb(var(--paper-rgb) / .9)` was a text box at 90%,
+     so the page showed through the word list. Steven's rule: a box with
+     text in it is never even partially transparent. */
+  display:flex;flex-wrap:wrap;align-items:stretch;gap:9px;width:100%;
   padding:6px 8px;border:1.5px solid rgb(var(--mauve-rgb) / .28);
-  background:rgb(var(--paper-rgb) / .9);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  color:var(--fg);
   border-radius:var(--r-md);
 }
 .ref-row:hover{border-color:var(--sand-deep)}
@@ -1371,8 +1807,25 @@ h2{
   border-radius:6px;cursor:zoom-in;position:relative;
   -webkit-tap-highlight-color:transparent;
 }
-.ref-thumb .sprite{width:52px;border-radius:6px;transition:opacity .15s ease}
-.ref-thumb:hover .sprite{opacity:.82}
+/* `.sp`, NOT `.sp`. sprite.js has always emitted `sp` — nothing in
+   the app has ever carried a class called `sprite`, so this rule and 18
+   others like it elsewhere in this file have never matched anything.
+
+   Here it was not merely cosmetic. Without the 52px the thumbnail fell
+   back to the base `.sp` rule at `width:100%`, and `.ref-thumb` is
+   `flex:0 0 auto` with no width of its own — so a 100%-wide child of a
+   zero-width parent collapsed and the picture was simply not there.
+   Steven: "black doesn't show the picture for black, which does exist."
+   It does exist: n:284 is sheet 32 position 5, the black paint strokes.
+   The crop was right and the box was zero-wide.
+
+   THE OTHER 18 ARE STILL DEAD. They are listed in HANDOFF; most only set
+   a border-radius and cost nothing, but eight of them set a width that
+   has never applied. Fixed here only, because flipping all nineteen at
+   once re-sizes pictures on fifteen screens and that wants looking at
+   rather than reasoning about. */
+.ref-thumb .sp{width:52px;border-radius:6px;transition:opacity .15s ease}
+.ref-thumb:hover .sp{opacity:.82}
 /* --shade-rgb is white in the dark themes, so this badge cannot use it
    and then print white on top. Fixed black plate, fixed white glyph. */
 .ref-thumb::after{
@@ -1449,6 +1902,7 @@ h2{
 /* --- topic filter ------------------------------------------- */
 
 .filterwrap{margin:14px 0 2px}
+.filter-row{display:flex;flex-wrap:wrap;gap:8px}
 
 .filter-toggle{
   display:inline-flex;align-items:center;gap:8px;
@@ -1548,11 +2002,116 @@ button.ref-group.open .ref-group-count{
 
 /* --- lightbox ------------------------------------------------ */
 
+
+
+/* ======================================================================
+   A LONG WORD MAY NOT PUSH A COLUMN OFF THE SCREEN.
+
+   Steven, with a screenshot of the conveyor game: the third bin —
+   ZUKUNFT / будущее — was cut off at the right edge and unreachable.
+
+   TWO CAUSES, AND BOTH ARE DEFAULTS RATHER THAN MISTAKES.
+
+   `1fr` IS `minmax(auto, 1fr)`. The `auto` minimum means a column will
+   not shrink below its widest unbreakable word, so a three-column row
+   holding VERGANGENHEIT stops being three equal columns and becomes
+   three columns wider than the phone. `minmax(0, 1fr)` is what a fixed
+   column count almost always means, and every `repeat(N, 1fr)` in this
+   file is now that. It cannot change anything that already fitted — it
+   only permits shrinking that was previously refused.
+
+   AND A WORD STILL HAS TO BREAK once the column is narrow enough.
+   `overflow-wrap:break-word` breaks one only when there is no other
+   option, so ordinary text is unaffected; German compounds are exactly
+   the case it exists for. Set here rather than per component because the
+   next long compound will land somewhere nobody has thought about.
+
+   `hyphens:auto` is deliberately NOT used: it needs a `lang` attribute
+   matching the text, and the German here sits inside a page whose lang
+   is Russian, so it would hyphenate by the wrong rules or not at all.
+   ====================================================================== */
+body{
+  overflow-wrap:break-word;
+}
+
+/* ======================================================================
+   NO OVERLAY MAY EVER CLIP ITS OWN TOP.  Steven: "make this never show
+   up at all and be impossible in the site."
+
+   THE BUG THIS FORBIDS. A full-screen overlay centres its panel with
+   `align-items:center`. When the panel is taller than the viewport,
+   centring pushes its top edge to a NEGATIVE offset — and negative
+   offset cannot be scrolled to. `overflow-y:auto` does not save it: the
+   scrollbar only reaches content below the start of the box. So the
+   first rule of a five-rule How-to-play panel was permanently
+   unreachable on a phone, and adding `overflow` looked like it had been
+   handled. Centring is the bug.
+
+   THE RULE, and it is one line of real CSS rather than a convention
+   somebody has to remember: `align-items: safe center`. `safe` means
+   "centre it, unless centring would push it out of the scrollable area,
+   in which case start-align it." Exactly the behaviour wanted, decided
+   by the browser per panel rather than by us guessing which panels get
+   tall.
+
+   TWO DECLARATIONS ON PURPOSE. A browser too old for `safe` throws the
+   second one away and keeps `flex-start`, which is the safe direction —
+   scrollable and slightly high rather than centred and unreachable. The
+   `margin:auto` on each panel then re-centres it when it fits, so
+   nothing that was working changes on any browser.
+
+   THE SELECTOR IS THE POINT. `[class*="-overlay"]` catches every overlay
+   in the app — howto, lightbox, pet grid, welcome, grammar, butler — and
+   every one added later, without anyone knowing this rule exists. A new
+   `.foo-overlay` is covered the moment it is named.
+
+   Do not add `align-items:center` to an overlay. If a panel needs to be
+   centred and can never be tall, it is already centred by the margin.
+   ====================================================================== */
+[class*="-overlay"]{
+  align-items:flex-start;
+  overflow-y:auto;
+  /* iOS: keep momentum scrolling inside the overlay */
+  -webkit-overflow-scrolling:touch;
+}
+[class*="-overlay"]{
+  align-items:safe center;
+}
+
+/* ---- A CENTRED OVERLAY MUST NOT CLIP ITS OWN TOP ----------------------
+
+   Steven, with a screenshot of the How-to-play panel: "This cut off the
+   top and there is no way to scroll up. Make sure this cannot happen on
+   any panel."
+
+   THE TRAP, because it looks like it is already handled. `.howto-overlay`
+   HAS `overflow-y:auto`. It still clipped, because `align-items:center`
+   on a flex container whose child is taller than the viewport pushes the
+   child's top edge to a NEGATIVE offset — and negative offset is not
+   scrollable. The scrollbar only ever reaches content below the start of
+   the box, so the first rule of a five-rule panel was permanently
+   unreachable. Centring is the bug, not the missing overflow.
+
+   THE FIX, and it is the standard one: `align-items:flex-start` plus
+   `margin:auto` on the box. When the box FITS, `margin:auto` still
+   centres it, so nothing that was working changes. When it does not fit,
+   the box starts at the top of the scrollable area and every line can be
+   reached.
+
+   Applied to all four centred overlays, not just the one he hit — How to
+   play, the lightbox, the pet grid, and the welcome screens. The welcome
+   one matters most on a small phone: it is the first thing she ever sees
+   and there is no way past it.
+
+   `.gr-overlay` is already `display:block` with `overflow-y:auto`, which
+   has never had this problem. Left alone.
+   ------------------------------------------------------------------ */
 .lb-overlay{
   position:fixed;inset:0;z-index:200;
-  display:none;align-items:center;justify-content:center;
+  display:none;align-items:flex-start;justify-content:center;
   background:rgb(var(--scrim-rgb) / .88);
   padding:24px;
+  overflow-y:auto;
 }
 .lb-overlay.open{display:flex}
 .lb-overlay.fade{animation:lb-in .18s ease}
@@ -1568,7 +2127,9 @@ button.ref-group.open .ref-group-count{
 }
 .lb-close:hover{background:rgba(255,255,255,.22)}
 
-.lb-figure{display:flex;flex-direction:column;align-items:center;gap:16px;max-width:100%}
+.lb-figure{display:flex;flex-direction:column;align-items:center;gap:16px;max-width:100%  /* centres it when it fits, top-aligns it when it does not */
+  margin:auto;
+}
 .lb-pic{
   width:min(72vw, 46vh);
   border-radius:var(--r-lg);
@@ -1613,7 +2174,7 @@ button.ref-group.open .ref-group-count{
   text-transform:uppercase;letter-spacing:.06em}
 
 .cw-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:8px;
 }
 .cw-cell{
   aspect-ratio:1 / 1;
@@ -1682,7 +2243,7 @@ button.ref-group.open .ref-group-count{
   background:var(--sand-wash);
   flex-direction:column;gap:5px;padding:5px 5px 7px;
 }
-.cw-shot .sprite{
+.cw-shot .sp{
   /* fills the tile; the 2:3 aspect ratio supplies the height, so the tile
      ends up the shape of the picture instead of a wide box with a stamp in
      the middle */
@@ -1803,7 +2364,7 @@ button.ref-group.open .ref-group-count{
 }
 .cw-review-item:hover{transform:translateY(-2px);border-color:var(--sand-deep)}
 .cw-review-item:active{transform:scale(.97)}
-.cw-review-item .sprite{width:100%;height:auto;aspect-ratio:2 / 3;border-radius:var(--r-sm)}
+.cw-review-item .sp{width:100%;height:auto;aspect-ratio:2 / 3;border-radius:var(--r-sm)}
 .cw-review-de{
   font-family:var(--ff-display);font-size:0.97rem;line-height:1.15;
   color:var(--fg);text-align:center;word-break:break-word;
@@ -2031,7 +2592,7 @@ button.ref-group.open .ref-group-count{
 
 .howto-overlay{
   position:fixed;inset:0;z-index:200;
-  display:none;align-items:center;justify-content:center;
+  display:none;align-items:flex-start;justify-content:center;
   padding:20px;background:rgb(var(--scrim-rgb) / .72);
   overflow-y:auto;
 }
@@ -2042,6 +2603,8 @@ button.ref-group.open .ref-group-count{
   padding:20px 22px 18px;
   max-width:34rem;width:100%;
   box-shadow:0 18px 44px rgb(var(--scrim-rgb) / .4);
+  /* centres it when it fits, top-aligns it when it does not */
+  margin:auto;
 }
 .howto-head{
   display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
@@ -2085,11 +2648,11 @@ button.ref-group.open .ref-group-count{
   border-bottom:1.5px solid rgb(var(--sand-rgb) / .22);
 }
 .vr-grid{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:12px;
+  display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px;
   max-width:min(100%, 460px);margin:0 auto 16px;
 }
 @media (min-width:561px){
-  .vr-grid{grid-template-columns:repeat(4,1fr);max-width:min(100%, 800px)}
+  .vr-grid{grid-template-columns:repeat(4, minmax(0,1fr));max-width:min(100%, 800px)}
 }
 .vr-item{display:flex;flex-direction:column;gap:4px}
 .vr-pic{
@@ -2098,7 +2661,7 @@ button.ref-group.open .ref-group-count{
   border-radius:var(--r-md);cursor:zoom-in;line-height:0;
   -webkit-tap-highlight-color:transparent;
 }
-.vr-pic .sprite{border-radius:var(--r-sm)}
+.vr-pic .sp{border-radius:var(--r-sm)}
 .vr-de{font-family:var(--ff-display);font-size:.95rem;color:var(--fg);line-height:1.25}
 .vr-gloss{font:400 0.92rem/1.3 var(--ff-ui);color:var(--fg-soft)}
 .vr-times{
@@ -2150,7 +2713,7 @@ button.ref-group.open .ref-group-count{
 /* --- der · die · das ------------------------------------------ */
 
 .gn-figure{display:flex;justify-content:center;padding:14px 0 10px}
-.gn-figure .sprite{width:clamp(150px, 42vw, 210px);border-radius:var(--r-md)}
+.gn-figure .sp{width:clamp(150px, 42vw, 210px);border-radius:var(--r-md)}
 
 .gn-word{
   font-family:var(--ff-display);
@@ -2159,7 +2722,7 @@ button.ref-group.open .ref-group-count{
   margin:0 0 18px;
 }
 
-.gn-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.gn-row{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:9px}
 .gn-btn{
   padding:16px 8px;border-radius:var(--r-md);
   border:1.5px solid rgb(var(--sand-rgb) / .5);
@@ -2397,11 +2960,11 @@ button.ref-group.open .ref-group-count{
   color:var(--fg);margin:0 0 12px;
 }
 .lp-review-grid{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:10px;
   margin-bottom:12px;
 }
 @media (min-width:561px){
-  .lp-review-grid{grid-template-columns:repeat(4,1fr)}
+  .lp-review-grid{grid-template-columns:repeat(4, minmax(0,1fr))}
 }
 .lp-review-item{
   display:flex;flex-direction:column;gap:5px;
@@ -2414,7 +2977,7 @@ button.ref-group.open .ref-group-count{
 }
 .lp-review-item:hover{transform:translateY(-2px);border-color:var(--sand-deep)}
 .lp-review-item:active{transform:scale(.97)}
-.lp-review-item .sprite{border-radius:var(--r-sm)}
+.lp-review-item .sp{border-radius:var(--r-sm)}
 .lp-review-body{display:flex;flex-direction:column;gap:1px;padding:0 3px 3px}
 .lp-review-de{
   font-family:var(--ff-display);font-size:.92rem;line-height:1.25;
@@ -2531,8 +3094,8 @@ button.ref-group.open .ref-group-count{
   color:var(--fg-soft);margin:0 0 11px;
 }
 
-.es-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-@media (min-width:561px){ .es-grid{grid-template-columns:repeat(4,1fr)} }
+.es-grid{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:10px}
+@media (min-width:561px){ .es-grid{grid-template-columns:repeat(4, minmax(0,1fr))} }
 .es-list{display:flex;flex-direction:column;gap:2px}
 
 .es-item{
@@ -2546,7 +3109,7 @@ button.ref-group.open .ref-group-count{
 .es-item:hover:not(:disabled){transform:translateY(-2px);border-color:var(--sand-deep)}
 .es-item:active:not(:disabled){transform:scale(.97)}
 .es-item:disabled{cursor:default}
-.es-item .sprite{border-radius:var(--r-sm)}
+.es-item .sp{border-radius:var(--r-sm)}
 .es-list .es-item{
   flex-direction:row;align-items:baseline;gap:10px;
   border:0;background:none;padding:7px 6px;
@@ -2575,7 +3138,7 @@ button.ref-group.open .ref-group-count{
 /* --- where or where to ----------------------------------------- */
 
 .ww-figure{display:flex;justify-content:center;padding:10px 0 14px}
-.ww-figure .sprite{width:clamp(130px, 34vw, 180px);border-radius:var(--r-md)}
+.ww-figure .sp{width:clamp(130px, 34vw, 180px);border-radius:var(--r-md)}
 
 .ww-sentence{
   font-family:var(--ff-display);
@@ -2733,7 +3296,7 @@ button.ref-group.open .ref-group-count{
   margin:6px 0 14px;
 }
 .sc-figure{display:flex;justify-content:center;padding:4px 0 12px}
-.sc-figure .sprite{width:clamp(110px, 28vw, 150px);border-radius:var(--r-md)}
+.sc-figure .sp{width:clamp(110px, 28vw, 150px);border-radius:var(--r-md)}
 
 .sc-line{
   display:flex;flex-wrap:wrap;gap:7px;align-items:center;
@@ -2799,7 +3362,7 @@ button.ref-group.open .ref-group-count{
 
 .mz-q{text-align:center;padding:6px 0 4px}
 .mz-figure{display:flex;justify-content:center;padding:6px 0 12px}
-.mz-figure .sprite{width:clamp(120px, 30vw, 160px);border-radius:var(--r-md)}
+.mz-figure .sp{width:clamp(120px, 30vw, 160px);border-radius:var(--r-md)}
 .mz-sg{
   font-family:var(--ff-display);
   font-size:clamp(1.5rem,6vw,2.1rem);line-height:1.15;
@@ -2814,8 +3377,8 @@ button.ref-group.open .ref-group-count{
   color:var(--fg-soft);margin:16px 0 14px;
 }
 
-.mz-fams{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
-@media (min-width:561px){ .mz-fams{grid-template-columns:repeat(5,1fr)} }
+.mz-fams{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:9px}
+@media (min-width:561px){ .mz-fams{grid-template-columns:repeat(5, minmax(0,1fr))} }
 .mz-fam{
   padding:16px 8px;border-radius:var(--r-md);
   border:1.5px solid rgb(var(--sand-rgb) / .5);
@@ -3104,8 +3667,8 @@ button.ref-group.open .ref-group-count{
 
 /* --- progress ------------------------------------------------------ */
 
-.pv-head{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:14px}
-@media (min-width:561px){ .pv-head{grid-template-columns:repeat(4,1fr)} }
+.pv-head{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:9px;margin-bottom:14px}
+@media (min-width:561px){ .pv-head{grid-template-columns:repeat(4, minmax(0,1fr))} }
 .pv-tile{
   padding:14px 12px;border-radius:var(--r-md);
   display:flex;flex-direction:column;gap:2px;
@@ -3279,6 +3842,48 @@ button.ref-group.open .ref-group-count{
   color:var(--on-dark);
 }
 
+/* --- the rolling week -------------------------------------------------
+
+   Kronen per day for the last 7, and which of them were full days —
+   requested directly. One row per day, a horizontal bar scaled to the
+   busiest of the seven rather than to a fixed ceiling, so a quiet week and
+   a heavy one both use the space they have. */
+.pv-week{ margin:14px 0 4px }
+.pv-week-tally{
+  margin:0 0 10px;font:700 0.95rem/1.4 var(--ff-ui);color:var(--fg);
+}
+.pv-week-rows{display:flex;flex-direction:column;gap:6px}
+.pv-week-row{
+  display:grid;grid-template-columns:2.6rem 1fr 3.2rem 1.2rem;
+  align-items:center;gap:9px;
+  padding:6px 2px;
+}
+.pv-week-row.is-today{
+  background:rgb(var(--shade-rgb) / .16);border-radius:var(--r-md);
+  padding:6px 8px;
+}
+.pv-week-day{
+  font:700 0.82rem/1.2 var(--ff-ui);color:var(--fg-soft);
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.pv-week-row.is-today .pv-week-day{color:var(--fg)}
+.pv-week-bar{
+  height:8px;border-radius:999px;
+  background:rgb(var(--shade-rgb) / .2);overflow:hidden;
+}
+.pv-week-fill{
+  height:100%;border-radius:999px;
+  background:var(--fg-accent);
+}
+.pv-week-row.is-full .pv-week-fill{background:var(--yes)}
+.pv-week-n{
+  font:700 0.88rem/1 var(--ff-ui);color:var(--fg-soft);text-align:right;
+  white-space:nowrap;
+}
+.pv-week-mark{
+  font:700 1rem/1 var(--ff-ui);color:var(--yes);text-align:center;
+}
+
 /* --- the coach ------------------------------------------------------ */
 
 .co-hello{
@@ -3328,10 +3933,10 @@ button.ref-group.open .ref-group-count{
 }
 
 .co-words{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+  display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:8px;
   margin-bottom:18px;
 }
-@media (min-width:420px){ .co-words{grid-template-columns:repeat(4,1fr)} }
+@media (min-width:420px){ .co-words{grid-template-columns:repeat(4, minmax(0,1fr))} }
 .co-word{
   display:flex;flex-direction:column;gap:3px;
   padding:5px;border-radius:var(--r-md);
@@ -3342,7 +3947,7 @@ button.ref-group.open .ref-group-count{
   transition:transform .12s ease, border-color .12s ease;
 }
 .co-word:hover{transform:translateY(-2px);border-color:var(--sand-deep)}
-.co-word .sprite{border-radius:var(--r-sm)}
+.co-word .sp{border-radius:var(--r-sm)}
 .co-word-de{
   font-family:var(--ff-display);font-size:.88rem;line-height:1.2;
   color:var(--fg);padding:0 3px;
@@ -3516,7 +4121,7 @@ button.ref-group.open .ref-group-count{
 .cv-flash.is-right{color:var(--yes)}
 .cv-flash.is-wrong{color:var(--no);font-size:1rem}
 
-.cv-bins{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.cv-bins{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:8px;margin-top:18px}
 .cv-bin{
   padding:16px 6px;border-radius:var(--r-md);
   display:flex;flex-direction:column;gap:3px;align-items:center;
@@ -3528,8 +4133,13 @@ button.ref-group.open .ref-group-count{
 .cv-bin:hover{transform:translateY(-3px);border-color:var(--sand-deep)}
 .cv-bin:active{transform:scale(.96)}
 .cv-bin-de{
-  font:700 0.85rem/1.1 var(--ff-ui);letter-spacing:.05em;
+  /* clamped: a third of a 380px screen is about 115px, and
+     VERGANGENHEIT does not fit that at the old fixed size. */
+  font:700 clamp(0.62rem, 2.6vw, 0.85rem)/1.15 var(--ff-ui);
+  letter-spacing:.03em;
   color:var(--fg);text-align:center;
+  /* the compound may break rather than widen its column */
+  overflow-wrap:anywhere;
 }
 .cv-bin-l{font:400 0.85rem/1 var(--ff-ui);color:var(--fg-soft)}
 .cv-bin-past{background:linear-gradient(rgb(var(--mauve-rgb) / .22), rgb(var(--mauve-rgb) / .22)), var(--sand-wash)}
@@ -3716,21 +4326,35 @@ button.ref-group.open .ref-group-count{
 
 /* --- achievements ---------------------------------------------------- */
 
+/* A row is a button now — tap it, get a description of what it asks for
+   — so the defaults a bare <button> brings (shrink-to-fit width, centred
+   text) are reset the same way .pv-row resets them, on top of the same
+   look the row always had. */
 .aw-row{
-  display:flex;align-items:center;gap:11px;
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;
   padding:11px 13px;margin-bottom:5px;border-radius:var(--r-md);
   background:rgb(var(--shade-rgb) / .14);
   border:1.5px solid rgb(var(--sand-rgb) / .22);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
 }
+.aw-row:hover{border-color:var(--soft-on-dark)}
+.aw-row.is-open{border-color:var(--sand-deep)}
 .aw-row.is-got{
   background:rgb(var(--flame-rgb) / .14);
   border-color:rgb(var(--flame-rgb) / .4);
 }
+.aw-row.is-got.is-open{border-color:var(--flame-pale)}
 .aw-mark{font-size:1.1rem;color:var(--fg-soft)}
 .aw-row.is-got .aw-mark{color:var(--flame-pale)}
-.aw-body{display:flex;flex-direction:column;gap:1px;flex:1}
+.aw-body{display:flex;flex-direction:column;gap:1px;flex:1;text-align:left}
 .aw-name{font-family:var(--ff-display);font-size:1rem;color:var(--fg)}
 .aw-when{font:400 .85rem/1.25 var(--ff-ui);color:var(--fg-soft)}
+/* the description, shown only while its row is open */
+.aw-desc{
+  margin-top:5px;
+  font:400 0.9rem/1.4 var(--ff-ui);color:var(--fg-soft);
+  white-space:normal;
+}
 /* The payout is the reason to want the thing, so it is not decoration.
    It was .82rem sand at 45% — measured 2.79:1 in moss, below the floor
    in every theme.
@@ -3778,8 +4402,8 @@ button.ref-group.open .ref-group-count{
 .pt-grid{
   display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:8px;
 }
-@media (min-width:430px){ .pt-grid{grid-template-columns:repeat(2,1fr)} }
-@media (min-width:760px){ .pt-grid{grid-template-columns:repeat(3,1fr)} }
+@media (min-width:430px){ .pt-grid{grid-template-columns:repeat(2, minmax(0,1fr))} }
+@media (min-width:760px){ .pt-grid{grid-template-columns:repeat(3, minmax(0,1fr))} }
 .pt-card{
   display:flex;flex-direction:column;gap:9px;align-items:center;
   padding:16px 14px;border-radius:var(--r-md);
@@ -3818,7 +4442,7 @@ button.ref-group.open .ref-group-count{
     var(--sand-wash);
   border-color:rgb(var(--flame-rgb) / .5);
 }
-.pt-card .sprite{width:70px;border-radius:var(--r-sm)}
+.pt-card .sp{width:70px;border-radius:var(--r-sm)}
 .pt-blank{
   font-size:2rem;line-height:1;color:var(--fg-soft);opacity:.55;
 }
@@ -3868,7 +4492,7 @@ button.ref-group.open .ref-group-count{
 .pt-cheer-2 .pet-img{width:120px}
 .pt-cheer-3 .pet-img{width:104px}
 .pt-cheer-one{display:flex;flex-direction:column;align-items:center;gap:3px}
-.pt-cheer-one .sprite{width:52px;border-radius:var(--r-sm)}
+.pt-cheer-one .sp{width:52px;border-radius:var(--r-sm)}
 .pt-cheer-blank{font-size:1.6rem;line-height:1;color:var(--fg-accent)}
 .pt-cheer-name{
   font-family:var(--ff-display);font-size:0.9rem;color:var(--fg-soft);
@@ -4021,7 +4645,7 @@ button.ref-group.open .ref-group-count{
   font-size:clamp(1.5rem,6vw,2.1rem);line-height:1.2;
   color:var(--ink-on-light);
 }
-.ls-bins{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.ls-bins{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:9px}
 .ls-bin{
   padding:18px 10px;border-radius:var(--r-md);
   border:2px solid var(--sand-deep);
@@ -4049,8 +4673,8 @@ button.ref-group.open .ref-group-count{
 .ls-sentence .speak{position:absolute;top:12px;right:11px}
 .ls-gloss{margin:0 0 14px;font:400 .86rem/1.4 var(--ff-ui);color:var(--fg-soft)}
 
-.ls-opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.ls-opts.is-four{grid-template-columns:repeat(2,1fr)}
+.ls-opts{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:8px}
+.ls-opts.is-four{grid-template-columns:repeat(2, minmax(0,1fr))}
 .ls-opt{
   padding:15px 8px;border-radius:var(--r-md);
   border:2px solid var(--sand-deep);
@@ -4095,7 +4719,7 @@ button.ref-group.open .ref-group-count{
   font-size:2.6rem;line-height:1;text-align:center;margin-bottom:16px;
 }
 .ls-facts{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px;
+  display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:9px;margin-bottom:16px;
 }
 .ls-fact{
   padding:14px 8px;border-radius:var(--r-md);
@@ -4130,7 +4754,7 @@ button.ref-group.open .ref-group-count{
 
 /* ---- the board ----
 
-   A CARD IS ONE SIZE. It used to be `repeat(2,1fr)`, so the width of a card
+   A CARD IS ONE SIZE. It used to be `repeat(2, minmax(0,1fr))`, so the width of a card
    was set by how many were on the board: two items on an iPad gave two
    enormous half-screen cards, four gave small ones, and the overlapping
    stack gave something different again. The picture dictated the card
@@ -4174,7 +4798,7 @@ button.ref-group.open .ref-group-count{
 }
 .pl-card:not(:disabled):hover{transform:translateY(-2px);border-color:var(--flame)}
 .pl-card:not(:disabled):active{transform:scale(.97)}
-.pl-card .sprite{border-radius:var(--r-sm)}
+.pl-card .sp{border-radius:var(--r-sm)}
 .pl-card-name{
   display:block;margin-top:5px;
   font:600 0.92rem/1.2 var(--ff-display);
@@ -4234,7 +4858,7 @@ button.ref-group.open .ref-group-count{
 /* --- pet pictures ---------------------------------------------------
 
    These are individual webp files rather than sprite-sheet cells, so the
-   .sprite rules above do not reach them. Without a width an <img> renders
+   .sp rules above do not reach them. Without a width an <img> renders
    at its natural size, which for these drawings is enormous — the store
    showed one life-size pet per card.
 
@@ -4338,6 +4962,15 @@ button.ref-group.open .ref-group-count{
   -webkit-tap-highlight-color:transparent;
 }
 .cm-de:hover{ text-decoration:underline; text-underline-offset:3px }
+
+/* The comic-to-comic row, under both views. Two buttons pushed to the
+   ends, so prev sits left and next sits right whichever one is present —
+   the hidden one holds its space rather than letting the other slide. */
+.cm-cnav{
+  display:flex; justify-content:space-between; align-items:center;
+  gap:10px; margin:16px 0 4px;
+}
+.cm-cprev, .cm-cnext{ min-width:8.5em }
 .cm-de.is-pending{ cursor:default; color:var(--fg-soft) }
 .cm-de.is-pending:hover{ text-decoration:none }
 
@@ -4543,6 +5176,8 @@ button.ref-group.open .ref-group-count{
 
    Its own declared ink: opaque light surface inside whatever is behind it. */
 .ref-ex{
+  /* Its own full-width line — see the note on .ref-row. */
+  flex:0 0 100%;
   margin:2px 0 8px 0;
   padding:10px 12px;
   border-left:3px solid var(--flame);
@@ -4560,9 +5195,505 @@ button.ref-group.open .ref-group-count{
 .ref-ex-de:hover{ text-decoration:underline }
 .ref-ex-tr{ font-size:.88rem; line-height:1.35; color:var(--fg-soft) }
 .ref-ex-none{
+  flex:0 0 100%;
   margin:2px 0 8px; padding:8px 12px;
   font-size:.88rem; color:var(--fg-soft);
 }
+
+/* ================= WORD LAB — her course words =====================
+
+   Two exercises, three rounds each: learn, match with colour, match
+   without. Only the last one scores — the colour round can be finished with
+   no German at all, which is what a scaffold is and exactly why it cannot
+   count.
+
+   THE FIVE TINTS ARE COMPOSITED, NOT HARDCODED. The first attempt used flat
+   pale hexes and they were a bright patch on every dark theme. A tint over
+   the theme's own surface darkens with the theme and the ink stays the
+   theme's ink. Same technique as the pet tiers.
+
+   The separator is the one fixed colour in here: a mid grey reads on light
+   and dark alike, which is why a rule beats a panel. A panel needed two
+   values and 12px of padding to do the same job. */
+
+.wl-groups{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px }
+.wl-group{
+  flex:1 1 130px; min-width:0;
+  display:flex; flex-direction:column; gap:2px; align-items:flex-start;
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  color:var(--fg);
+  padding:10px 12px; cursor:pointer; text-align:left;
+  -webkit-tap-highlight-color:transparent;
+}
+.wl-group:hover{ border-color:var(--flame) }
+.wl-group-n{ font:600 1rem/1.25 var(--ff-display) }
+.wl-group-s{ font-size:.82rem; color:var(--fg-soft) }
+
+/* ---- round 1, the learn phase ---- */
+
+/* Next button + speed dial above the tiles. Same pill look as
+   .autotoggle so this reads as one family of small controls rather than
+   a new visual language. */
+.wl-learn-controls{
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:8px; margin:10px 0;
+}
+.wl-next-btn{
+  border:1.5px solid rgb(var(--sand-rgb) / .4);
+  background:transparent;
+  color:var(--fg-soft);
+  font:600 0.92rem/1 var(--ff-ui);
+  letter-spacing:.04em;
+  padding:9px 13px;border-radius:999px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.wl-next-btn:hover{ border-color:var(--flame); color:var(--fg) }
+.wl-speed-dial{ display:flex; gap:4px }
+.wl-speed-btn{
+  border:1.5px solid rgb(var(--sand-rgb) / .4);
+  background:transparent;
+  color:var(--fg-soft);
+  font:600 0.92rem/1 var(--ff-ui);
+  width:34px; height:34px; border-radius:999px; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.wl-speed-btn.is-active{
+  background:rgb(var(--sand-rgb) / .22);
+  color:var(--ink-on-dark);
+  border-color:var(--soft-on-dark);
+}
+.wl-learn{ display:flex; flex-direction:column; gap:10px; min-height:210px }
+/* A BUTTON NOW, so a sentence can be heard twice — see paintLearn(). The
+   reset is what a button needs and a div did not: a browser default border,
+   centred text and its own font would all arrive with the tag change. */
+.wl-tile{
+  border-radius:var(--r-md); padding:12px 14px;
+  transition:opacity .7s ease;
+  display:block; width:100%;
+  border:0; font:inherit; color:inherit;
+  text-align:left; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.wl-tile:active{ transform:scale(.995) }
+
+/* ---- the pair she just made, held for one reading ---- */
+.wl-demo{
+  display:flex; align-items:center;
+  /* Matches `.wl-learn` so the board does not jump when this replaces it. */
+  min-height:210px;
+}
+.wl-demo-tile{
+  width:100%;
+  border-radius:var(--r-md);
+  padding:18px 16px;
+  /* WAS invisible. This tile's colour comes entirely from the five
+     `.is-<tint>` rules below, same as `.wl-w`/`.wl-p` on the board it just
+     came from — but `.wl-demo-tile` was never added to those selector
+     lists, and with no border of its own here either, the pair she'd just
+     matched landed on plain page background: no bubble, no border,
+     nothing to say "this is the thing you got right." Steven, live:
+     "it holds it by itself on a plain screen... highlight what it's
+     showing you." Border matches `.wl-w`/`.wl-p`'s base so the tint
+     rules' `border-color` has something to override. */
+  border:1.5px solid var(--sand-deep);
+  background:var(--paper);
+}
+/* 60%, NOT 35%. At 35% the leaving tile is unreadable while it is still on
+   the screen, which is worse than either being there or gone. */
+.wl-tile.is-leaving{ opacity:.6 }
+.wl-tile-w{ margin:0 0 3px; font-family:var(--ff-display); font-weight:600; line-height:1.25 }
+.wl-tile-d{ margin:0; font-size:1.02rem; line-height:1.4 }
+.wl-tile-s{ margin:0; font-size:1.02rem; line-height:1.4 }
+.wl-in{ font-weight:700 }
+
+/* ---- rounds 2 and 3, the board ---- */
+/* WAS `display:flex` with `flex:1 1 0; min-width:0` on each tile — that
+   combination has no floor, so with four words up top (BOARD = 4) the
+   browser never wraps to a second row at all: it just keeps shrinking
+   every tile until all four fit on one line, clipping the text against
+   its neighbour rather than moving it down. Steven, live, screenshot in
+   hand: "they clearly don't fit the text, so that should never have
+   collapsed to just four in one row — that should've been 2x2."
+
+   A fixed two-column grid is what BOARD = 4 actually wants: always two
+   per row, so a long compound noun gets a full column's width to wrap
+   into instead of being squeezed against three others. */
+.wl-words{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:14px 0 0 }
+.wl-w{
+  min-height:52px;
+  display:flex; align-items:center; justify-content:center;
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  padding:8px 10px; cursor:pointer;
+  font-family:var(--ff-display); font-weight:600; text-align:center;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .12s ease, transform .12s ease;
+}
+/* A word too long even for a full column spans both — same pattern as
+   `.option.is-wide` above. */
+.wl-w.is-wide{ grid-column:1 / -1 }
+.wl-w:hover{ border-color:var(--flame) }
+.wl-w:active{ transform:scale(.98) }
+.wl-w.is-picked{ border-color:var(--flame); border-width:2.5px }
+
+/* the rule */
+.wl-rule{
+  height:4px; border-radius:2px;
+  background:var(--sand-deep);
+  margin:10px 0;
+}
+
+.wl-parts{ display:flex; flex-direction:column; gap:8px }
+.wl-p{
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  padding:12px 13px; cursor:pointer; text-align:left;
+  font-size:1.02rem; line-height:1.4;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .12s ease;
+}
+/* ---- STAGE 4's COPY SCREEN --------------------------------------------
+
+   The line above Continue, saying the word is coming back. Plain text on
+   the surface it sits on, so it reads --fg and cannot go pale-on-pale. */
+.wl-set{
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  text-transform:uppercase;
+  color:var(--fg-soft);
+  margin:0 0 14px;
+}
+.wl-again{
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg-soft);
+  margin:14px 0 6px; text-align:center;
+}
+
+/* WHAT SHE TYPED, MARKED UP.
+
+   OPAQUE, per the rule: a box with text in it is never even partially
+   transparent, so this is a solid --paper ground and it DECLARES --fg
+   rather than reading whatever it inherits.
+
+   Monospace and wide tracking because the job is comparing one character
+   against one character, and a proportional face puts an i and an m at
+   different widths in two words that should line up.
+
+   THE FOUR COLOURS ARE MEASURED, and against --paper in all twelve
+   themes rather than the nine the table at the top of this file knows
+   about. Worst case in each set:
+
+     light themes (9)   wrong #A3123F  6.67    missing #A34A00  5.12
+     dark themes (3)    wrong #F5A3BD  8.62    missing #F0B07A  8.89
+
+   Dark pink and dark orange are unreadable on a dark ground, which is
+   why the three dark themes get their own pair below rather than
+   inheriting these. Do not add a colour here without measuring it the
+   same way. */
+.wl-diff{
+  display:inline-flex; flex-wrap:wrap;
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  padding:10px 12px; margin:10px 0;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:1.25rem; letter-spacing:.06em; line-height:1.5;
+}
+.wl-diff-slot{ display:block }
+.wl-d-ok{ color:var(--fg) }
+.wl-d-bad{ color:#A3123F; font-weight:700 }
+.wl-d-miss{ color:#A34A00; font-weight:700; text-decoration:underline }
+.wl-d-extra{ color:#A3123F; font-weight:700; text-decoration:line-through }
+
+[data-theme="midnight"] .wl-d-bad,
+[data-theme="ember"] .wl-d-bad,
+[data-theme="pine"] .wl-d-bad,
+[data-theme="midnight"] .wl-d-extra,
+[data-theme="ember"] .wl-d-extra,
+[data-theme="pine"] .wl-d-extra{ color:#F5A3BD }
+
+[data-theme="midnight"] .wl-d-miss,
+[data-theme="ember"] .wl-d-miss,
+[data-theme="pine"] .wl-d-miss{ color:#F0B07A }
+
+
+/* ---- THE BLANK, WHILE SHE IS TYPING IN IT ---------------------------
+
+   The gap in the sentence becomes a field in place rather than sending
+   her to a box elsewhere on the page. Inline, so the sentence keeps its
+   shape around it and the line she is answering about stays on screen.
+
+   OPAQUE, per the rule: it holds text, so it declares --fg and sits on a
+   solid --paper ground. Nothing here is translucent. */
+.wl-slot-live{
+  display:inline-flex; align-items:center; flex-wrap:wrap; gap:6px;
+  vertical-align:middle; margin:2px 0;
+}
+.wl-slot-word{
+  font:var(--t-card); letter-spacing:var(--t-card-ls);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-sm);
+  padding:4px 8px;
+}
+.wl-slot-in{
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  border:1.5px solid var(--flame); border-radius:var(--r-sm);
+  padding:8px 10px;
+  font:var(--t-card); letter-spacing:var(--t-card-ls);
+  min-width:6ch;
+}
+.wl-slot-in::placeholder{ color:var(--fg-soft) }
+.wl-slot-go{ padding:8px 14px; font-size:.95rem }
+
+.wl-p:hover{ border-color:var(--flame) }
+
+/* ---- STAGE 3's HELP, AFTER THE WAIT ----------------------------------
+
+   The listening board opens plain and stays plain for HELP_MS
+   (js/activities/wordlab.js), then the right answer takes this. It is
+   help, so it has to be unmissable; it is not one of the five group
+   tints, so it must not look like one.
+
+   OPAQUE, AND NOT NEGOTIABLE. Steven's rule: a box containing text is
+   never even partially transparent, no exceptions. So this is a solid
+   background and it DECLARES --fg rather than reading one, which is the
+   test the sweep at the foot of this file settled on.
+
+   --on-flame on --flame is the one emphasis pair in this stylesheet that
+   has actually been measured, and unlike the table above it I checked it
+   against all TWELVE themes rather than the nine that table knows about:
+
+     sand mint plum  4.65    orchid moss lagoon tobacco  7.26
+     citrus  7.03    grove  5.33    midnight  7.12
+     ember  7.67     pine  8.99
+
+   Worst case 4.65, so it clears AA for body text in every theme the app
+   can be set to. Do not swap the colours for something prettier without
+   measuring the replacement the same way. */
+.wl-p.is-help{
+  background:var(--flame);
+  border-color:var(--flame);
+  --fg:var(--on-flame); --fg-soft:var(--on-flame);
+  color:var(--fg);
+  font-weight:600;
+}
+
+/* ---------- THE ANSWER MESSAGE, WHERE SHE CAN ACTUALLY SEE IT ----------
+
+   Two faults, both visible in one screenshot.
+
+   IT WAS APPENDED TO THE END OF THE SCREEN. `flash()` adds it after the
+   last answer tile, so on a four-choice listening round it landed below
+   the fold — and scrolling to it put it under iOS Safari's floating
+   toolbar. The one message telling her she was wrong was the one thing she
+   could not read.
+
+   AND IT FAILED CONTRAST BADLY. `--no` is #FF8B7B, a light coral chosen to
+   read as tinted text ON A DARK CARD. As plain text on the light page it
+   is pale-on-pale — Steven's "look how bad the contrast fails".
+
+   So it is a fixed chip instead: always on screen wherever she has
+   scrolled, sitting above the toolbar using the same 72px clearance `main`
+   already reserves for it, and a solid ground with ink on top rather than
+   coloured text on paper. */
+.wl-flash{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:calc(84px + env(safe-area-inset-bottom, 0px));
+  z-index:50;
+  margin:0;
+  max-width:calc(100% - 32px);
+  padding:11px 20px;
+  border-radius:999px;
+  font-size:.95rem; font-weight:700;
+  text-align:center;
+  background:rgb(var(--ink-rgb));
+  color:var(--paper);
+  box-shadow:0 8px 26px rgb(var(--ink-rgb) / .4);
+}
+/* Coral is right for "wrong" — it just has to be the GROUND, with ink on
+   it, rather than the text colour. */
+.wl-flash.is-no{ background:var(--no); color:rgb(var(--ink-rgb)) }
+.wl-flash.is-hint{ background:rgb(var(--ink-rgb) / .82); color:var(--paper); font-weight:600 }
+
+/* ---- the five tints ----
+
+   ROUND 2 ONLY. Round 3 has no color, which is the whole point of it.
+
+   THESE ARE THE EXERCISE'S COLORS, NOT THE THEME'S. Steven's ruling. The
+   version before this composited the app's own palette variables over
+   `--paper` at 20% so the tints would follow whatever theme was on — and
+   on the three dark themes that meant a near-black hue over a near-black
+   surface. All five tiles came out the same color, so the scaffold was
+   invisible in the one round whose entire job is the scaffold.
+
+   The rest of the interface still follows the theme. These five do not: a
+   color that says "these two belong together" has to read the same on
+   every theme or it says nothing.
+
+   ------------------------------------------------------------------
+   THE DARK SET IS NOT A DARKENED PASTEL, AND HERE IS WHY IT COULD NOT BE
+
+   The first dark attempt simply darkened Steven's five and desaturated
+   them, and his verdict was "remarkably drab". It was, and the reason is
+   measurable: coral sits at hue 17 degrees and amber at 37. Twenty degrees
+   apart. Light and washed out that is two distinguishable pastels; dark
+   and desaturated it is two identical browns.
+
+   So the dark set keeps saturation UP — 55% rather than 34% — and pushes
+   the two offenders apart: coral to 8 degrees, amber to 44. Thirty-six
+   degrees between them instead of twenty. The other three keep their own
+   hues, since nothing was crowding them.
+
+   All three dark themes share the one set. Steven's call, and it is right:
+   the color means the same thing on each of them, so it should look the
+   same on each of them.
+
+   Light grounds carry Steven's own ink. Dark grounds carry light ink,
+   which is what a dark theme is for. */
+
+.wl-tile.is-green, .wl-w.is-green, .wl-p.is-green, .wl-demo-tile.is-green{
+  background:#DCEBC4; border-color:#BFD897;
+  --fg:#173404; --fg-soft:#3B6D11;
+  color:var(--fg);
+}
+.wl-p.is-green{ color:#3B6D11 }
+.wl-tile.is-blue, .wl-w.is-blue, .wl-p.is-blue, .wl-demo-tile.is-blue{
+  background:#CFE4F7; border-color:#97B9D8;
+  --fg:#042C53; --fg-soft:#185FA5;
+  color:var(--fg);
+}
+.wl-p.is-blue{ color:#185FA5 }
+.wl-tile.is-pink, .wl-w.is-pink, .wl-p.is-pink, .wl-demo-tile.is-pink{
+  background:#F7D8E3; border-color:#D897AE;
+  --fg:#4B1528; --fg-soft:#993556;
+  color:var(--fg);
+}
+.wl-p.is-pink{ color:#993556 }
+.wl-tile.is-coral, .wl-w.is-coral, .wl-p.is-coral, .wl-demo-tile.is-coral{
+  background:#FADBCF; border-color:#D8A997;
+  --fg:#4A1B0C; --fg-soft:#993C1D;
+  color:var(--fg);
+}
+.wl-p.is-coral{ color:#993C1D }
+.wl-tile.is-amber, .wl-w.is-amber, .wl-p.is-amber, .wl-demo-tile.is-amber{
+  background:#FBE3BC; border-color:#D8BF97;
+  --fg:#412402; --fg-soft:#854F0B;
+  color:var(--fg);
+}
+.wl-p.is-amber{ color:#854F0B }
+
+/* the definition line inside a learn tile takes the softer of the pair */
+.wl-tile-d{ color:var(--fg-soft) }
+.wl-tile-s{ color:var(--fg) }
+
+/* ---- the same five on the three dark themes ---- */
+[data-theme="midnight"] .wl-tile.is-green,
+[data-theme="ember"] .wl-tile.is-green,
+[data-theme="pine"] .wl-tile.is-green,
+[data-theme="midnight"] .wl-w.is-green,
+[data-theme="ember"] .wl-w.is-green,
+[data-theme="pine"] .wl-w.is-green,
+[data-theme="midnight"] .wl-p.is-green,
+[data-theme="ember"] .wl-p.is-green,
+[data-theme="pine"] .wl-p.is-green,
+[data-theme="midnight"] .wl-demo-tile.is-green,
+[data-theme="ember"] .wl-demo-tile.is-green,
+[data-theme="pine"] .wl-demo-tile.is-green{
+  background:#314F17; border-color:#5E932F;
+  --fg:#E4F7D4; --fg-soft:#BFE59E;
+  color:var(--fg);
+}
+[data-theme="midnight"] .wl-p.is-green,
+[data-theme="ember"] .wl-p.is-green,
+[data-theme="pine"] .wl-p.is-green{ color:#BFE59E }
+[data-theme="midnight"] .wl-tile.is-blue,
+[data-theme="ember"] .wl-tile.is-blue,
+[data-theme="pine"] .wl-tile.is-blue,
+[data-theme="midnight"] .wl-w.is-blue,
+[data-theme="ember"] .wl-w.is-blue,
+[data-theme="pine"] .wl-w.is-blue,
+[data-theme="midnight"] .wl-p.is-blue,
+[data-theme="ember"] .wl-p.is-blue,
+[data-theme="pine"] .wl-p.is-blue,
+[data-theme="midnight"] .wl-demo-tile.is-blue,
+[data-theme="ember"] .wl-demo-tile.is-blue,
+[data-theme="pine"] .wl-demo-tile.is-blue{
+  background:#17364F; border-color:#2F6693;
+  --fg:#D4E7F7; --fg-soft:#9EC5E5;
+  color:var(--fg);
+}
+[data-theme="midnight"] .wl-p.is-blue,
+[data-theme="ember"] .wl-p.is-blue,
+[data-theme="pine"] .wl-p.is-blue{ color:#9EC5E5 }
+[data-theme="midnight"] .wl-tile.is-pink,
+[data-theme="ember"] .wl-tile.is-pink,
+[data-theme="pine"] .wl-tile.is-pink,
+[data-theme="midnight"] .wl-w.is-pink,
+[data-theme="ember"] .wl-w.is-pink,
+[data-theme="pine"] .wl-w.is-pink,
+[data-theme="midnight"] .wl-p.is-pink,
+[data-theme="ember"] .wl-p.is-pink,
+[data-theme="pine"] .wl-p.is-pink,
+[data-theme="midnight"] .wl-demo-tile.is-pink,
+[data-theme="ember"] .wl-demo-tile.is-pink,
+[data-theme="pine"] .wl-demo-tile.is-pink{
+  background:#4F172F; border-color:#932F5A;
+  --fg:#F7D4E3; --fg-soft:#E59EBD;
+  color:var(--fg);
+}
+[data-theme="midnight"] .wl-p.is-pink,
+[data-theme="ember"] .wl-p.is-pink,
+[data-theme="pine"] .wl-p.is-pink{ color:#E59EBD }
+[data-theme="midnight"] .wl-tile.is-coral,
+[data-theme="ember"] .wl-tile.is-coral,
+[data-theme="pine"] .wl-tile.is-coral,
+[data-theme="midnight"] .wl-w.is-coral,
+[data-theme="ember"] .wl-w.is-coral,
+[data-theme="pine"] .wl-w.is-coral,
+[data-theme="midnight"] .wl-p.is-coral,
+[data-theme="ember"] .wl-p.is-coral,
+[data-theme="pine"] .wl-p.is-coral,
+[data-theme="midnight"] .wl-demo-tile.is-coral,
+[data-theme="ember"] .wl-demo-tile.is-coral,
+[data-theme="pine"] .wl-demo-tile.is-coral{
+  background:#4F1E17; border-color:#933C2F;
+  --fg:#F7D8D4; --fg-soft:#E5A89E;
+  color:var(--fg);
+}
+[data-theme="midnight"] .wl-p.is-coral,
+[data-theme="ember"] .wl-p.is-coral,
+[data-theme="pine"] .wl-p.is-coral{ color:#E5A89E }
+[data-theme="midnight"] .wl-tile.is-amber,
+[data-theme="ember"] .wl-tile.is-amber,
+[data-theme="pine"] .wl-tile.is-amber,
+[data-theme="midnight"] .wl-w.is-amber,
+[data-theme="ember"] .wl-w.is-amber,
+[data-theme="pine"] .wl-w.is-amber,
+[data-theme="midnight"] .wl-p.is-amber,
+[data-theme="ember"] .wl-p.is-amber,
+[data-theme="pine"] .wl-p.is-amber,
+[data-theme="midnight"] .wl-demo-tile.is-amber,
+[data-theme="ember"] .wl-demo-tile.is-amber,
+[data-theme="pine"] .wl-demo-tile.is-amber{
+  background:#4F4017; border-color:#93782F;
+  --fg:#F7EED4; --fg-soft:#E5D29E;
+  color:var(--fg);
+}
+[data-theme="midnight"] .wl-p.is-amber,
+[data-theme="ember"] .wl-p.is-amber,
+[data-theme="pine"] .wl-p.is-amber{ color:#E5D29E }
 
 /* ================= Listen and Speak — the pronunciation lab =================
 
@@ -4701,6 +5832,168 @@ button.ref-group.open .ref-group-count{
   --fg:var(--ink);
   color:var(--fg); font-size:.9rem; line-height:1.45; font-weight:600;
 }
+
+/* ================= COURSE WORDS — the redesigned lesson =================
+
+   Three rounds, support removed each time. The tints are set inline from
+   tanyawords.js because they are per-word and rotate; each one declares its
+   own ink there, which is the rule for an opaque light surface.
+
+   NOTE FOR LATER: those tints are hardcoded light values and this app has
+   twelve themes. On a dark card they will read as bright patches. The fix
+   is compositing the tint over the theme surface —
+   `linear-gradient(rgb(tint / .14), same), var(--paper)` — the pattern the
+   pet tiers already use. Left as-is for the first test because Steven
+   chose these exact five by eye. */
+
+.tw-h{
+  margin:0 0 10px; font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  text-transform:uppercase; color:var(--fg-soft);
+}
+.tw-none{ margin:0; color:var(--fg-soft); line-height:1.5 }
+
+.tw-set{
+  display:flex; flex-direction:column; gap:2px; align-items:flex-start;
+  width:100%; margin-bottom:8px;
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--ink);
+  color:var(--fg);
+  padding:12px 14px; cursor:pointer; text-align:left;
+  -webkit-tap-highlight-color:transparent;
+}
+.tw-set:hover{ border-color:var(--flame) }
+.tw-set-n{ font:600 1.05rem/1.25 var(--ff-display) }
+.tw-set-s{ font-size:.85rem; color:var(--fg-soft) }
+
+/* ---- round 1: the learn tile ----
+   Word and meaning together, the oldest of three fading out at 60%. The
+   first attempt used 35% and the word was unreadable while still there. */
+.tw-learn{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px }
+.tw-tile{
+  border-radius:var(--r-md); padding:12px 14px;
+  transition:opacity .45s ease;
+}
+.tw-tile-w{ margin:0 0 3px; font-family:var(--ff-display); font-weight:600; line-height:1.3 }
+.tw-tile-d{ margin:0; font-size:.95rem; line-height:1.4 }
+
+/* ---- rounds 2 and 3: the board ----
+   2x2 preferred, a full row where a word will not fit beside another. */
+.tw-words{ display:flex; flex-wrap:wrap; gap:8px }
+.tw-word{
+  flex:1 1 0; min-width:0;
+  min-height:52px; display:flex; align-items:center; justify-content:center;
+  padding:8px 10px; cursor:pointer; text-align:center;
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  font-family:var(--ff-display); font-weight:600; line-height:1.25;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .12s ease, transform .1s ease;
+}
+/* a long word claims its own row */
+.tw-word.is-wide{ flex:1 1 100% }
+.tw-word.is-on{ border-color:var(--flame); border-width:2.5px }
+.tw-word:active{ transform:scale(.98) }
+
+/* the separator: a rule, not a panel. A mid grey is the one colour that
+   works unchanged on light and dark, which a dark panel does not. */
+.tw-rule{
+  height:4px; border-radius:2px;
+  background:var(--sand-deep);
+  margin:10px 0;
+}
+
+.tw-defs{ display:flex; flex-direction:column; gap:8px }
+.tw-def{
+  width:100%; text-align:left;
+  padding:12px 13px; cursor:pointer;
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  font-size:1.05rem; line-height:1.4;
+  -webkit-tap-highlight-color:transparent;
+}
+.tw-def:hover{ border-color:var(--flame) }
+.tw-def.is-wrong{
+  border-color:var(--no);
+  animation:twShake .3s ease;
+}
+@keyframes twShake{
+  0%,100%{ transform:translateX(0) }
+  25%{ transform:translateX(-4px) }
+  75%{ transform:translateX(4px) }
+}
+@media (prefers-reduced-motion: reduce){ .tw-def.is-wrong{ animation:none } }
+
+.tw-note{ margin:14px 0 0; font-size:.9rem; line-height:1.45; color:var(--fg-soft) }
+
+/* ---- round 4: heard, not seen ----
+   A blank at the top that the word drops into once she has chosen. Fixed
+   height, so revealing the word does not shift the buttons under her
+   thumb mid-tap. */
+.tw-slot{
+  min-height:64px; display:flex; align-items:center; justify-content:center;
+  margin:14px 0 10px; padding:8px 12px;
+  border:2px dashed var(--sand-deep); border-radius:var(--r-md);
+  background:transparent;
+}
+.tw-slot.is-shown{
+  border-style:solid; border-color:var(--yes);
+  background:linear-gradient(rgb(var(--yes-rgb) / .12), rgb(var(--yes-rgb) / .12)), var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+}
+.tw-slot-w{
+  font-family:var(--ff-display); font-weight:600; line-height:1.25;
+  color:var(--fg);
+}
+.tw-slot-q{ font-size:1.6rem; color:var(--fg-soft); opacity:.5 }
+
+.tw-ear{ display:block; width:100%; margin-bottom:10px }
+.tw-again{ margin:0 0 10px; font-size:.92rem; font-weight:600; color:var(--no) }
+.tw-later{ margin:0 0 10px; font-size:.92rem; line-height:1.4; color:var(--fg-soft) }
+
+/* ---- round 5: typing it ----
+   The first typed production in the app. The box sits at the top, what she
+   is looking at sits under it. */
+.tw-type-box{
+  margin:14px 0 12px;
+  border:2px solid var(--sand-deep); border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  transition:border-color .15s ease;
+}
+.tw-type-box.is-wrong{ border-color:var(--no); animation:twShake .3s ease }
+.tw-type-box.is-right{ border-color:var(--yes) }
+@media (prefers-reduced-motion: reduce){ .tw-type-box.is-wrong{ animation:none } }
+.tw-type-in{
+  width:100%; box-sizing:border-box;
+  border:0; background:transparent; outline:none;
+  padding:14px 14px;
+  font-family:var(--ff-display); font-size:1.35rem; font-weight:600;
+  color:var(--fg);
+}
+.tw-type-in::placeholder{ font-weight:400; font-size:1rem; color:var(--fg-soft) }
+.tw-type-in:disabled{ opacity:.7 }
+
+.tw-mid{
+  min-height:76px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:4px;
+  margin-bottom:12px; padding:10px 12px;
+  border-radius:var(--r-md);
+  background:var(--sand-wash);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  text-align:center;
+}
+.tw-mid-w{
+  margin:0; font-family:var(--ff-display); font-weight:600; line-height:1.25;
+  color:var(--fg);
+}
+.tw-mid-d{ margin:0; font-size:1rem; line-height:1.4; color:var(--fg-soft) }
+.tw-mid-note{ margin:0; font-size:.85rem; color:var(--fg-soft) }
+.tw-send{ display:block; width:100% }
 
 /* ---- a question asked in German, and the price of translating it ----
 
@@ -5068,7 +6361,7 @@ button.ref-group.open .ref-group-count{
    phone, where 78vw is genuinely about right; it simply stops growing past
    the size of a large card. */
 .wm-pic{ width:min(78vw, 62vh, 340px); max-height:min(70vh, 460px) }
-.wm-pic .sprite{ width:100%; border-radius:var(--r-lg) }
+.wm-pic .sp{ width:100%; border-radius:var(--r-lg) }
 .wm-word{
   margin:0; text-align:center;
   font-family:var(--ff-display); font-size:2rem; font-weight:600;
@@ -5082,7 +6375,14 @@ button.ref-group.open .ref-group-count{
   font-size:.95rem; font-weight:700; letter-spacing:.06em;
   color:var(--fg-soft);
 }
-.wm-exit{ position:fixed; left:16px; bottom:16px; z-index:61 }
+/* `top:auto` IS THE WHOLE FIX AND IT IS NOT OPTIONAL.
+
+   `.backlink` is `position:fixed` with a `top`, and this rule moved the
+   button to the bottom by adding `bottom` — leaving BOTH set. A fixed
+   element given a top and a bottom does not sit at either: it stretches
+   to span the distance between them, which on a phone is a back button
+   roughly 1500px tall lying across the picture. */
+.wm-exit{ position:fixed; top:auto; left:16px; bottom:16px; z-index:61 }
 
 .wm-paused{
   position:absolute; inset:0; z-index:1;
@@ -5193,16 +6493,14 @@ button.ref-group.open .ref-group-count{
 /* A word with no picture. Abstract vocabulary — hoffentlich, sogar, auf
    jeden Fall — cannot be drawn, and the alternative was showing image 1
    and teaching a wrong meaning silently. */
-.sprite-word{
-  display:flex; align-items:center; justify-content:center;
-  padding:8px; border-radius:var(--r-sm);
-  background:var(--sand-wash);
-  border:1.5px dashed var(--sand-deep);
-}
-.sprite-word-text{
-  font-family:var(--ff-display); font-size:1.05rem; line-height:1.2;
-  text-align:center; color:var(--fg); word-break:break-word;
-}
+/* `.sprite-word` and `.sprite-word-text` stood here: a two-element
+   design — an outer box and an inner text node — that sprite.js does not
+   build. It makes ONE div, `sp sp-noart`, with a `sp-word` span inside,
+   and live rules for both of those names already exist at the foot of
+   this file. Deleted rather than renamed, for the same reason as the
+   orphan base rule above: renaming them would have produced a second
+   `.sp-word` and a second `.sp-noart`, half of whose properties then lose
+   to the live ones on specificity or order. */
 
 .pt-card .pet-img{width:140px}
 .pt-lens{
@@ -5539,6 +6837,32 @@ button.ref-group.open .ref-group-count{
   color:var(--fg-soft);
 }
 
+/* The lessons overview list — Steven: "A button at the top that lets
+   you get an overview of all lessons would be helpful," so the ~20
+   lesson cards on the hub have a compact, scannable alternative. Same
+   row shape as .dc-entry (the dictionary list) rather than a new one. */
+.ls-list{
+  display:flex; flex-direction:column; gap:8px;
+  margin:14px 0 0;
+}
+.ls-entry{
+  display:flex; align-items:center; gap:12px;
+  width:100%; text-align:left;
+  padding:12px 14px;
+  border:0; border-radius:var(--r-md);
+  background:rgb(var(--shade-rgb) / .14);
+  border-left:3px solid var(--sand-deep);
+  color:var(--fg);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.ls-entry:hover{ background:rgb(var(--shade-rgb) / .22) }
+.ls-entry-glyph{ font-size:1.3rem; flex:0 0 auto }
+.ls-entry-body{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto }
+.ls-entry-title{ font:var(--t-card); letter-spacing:var(--t-card-ls) }
+.ls-entry-sub{ font:var(--t-sub); letter-spacing:var(--t-sub-ls); color:var(--fg-soft) }
+.ls-entry-status{ flex:0 0 auto; color:var(--fg-accent); font-weight:700 }
+
 .dc-say{ margin:14px 0 4px }
 
 .dc-sense{ margin:12px 0 0; padding:16px 18px }
@@ -5631,10 +6955,29 @@ button.ref-group.open .ref-group-count{
    buttons and lose the scroll position.
    ============================================================== */
 
-.dg-list{ display:flex; flex-direction:column; gap:8px; margin:14px 0 0 }
+/* TWO PER ROW, same reasoning as the hub tiles.
+
+   A dialogue card holds a German title, an English one and `8 lines` —
+   about 100px of stacked text given the full width of a phone for the sake
+   of a title that needs half of it. Eighteen dialogues at one per row is
+   most of a screen each.
+
+   Grid rather than the column flex it was, `minmax(0,1fr)` so a long German
+   compound breaks instead of pushing the column wide, and the original
+   single column back above 620px where a card has room to breathe. */
+.dg-list{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:8px;
+  margin:14px 0 0;
+}
+@media (min-width:620px){
+  .dg-list{ grid-template-columns:repeat(auto-fill, minmax(240px,1fr)) }
+}
 .dg-card{
   display:flex; flex-direction:column; gap:3px;
-  width:100%; text-align:left;
+  width:100%; min-width:0; overflow-wrap:break-word;
+  text-align:left;
   padding:13px 15px;
   border:0; border-radius:var(--r-md);
   background:rgb(var(--shade-rgb) / .14);
@@ -5703,6 +7046,240 @@ button.ref-group.open .ref-group-count{
   -webkit-tap-highlight-color:transparent;
 }
 .dg-line:hover{ text-decoration:underline }
+
+/* ---- CRYSTALS ------------------------------------------------------
+
+   Balance, a seven-day bar chart, records, and the earning rules. Every
+   surface here is opaque and declares its ink, per the rule; the bars are
+   the one exception in spirit and not in fact — they are solid fills with
+   no text on them. */
+.cr-top{ text-align:center }
+.cr-have{ display:flex; align-items:baseline; justify-content:center; gap:8px }
+.cr-have-mark{ font-size:1.6rem; color:var(--fg-accent) }
+.cr-have-n{ font:700 clamp(2.4rem,11vw,3.6rem)/1 var(--ff-display); color:var(--fg) }
+.cr-have-l{
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  text-transform:uppercase; color:var(--fg-soft); margin:6px 0 0;
+}
+.cr-life{ display:flex; align-items:baseline; justify-content:center; gap:8px; margin:12px 0 0 }
+.cr-life-n{ font:var(--t-card); letter-spacing:var(--t-card-ls); color:var(--fg) }
+.cr-life-l{ font:var(--t-sub); letter-spacing:var(--t-sub-ls); color:var(--fg-soft) }
+
+/* The banner is a CROP of a gallery sheet now, not a standalone image,
+   so it is sized here rather than by the <img>'s own dimensions. `.sp`
+   inside it fills the width and takes its height from the base rule's
+   1/1 aspect ratio. */
+/* ---- THE CURRENCY MARK -----------------------------------------------
+
+   `GH.coins.mark()` builds `<span class="crystal-mark"><img></span>`, and
+   `markWith(n)` wraps that plus a number in `.crystal-n`. Sized in `em`
+   so one rule covers every place it appears — 14px beside the header
+   balance, 16px on an achievement row, 24px+ on the Crystals page — which
+   is the reason the art is an SVG and not a WebP.
+
+   The span carries the character as a fallback when the SVG 404s, so it
+   needs no size of its own; the img does. */
+.crystal-mark{ display:inline-flex; align-items:center; line-height:1 }
+.crystal-mark img{
+  width:1em; height:1em; display:block;
+  /* `contain`, so a mark drawn to any aspect is never stretched. */
+  object-fit:contain;
+}
+.crystal-n{ display:inline-flex; align-items:center; gap:.35em; line-height:1 }
+
+/* SPACE ABOVE IT. The section's own paragraph sits directly above, and
+   with no margin the text ran straight into the top of the picture.
+   Steven: "Put a bit of space so the text there doesn't get smashed
+   against the image of the geode." */
+.cr-banner{ margin:18px 0 8px }
+
+/* TALLER, AND NOT FULL WIDTH.
+
+   `.sp` is a 3x3 sheet crop and its base rule is `aspect-ratio:1/1`,
+   which is right for a square cell and wrong here — the crystals are
+   drawn vertical, so a square box cut the base of the geode off.
+
+   The box's aspect has to match the CELL's aspect, not the sheet's:
+   `background-size:300% 300%` handles the 3x3 division whatever shape the
+   box is, so this only needs to be the right shape for one cell. 3/4 for
+   a portrait crystal.
+
+   IF THE SHEET CELLS ARE ACTUALLY SQUARE, this is the one line to change
+   back to 1/1 — the symptom would be white space above and below the
+   crystal instead of a clipped base.
+
+   Capped and centred rather than full width: at 380px wide a full-bleed
+   banner is most of the first screen, and the numbers are the point of
+   the page. */
+.cr-banner .sp{
+  width:100%; max-width:300px; margin:0 auto;
+  aspect-ratio:3 / 4;
+  border-radius:var(--r-lg);
+}
+.cr-banner-cap{
+  display:flex; align-items:baseline; justify-content:center;
+  gap:10px; flex-wrap:wrap; margin:0 0 14px;
+}
+.cr-banner-de{ font:var(--t-card); letter-spacing:var(--t-card-ls); color:var(--fg) }
+.cr-banner-gl{ font:var(--t-sub); letter-spacing:var(--t-sub-ls); color:var(--fg-soft) }
+.cr-quest-pic .sp{ width:34px; border-radius:var(--r-sm) }
+
+/* A quest row. Opaque and declares its ink, per the rule. Not a button:
+   the work happens elsewhere and this is the checklist. */
+.cr-quest-sub{
+  font:var(--t-body); letter-spacing:var(--t-body-ls);
+  color:var(--fg-soft); margin:0 0 10px;
+}
+.cr-quest{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; margin-top:8px;
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+}
+.cr-quest.is-done{ border-color:var(--flame) }
+.cr-quest-pic{ flex:0 0 auto; width:34px; height:34px; border-radius:var(--r-sm) }
+.cr-quest-mark{ flex:0 0 auto; font-size:1.1rem; line-height:1; color:var(--fg-soft) }
+.cr-quest.is-done .cr-quest-mark{ color:var(--fg-accent) }
+.cr-quest-l{
+  flex:1; min-width:0;
+  font:var(--t-body); letter-spacing:var(--t-body-ls); color:var(--fg);
+}
+.cr-quest.is-done .cr-quest-l{ color:var(--fg-soft) }
+.cr-quest-of{
+  flex:0 0 auto;
+  font:var(--t-eyebrow); letter-spacing:0; color:var(--fg-accent);
+}
+.cr-quest-pay{
+  flex:0 0 auto;
+  font:var(--t-eyebrow); letter-spacing:0; color:var(--fg-soft);
+}
+.cr-quest-all{
+  margin:12px 0 0;
+  font:var(--t-card); letter-spacing:var(--t-card-ls);
+  color:var(--fg-accent);
+}
+
+.cr-store{ display:block; width:100%; margin:0 0 4px }
+
+.cr-h{
+  font:var(--t-section); letter-spacing:var(--t-section-ls);
+  color:var(--fg); margin:0 0 12px;
+}
+.cr-none{ font:var(--t-body); letter-spacing:var(--t-body-ls); color:var(--fg-soft); margin:0 }
+
+/* Seven fixed columns. A grid rather than flex so a day with no bar still
+   holds its width and the week never reflows into six. */
+.cr-chart{
+  display:grid; grid-template-columns:repeat(7, minmax(0,1fr));
+  gap:6px; align-items:end;
+}
+.cr-col{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0 }
+.cr-col-n{
+  font:var(--t-eyebrow); letter-spacing:0; color:var(--fg-soft);
+  min-height:1em;
+}
+.cr-track{
+  width:100%; height:96px;
+  display:flex; align-items:flex-end;
+  background:rgb(var(--ink-rgb) / .06);
+  border-radius:var(--r-sm);
+}
+.cr-bar{
+  width:100%; min-height:0;
+  background:var(--sand-deep);
+  border-radius:var(--r-sm);
+}
+/* A day that hit the target. The measured emphasis pair, so the bar reads
+   as different rather than merely darker. */
+.cr-bar.is-full{ background:var(--flame) }
+.cr-col.is-today .cr-col-d{ color:var(--fg); font-weight:700 }
+.cr-col-d{
+  font:var(--t-eyebrow); letter-spacing:0;
+  color:var(--fg-soft); text-transform:uppercase;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+}
+
+.cr-rec{
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:10px; padding:8px 0;
+  border-top:1px solid rgb(var(--ink-rgb) / .1);
+}
+.cr-rec:first-of-type{ border-top:0 }
+.cr-rec-l{ font:var(--t-body); letter-spacing:var(--t-body-ls); color:var(--fg) }
+.cr-rec-v{ display:flex; align-items:baseline; gap:8px; flex:0 0 auto }
+.cr-rec-n{ font:var(--t-card); letter-spacing:var(--t-card-ls); color:var(--fg) }
+.cr-rec-d{ font:var(--t-eyebrow); letter-spacing:0; color:var(--fg-soft); text-transform:uppercase }
+.cr-rec-none{ font:var(--t-sub); letter-spacing:var(--t-sub-ls); color:var(--fg-soft) }
+
+.cr-way{
+  display:flex; align-items:flex-start; gap:12px;
+  padding:10px 0; border-top:1px solid rgb(var(--ink-rgb) / .1);
+}
+.cr-way:first-of-type{ border-top:0 }
+.cr-way-pay{
+  flex:0 0 4.6em; display:flex; align-items:baseline; gap:4px;
+  justify-content:flex-end;
+}
+.cr-way-mark{ color:var(--fg-accent); font-size:.9rem }
+.cr-way-n{ font:var(--t-card); letter-spacing:var(--t-card-ls); color:var(--fg) }
+.cr-way-body{ display:flex; flex-direction:column; gap:2px; min-width:0 }
+.cr-way-l{ font:var(--t-body); letter-spacing:var(--t-body-ls); color:var(--fg) }
+.cr-way-s{ font:var(--t-sub); letter-spacing:var(--t-sub-ls); color:var(--fg-soft) }
+
+/* The Table of Contents. Text rows, not tiles — Steven: "a separate
+   looking page with text and links and specific behaviors", distinct
+   from the hub's grid. Opaque and declares its ink, per the rule. */
+.toc-list{ display:flex; flex-direction:column; gap:6px; margin-top:14px }
+.toc-row{
+  display:flex; flex-direction:column; gap:2px;
+  text-align:left; width:100%;
+  padding:12px 14px;
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
+  cursor:pointer;
+}
+.toc-row:disabled{ cursor:default }
+.toc-row-t{ font:var(--t-card); letter-spacing:var(--t-card-ls) }
+.toc-row-s{ font:var(--t-sub); letter-spacing:var(--t-sub-ls); color:var(--fg-soft) }
+
+/* ---- SAY IT YOURSELF, ON A DIALOGUE LINE ----------------------------
+
+   The mic sits under the line it belongs to, with the two comparison
+   buttons appearing beside it once there is something to compare.
+
+   OPAQUE, per the rule: these hold text or a glyph and sit on --paper
+   with --fg declared, never on a tint that takes its colour from
+   whatever is behind it. */
+.dg-rec{
+  display:flex; align-items:center; flex-wrap:wrap;
+  gap:8px; margin:8px 0 2px;
+}
+.dg-mic{
+  min-width:44px; min-height:44px;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft);
+  color:var(--fg);
+  border:1.5px solid var(--sand-deep); border-radius:999px;
+  font-size:1.15rem; line-height:1; cursor:pointer;
+}
+/* Recording. --on-flame on --flame is the measured emphasis pair, 4.65
+   worst case across all twelve themes. */
+.dg-mic.is-rec{
+  background:var(--flame); border-color:var(--flame);
+  --fg:var(--on-flame); --fg-soft:var(--on-flame);
+  color:var(--fg);
+}
+.dg-cmp{ padding:8px 14px; font-size:.92rem; min-height:44px }
+.dg-mic-note{
+  font:var(--t-body); letter-spacing:var(--t-body-ls);
+  color:var(--fg-soft);
+  margin:10px 0 0;
+}
 .dg-mine{
   margin:3px 0 0;
   font:var(--t-sub); letter-spacing:var(--t-sub-ls);
@@ -6042,6 +7619,24 @@ button.ref-group.open .ref-group-count{
   color:var(--fg-soft);
 }
 .gd-rule{ margin:4px 0 0 }
+
+/* The prose a LESSON expands into, where a game expands into its rules.
+   Same roles and the same contextual ink as .gd-rules above, so it reads
+   as the other half of one mechanism rather than as a second style.
+   Declares nothing of its own: it sits inside .gd-card, which is opaque
+   and sets --fg, and reading --fg here is correct because the surface
+   above it declares one. */
+.gd-detail{ margin:10px 0 0 }
+.gd-detail-h{
+  font:var(--t-card); letter-spacing:var(--t-card-ls);
+  color:var(--fg);
+  margin:0 0 4px;
+}
+.gd-detail-p{
+  font:var(--t-body); letter-spacing:var(--t-body-ls);
+  color:var(--fg-soft);
+  margin:0;
+}
 .gd-go{ width:100%; margin:12px 0 0 }
 
 /* ==============================================================
@@ -6276,14 +7871,19 @@ button.ref-group.open .ref-group-count{
 .cm-btn[aria-pressed="true"],
 .mode-toggle button[aria-pressed="true"],
 .typeswitch button[aria-pressed="true"],
-/* `.sprite-word` is the tile sprite.js builds for a word with NO drawING —
-   the German set large on a pale dashed box — and `.sprite-word-text` paints
-   it with --fg. 133 of the 743 words have no picture, so inside a card that
+/* `.sp-noart` is the tile sprite.js builds for a word with NO drawing —
+   the German set large on a pale dashed box — and `.sp-word` paints it
+   with --fg. NAMED WRONG UNTIL NOW: this note said `.sprite-word` and
+   `.sprite-word-text`, neither of which sprite.js has ever emitted, so
+   the entry it added to the list below matched nothing and the 133
+   pictureless words were never actually swept. `.sp-noart` is NOT in the
+   list, deliberately — it is transparent by design and takes the colour
+   of the card behind it, so declaring `--fg:var(--ink)` on it would print
+   dark ink on a dark card, which is the bug this sweep exists to stop. 133 of the 743 words have no picture, so inside a card that
    is roughly one word in six rendered pale-on-pale. Worse than the grammar
    page that started this, and it will grow as the vocabulary outpaces the
    art. The rest are picture frames with no text of their own; listed so the
    next sweep finds nothing left to argue about. */
-.sprite-word,
 .pt-say::before, .pt-strip-face, .petstrip-mini, .ptg-img, .fp,
 /* ---- added again, 01 Sep 2026, after the Jukebox came up blank ----
 
@@ -6437,9 +8037,10 @@ button.ref-group.open .ref-group-count{
    nothing behind it is disturbed. */
 .ptg-overlay{
   position:fixed; inset:0; z-index:60;
-  display:none; align-items:center; justify-content:center;
+  display:none; align-items:flex-start; justify-content:center;
   padding:16px;
   background:rgb(var(--scrim-rgb) / .62);
+  overflow-y:auto;
 }
 .ptg-overlay.is-open{ display:flex }
 .ptg-box{
@@ -6451,6 +8052,8 @@ button.ref-group.open .ref-group-count{
   --fg-soft:  var(--ink-soft);
   --fg-accent:var(--ink);
   color:var(--fg);
+  /* centres it when it fits, top-aligns it when it does not */
+  margin:auto;
 }
 .ptg-head{ display:flex; align-items:center; justify-content:space-between; gap:12px }
 .ptg-title{ margin:0; font:var(--t-section); letter-spacing:var(--t-section-ls) }
@@ -6736,6 +8339,26 @@ button.ref-group.open .ref-group-count{
   color:var(--ink-soft); padding:2px; text-align:center;
 }
 .fp.has-art .fp-name{ display:none }
+
+/* A word cropped out of a 3x3 sheet — sprite.js's tile()/cell(). Same
+   pattern as .fp above, one column wider. */
+.sp{
+  width:100%; aspect-ratio:1/1;
+  border-radius:8px;
+  background-color:var(--paper);
+  background-repeat:no-repeat;
+  display:flex; align-items:center; justify-content:center;
+}
+.sp-word{
+  font:var(--t-eyebrow); letter-spacing:0;
+  color:var(--ink-soft); padding:4px; text-align:center;
+}
+.sp.has-art .sp-word{ display:none }
+/* `n:0` / no sheet at all — a word tile that was never going to have a
+   picture, not a sheet that failed to load. Same look either way; the
+   difference does not matter to her. */
+.sp.sp-noart{ background-color:transparent; border:1.5px dashed rgb(var(--sand-rgb) / .4) }
+
 .gw-ask-head{ display:flex; align-items:center }
 
 /* The board size, on the board.
@@ -6791,16 +8414,73 @@ button.ref-group.open .ref-group-count{
 .purse:active{ transform:translateY(1px) }
 .purse-mark{ color:var(--sand-deep) }
 .purse-n{ font-variant-numeric:tabular-nums }
+
+/* ---- THE PURSE PANEL ------------------------------------------------
+
+   Tapping the balance opens this instead of a screen, so it can never
+   throw away a round — see the note in js/purse.js. Positioned by
+   GH.nav.clampPanel, which writes `left`, so nothing here may set a
+   side: a rule setting `right` would fight it and win on first paint.
+
+   Opaque and declares its ink, per the rule. It floats over content, and
+   content reading through a balance panel is unreadable. */
+.purse-pop{
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  right:auto;
+  z-index:60;
+  width:232px;
+  max-width:calc(100vw - 16px);
+  box-sizing:border-box;
+  padding:14px 14px 12px;
+  text-align:center;
+  border-radius:var(--r-md);
+  background:var(--paper);
+  --fg:var(--ink); --fg-soft:var(--ink-soft); --fg-accent:var(--flame);
+  color:var(--fg);
+  border:1.5px solid rgb(var(--mauve-rgb) / .45);
+  box-shadow:0 10px 28px rgb(var(--ink-rgb) / .22);
+}
+.purse-pop-n{
+  display:flex; align-items:baseline; justify-content:center; gap:8px;
+  font:700 1.9rem/1 var(--ff-display);
+  color:var(--fg);
+}
+.purse-pop-l{
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  text-transform:uppercase; color:var(--fg-soft);
+  margin:6px 0 12px;
+}
+.purse-pop-go{ display:block; width:100% }
+.purse-pop-note{
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg-soft); margin:10px 0 0;
+}
 /* Counting up after a payout. The lift and the ring say "this went up"
    from anywhere on the page, not only on the end screen. */
 .purse.is-up{
   border-color:var(--flame);
   transform:scale(1.06);
 }
+/* The colour change still applies to the CHARACTER, which is what shows
+   until the WebP is in place and if it ever 404s. */
 .purse.is-up .purse-mark{ color:var(--flame) }
+/* AND A SCALE FOR THE PICTURE, because a raster cannot take a colour.
+   The mark used to flip to --flame while the balance counted up, and that
+   flip was the signal she had just been paid — visible from anywhere on
+   the page rather than only on the end screen. A WebP ignores `color`
+   entirely, so the signal had to become something a picture can do.
+
+   Scale and not opacity: fading a mark reads as it going away, which is
+   the opposite of being paid. */
+.purse.is-up .crystal-mark img{ transform:scale(1.25) }
+.crystal-mark img{ transition:transform .18s ease }
 @media (prefers-reduced-motion: reduce){
   .purse{ transition:none }
   .purse.is-up{ transform:none }
+  .crystal-mark img{ transition:none }
+  .purse.is-up .crystal-mark img{ transform:none }
 }
 
 /* ==============================================================
@@ -6818,15 +8498,31 @@ button.ref-group.open .ref-group-count{
    `is-blocking` is for the moments that really are a stop: the first offer,
    the handover. Those darken the page. A tour step never does. */
 .bt-overlay{ display:none }
+/* Full-screen now, not just a bottom strip, so a tour step can dim the
+   whole page a little rather than none of it. `pointer-events:none` on
+   the overlay itself is what keeps the page underneath usable — the dim
+   is paint only, nothing here blocks a tap.
+
+   `.bt-lit` (below) sits above this overlay's z-index, so whatever he is
+   pointing at keeps its normal brightness while everything else recedes —
+   that contrast is the whole point of dimming at all. */
 .bt-overlay.is-open{
-  display:block;
-  position:fixed; inset:auto 0 0 0; z-index:70;
-  pointer-events:none;              /* the page underneath stays usable */
+  display:flex; /* `safe flex-end` — the bubble sits at the bottom by design, but a
+     tall one pushed its own TOP off the screen, which is the same bug
+     as centring and just at the other end. `safe` start-aligns it
+     instead when it would not fit. */
+  align-items:flex-start; align-items:safe flex-end; justify-content:center;
+  position:fixed; inset:0; z-index:70;
+  pointer-events:none;
+  background:rgb(var(--scrim-rgb) / .3);
 }
 .bt-overlay.is-blocking{
-  inset:0;
   background:rgb(var(--scrim-rgb) / .55);
-  display:flex; align-items:center; justify-content:center;
+  /* `safe center`, not `center` — this selector is more specific than
+     the global overlay rule above, so it would otherwise win and keep
+     the clipping bug for the one panel she cannot dismiss. */
+  align-items:flex-start; align-items:safe center; justify-content:center;
+  overflow-y:auto;
   pointer-events:auto;
 }
 
@@ -6841,8 +8537,15 @@ button.ref-group.open .ref-group-count{
   margin:0 12px 12px;
   max-width:min(460px, calc(100vw - 24px));
 }
+/* The hello/offer screen (blocking) keeps him beside the bubble too, same
+   as every other step — just with more room to work with since it owns
+   the whole screen, so the bubble is allowed to grow into it instead of
+   staying content-width. */
 .bt-overlay.is-blocking .bt-stage{
-  margin:0; flex-direction:column; align-items:center;
+  /* auto, not 0 — centres when it fits, top-aligns when it does not. */
+  margin:auto;
+  width:100%;
+  max-width:min(520px, calc(100vw - 32px));
 }
 
 /* The bubble, with a tail that points down at his face.
@@ -6852,20 +8555,26 @@ button.ref-group.open .ref-group-count{
    themes without a per-theme colour. */
 .bt-bubble{
   position:relative;
-  background:var(--card);
+  background:var(--paper);
   border:1.5px solid rgb(var(--sand-rgb) / .5);
   border-radius:var(--r-lg);
   box-shadow:0 8px 28px rgb(var(--scrim-rgb) / .32);
   padding:15px 17px;
+  color:var(--ink);
   --fg:var(--on-dark);
 }
+/* On the blocking screen, let the bubble take whatever width the stage
+   has to give rather than sizing to its own content — his speech should
+   fill the space beside him, especially on a phone where width is the
+   thing there's the most of. */
+.bt-overlay.is-blocking .bt-bubble{ flex:1 1 auto; min-width:0 }
 /* The tail points LEFT, into his head, which sits near the top of him
    because he is drawn standing. */
 .bt-bubble::after{
   content:'';
   position:absolute; left:-8px; top:26px;
   width:15px; height:15px;
-  background:var(--card);
+  background:var(--paper);
   border-left:1.5px solid rgb(var(--sand-rgb) / .5);
   border-bottom:1.5px solid rgb(var(--sand-rgb) / .5);
   transform:rotate(45deg);
@@ -6873,18 +8582,17 @@ button.ref-group.open .ref-group-count{
 }
 .bt-overlay.is-blocking .bt-bubble::after{ display:none }
 
-/* Him, under the tail. */
 /* Him, to the left of the bubble. `order:-1` so he comes first visually
    while the bubble stays first in the DOM — the words are what matters to a
-   screen reader, and the picture is decoration. */
+   screen reader, and the picture is decoration. Same left-of-the-bubble
+   arrangement on the blocking screen as everywhere else — he just gets a
+   bigger picture there (see .bt-face below) since the screen is his alone. */
 .bt-who{
   order:-1; flex:none;
   display:flex; flex-direction:column; align-items:center; gap:2px;
   margin:0 6px 0 0;
 }
-.bt-overlay.is-blocking .bt-who{
-  order:-1; margin:0 0 12px; flex-direction:row; gap:9px;
-}
+.bt-overlay.is-blocking .bt-who{ margin:0 10px 0 0 }
 .bt-who.has-no-face .bt-name{ padding-left:0 }
 /* A CUT-OUT FIGURE, NOT A PORTRAIT.
 
@@ -6904,9 +8612,10 @@ button.ref-group.open .ref-group-count{
   filter:drop-shadow(0 4px 10px rgb(var(--scrim-rgb) / .38));
 }
 @media (max-width:400px){ .bt-face{ height:96px } }
-/* In the blocking dialogues he is an aside rather than the scene, so he is
-   smaller and sits next to his name. */
-.bt-overlay.is-blocking .bt-face{ height:56px }
+/* The hello/offer screen is his introduction — bigger than a mid-tour
+   aside, not smaller. */
+.bt-overlay.is-blocking .bt-face{ height:148px }
+@media (max-width:400px){ .bt-overlay.is-blocking .bt-face{ height:116px } }
 /* "Max is returning to the store to wait for you…" — the line above a
    departing pet's goodbye. Quieter than what he says, because it is the
    app narrating rather than the pet speaking. */
@@ -7063,7 +8772,8 @@ button.ref-group.open .ref-group-count{
    ============================================================== */
 .wc-overlay{ display:none }
 .wc-overlay.is-open{
-  display:flex; align-items:center; justify-content:center;
+  display:flex; align-items:flex-start; justify-content:center;
+  overflow-y:auto;
   position:fixed; inset:0; z-index:90;
   /* Nearly solid. This is the first thing she ever sees and there is
      nothing behind it worth showing — a hub bleeding through the question
@@ -7085,6 +8795,8 @@ button.ref-group.open .ref-group-count{
   padding:24px 20px 18px;
   text-align:center;
   color:var(--fg);
+  /* centres it when it fits, top-aligns it when it does not */
+  margin:auto;
 }
 .wc-head{
   margin:0 0 6px;

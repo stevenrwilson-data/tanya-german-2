@@ -1,3 +1,4 @@
+/* data/position.js */
 /* Nouns the position game can arrange, with the Russian case forms it
    needs.
 

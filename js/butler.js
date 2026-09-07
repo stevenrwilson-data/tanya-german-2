@@ -1,3 +1,4 @@
+/* js/butler.js */
 /* The butler.
 
    On first open, nothing tells her what is here or where to start. Thirty
@@ -63,6 +64,9 @@ GH.butler = (function(){
 
   var host = null;         /* the overlay */
   var state = null;
+  var pendingLit = null;   /* set by highlight(), scrolled once the bubble
+                               is actually in the DOM — see show() and
+                               positionForLit() below. */
 
   function t(k, v){ return GH.i18n ? GH.i18n.t(k, v) : k; }
   function lang(){ return GH.i18n ? GH.i18n.lang() : 'en'; }
@@ -298,7 +302,48 @@ GH.butler = (function(){
     host.appendChild(stage);
     host.className = 'bt-overlay is-open' + (blocking ? ' is-blocking' : '');
     document.body.style.overflow = blocking ? 'hidden' : '';
+
+    /* highlight() ran inside build(), before the bubble existed — it could
+       only guess where to scroll. Now that the stage is actually in the
+       DOM, its real height is known, so do the scroll here instead. */
+    if (pendingLit){
+      scrollClear(pendingLit, stage);
+      pendingLit = null;
+    }
+
     if (GH.nav) GH.nav.ready();
+  }
+
+  /* The bubble sits fixed at the bottom of the screen (see .bt-overlay in
+     style.css) — a plain scrollIntoView({block:'center'}) assumes the
+     WHOLE viewport is free, so it can centre a tile right where the
+     bubble is about to land on top of it, and everything below it in the
+     same row along with it (this is exactly what happened with the
+     Progress tile: the bubble covered part of Word List and all of
+     Achievements underneath). Centring within the space the bubble
+     actually leaves free fixes it, computed from `stage`'s real rendered
+     height rather than a guess. */
+  function scrollClear(n, stage){
+    try {
+      var stageTop = stage.getBoundingClientRect().top;
+      var r = n.getBoundingClientRect();
+      var gap = 14;
+      var freeHeight = stageTop - gap;
+      if (freeHeight < r.height){
+        /* The element is taller than the space the bubble leaves — nothing
+           to centre it within, so just bring it to the top instead of
+           fighting for room that isn't there. */
+        n.scrollIntoView({ block:'start', behavior:'smooth' });
+        return;
+      }
+      var desiredTop = (freeHeight - r.height) / 2;
+      var delta = r.top - desiredTop;
+      if (Math.abs(delta) > 2){
+        window.scrollBy({ top: delta, left: 0, behavior: 'smooth' });
+      }
+    } catch (e){
+      try { n.scrollIntoView({ block:'center', behavior:'smooth' }); } catch (e2){}
+    }
   }
 
   /* ---------- the offer ---------- */
@@ -315,6 +360,28 @@ GH.butler = (function(){
   function offer(){
     if (!due()) return;
     askedThisVisit = true;
+    var o = script().offer || {};
+
+    /* AN OPTIONAL GREETING BEAT, BEFORE THE QUESTION.
+
+       `hello` is a second, earlier line with one button of its own —
+       "there you are, I'm Waddles" before "what shall we do?" rather than
+       both landing in her lap in the same breath. Writing `hello` is
+       optional: leave it empty and the offer opens straight on the
+       question, exactly as it always has. */
+    if (say(o.hello)){
+      show(function(box){
+        box.appendChild(el('p', 'bt-line', say(o.hello)));
+        var acts = el('div', 'bt-acts');
+        add(acts, say(o.helloOk) || script().nextLabel, 'primary', askWhat);
+        box.appendChild(acts);
+      }, true);
+      return;
+    }
+    askWhat();
+  }
+
+  function askWhat(){
     var o = script().offer || {};
     var tours = (script().tours || []).filter(function(x){
       return x && x.steps && x.steps.length;
@@ -434,6 +501,48 @@ GH.butler = (function(){
 
       var acts = el('div', 'bt-acts');
 
+      /* A STEP THAT ENDS THE TOUR WITH A CHOICE OF WHERE TO GO NEXT.
+
+         `choices: [{ label, sel, bonusGame, bonus }]`. One button per
+         choice, in place of the usual single Next. Picking one:
+
+           - promises the bonus (coins.setStarterBonus), so whichever of
+             the three things she finishes first pays it — she may not
+             finish the exact thing this button opens
+           - marks the tour done, the same as running off the end normally
+           - scrolls to or opens the thing itself, rather than the tour
+             deciding for her which vocabulary set or which game
+
+         `sel` is a hub selector to scroll to (she picks the specific tile
+         herself); `go` an activity id to open directly, for the one choice
+         — reading — that already is a single real destination. */
+      if (s.choices && s.choices.length){
+        s.choices.forEach(function(c, i){
+          add(acts, say(c.label), i === 0 ? 'primary' : 'ghost', function(){
+            clearHighlight();
+            disarm();
+            if (c.bonus && GH.coins && GH.coins.setStarterBonus){
+              GH.coins.setStarterBonus(c.bonusGame || null, c.bonus);
+            }
+            write({ done: Date.now() });
+            close();
+            state = null;
+            if (c.go && GH.app && GH.app.find && GH.app.play){
+              var act = GH.app.find(c.go);
+              if (act){ GH.app.play(act); return; }
+            }
+            if (c.sel){
+              var n = document.querySelector(c.sel);
+              if (n && n.scrollIntoView){
+                n.scrollIntoView({ behavior:'smooth', block:'start' });
+              }
+            }
+          });
+        });
+        box.appendChild(acts);
+        return;
+      }
+
       /* A STEP SHE PERFORMS.
 
          `tap:true` means the highlighted thing is the way on. No Next
@@ -473,13 +582,34 @@ GH.butler = (function(){
       add(acts, say(script().stopLabel), 'ghost', function(){
         clearHighlight();
         disarm();
-        finish();
+        stop();
       });
       box.appendChild(acts);
 
       box.appendChild(el('p', 'bt-count',
         t('btStepN', { n:state.i + 1, of:state.tour.steps.length })));
     });
+  }
+
+  /* STOPPING EARLY IS NOT THE SAME AS FINISHING.
+
+     `finish()` below writes `done` and jumps to the tour's destination —
+     right when she has actually seen the whole thing. Wiring "That's
+     enough for now" to `finish()` used to do both of those anyway, which
+     is wrong on both counts: it marked a tour she cut short as complete
+     forever (so due() would never offer it again and the perch — which
+     only ever gets shown on a refusal — never appeared to say she could
+     come back), and it could carry her off to a destination for a tour
+     she never reached the end of.
+
+     `refused()` already has the right shape for this: write nothing, so
+     due() finds the tour owed again next visit exactly like "later" does,
+     and always leave the perch behind so it's not next-visit-or-nothing —
+     she can tap it right away. Stopping mid-tour gets the same courtesy. */
+  function stop(){
+    close();
+    state = null;
+    perch(true);
   }
 
   /* The tour ends by going somewhere. A tour that ends where it began has
@@ -517,11 +647,17 @@ GH.butler = (function(){
     b.setAttribute('aria-label', say(script().perchLabel) || t('btPerch'));
 
     /* His face, not a bell. He is a character now and the perch is where
-       he is standing — a generic icon would make it a menu item. */
-    if (script().portrait){
+       he is standing — a generic icon would make it a menu item.
+
+       `perchFace` over `portrait` when it's set: the full standing figure
+       shrunk to 30x40 reads as a smudge, so a purpose-cropped close-up
+       belongs here instead. Falls back to `portrait`, then to the bell,
+       so an unset `perchFace` is never a broken perch. */
+    var faceSrc = script().perchFace || script().portrait;
+    if (faceSrc){
       var img = document.createElement('img');
       img.className = 'bt-perch-face';
-      img.src = GH.build ? GH.build.url(script().portrait) : script().portrait;
+      img.src = GH.build ? GH.build.url(faceSrc) : faceSrc;
       img.alt = '';
       img.addEventListener('error', function(){
         img.style.display = 'none';
@@ -562,11 +698,11 @@ GH.butler = (function(){
     var n = document.querySelector(sel);
     if (!n) return false;
     n.className += ' bt-lit';
-    try {
-      n.scrollIntoView({ block:'center', behavior:'smooth' });
-    } catch (e){
-      try { n.scrollIntoView(); } catch (e2){}
-    }
+    /* The scroll itself waits for show() to finish appending the bubble —
+       see pendingLit / scrollClear() there. The bubble does not exist yet
+       at this point in the call, so there is nothing correct to measure
+       here. */
+    pendingLit = n;
     return true;
   }
 

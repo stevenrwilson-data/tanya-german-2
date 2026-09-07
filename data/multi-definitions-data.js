@@ -1,4 +1,26 @@
-/* The dictionary.
+/* data/multi-definitions-data.js */
+/* RENAMED 05 Sep, and the name was the problem. Steven: "current
+   dictionary should already have been renamed multi-definitions."
+
+   This file was `data/dictionary.js` and it is not the dictionary. It is
+   the words that mean MORE THAN ONE THING — five headwords, thirteen
+   senses — and it sat next to a 773-word list also calling itself the
+   dictionary in Russian and German. Its tile is already "Multi-Meaning" /
+   "Mehrdeutig" / "Многозначные"; the file now agrees with the tile.
+
+   `data/dictionary-data.js` is the real dictionary: one definition per
+   headword, and it will be large. Different job, different file.
+
+   THE GLOBAL IS STILL `GH_DICT` and is deliberately unchanged. Six files
+   read it — app.js, packs.js, dictview.js, reference.js, readerwords.js,
+   songvocab.js — and renaming a global to match a filename would be six
+   edits for no behavioural gain. Only index.html and audit.sh care what
+   the file is called.
+
+   ------------------------------------------------------------------
+   The original note follows.
+
+   The dictionary.
 
    A third way of holding vocabulary, beside the image bank and the
    contextual material. The bank teaches recognition: a picture, a German

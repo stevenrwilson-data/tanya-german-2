@@ -1,3 +1,4 @@
+/* data/vocab.js */
 /* ============================================================
    VOCAB BANK — 278 words, each with two sentences.
 

@@ -1,3 +1,4 @@
+/* js/activities/guesswho.js */
 /* Wer ist es? — Guess Who.
 
    The app picks one of the people in secret. She asks questions in German

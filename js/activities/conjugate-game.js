@@ -1,3 +1,4 @@
+/* js/activities/conjugate-game.js */
 /* Welche Form? — a person and a verb are shown, she picks the right form.
 
    The table is the correction, not the lesson. She guesses first, and only

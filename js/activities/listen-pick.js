@@ -1,3 +1,4 @@
+/* js/activities/listen-pick.js */
 /* Hören und wählen — hear a German sentence, tap the image it describes.
 
    The only exercise in the app where the audio IS the question: nothing

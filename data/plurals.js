@@ -1,3 +1,4 @@
+/* data/plurals.js */
 /* Plurals.
 
    German plurals look random and mostly are not. Five endings cover almost

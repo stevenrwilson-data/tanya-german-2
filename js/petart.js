@@ -1,3 +1,4 @@
+/* js/petart.js */
 /* Pet pictures.
 
    Everything else in the app is a three-by-three sprite sheet addressed by

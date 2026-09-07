@@ -1,3 +1,4 @@
+/* data/future.js */
 /* The future, which German mostly does not have.
 
    Two ways to say it, and the everyday one is not a tense at all: the

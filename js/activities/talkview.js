@@ -1,3 +1,4 @@
+/* js/activities/talkview.js */
 /* The dialogues.
 
    Stage one of four. Two things happen here and nothing else:
@@ -193,7 +194,7 @@ GH.talkView = (function(){
     var headBar = el('div', 'practice-head');
     var back = el('button', 'backlink', '\u2039 ' + t('back'));
     back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    back.addEventListener('click', function(){ clearTakes(); state.onExit(); });
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('dgTitle')));
@@ -225,8 +226,15 @@ GH.talkView = (function(){
         b.appendChild(el('span', 'dg-card-rest', t('dgRestN', { n:left })));
       }
       b.addEventListener('click', function(){
+        /* Another conversation: her takes belong to the one she is
+           leaving, and their blob urls have to go with it. */
+        clearTakes();
         state.id = d.id; state.mode = 'listen'; state.paid = null;
         paintDialogue();
+        /* Opening a dialogue is a new screen, not a repaint of the list.
+           Without this she keeps the list's scroll offset and lands part
+           way down the conversation. Same fault as the songbook. */
+        if (GH.nav && GH.nav.top) GH.nav.top();
       });
       list.appendChild(b);
     });
@@ -285,7 +293,7 @@ GH.talkView = (function(){
         GH.speech.stop();
         state.playing = false;
         state.mode = pair[0];
-        state.qi = 0; state.picked = null; state.opts = null; state.paid = null;
+        resetRun();
         paintDialogue();
       });
       bar.appendChild(b);
@@ -331,6 +339,10 @@ GH.talkView = (function(){
     }
 
     host.appendChild(el('p', 'dg-note', t('dgTapNote')));
+    /* One explanation, under the conversation, and only once she has
+       actually tried to record — not eight apologies down the page. */
+    var note = micNote();
+    if (note) host.appendChild(note);
   }
 
   /* One turn. The German is the button, because hearing it is the point.
@@ -356,8 +368,154 @@ GH.talkView = (function(){
     if (lang() !== 'de'){
       body.appendChild(el('p', 'dg-mine', l[lang()] || l.en));
     }
+
+    /* Only where the browser can actually record. A mic that explains why
+       it does not work, on all eight lines, is eight apologies. The
+       explanation appears once, under the conversation, and only after she
+       has tried — see micNote(). */
+    if (GH.record && GH.record.can()) body.appendChild(recRow(l, i));
+
     row.appendChild(body);
     return row;
+  }
+
+  /* ---------- SAY IT YOURSELF, THEN COMPARE ----------
+
+     Steven: "Record your voice against any line of dialogue and compare it
+     to the spoken version."
+
+     A mic beside every line. Tap it and it records; tap it again and it
+     stops. From then on that line carries two playback buttons —
+     `spHearTts` (Computer) and `spHearMe` (Me) — and she can press them
+     back to back as many times as she likes. Re-recording replaces the
+     take.
+
+     NOTHING IS SCORED, and that is a decision rather than an omission.
+     Automatic pronunciation scoring is confidently wrong often enough to
+     teach the wrong thing, and the A/B comparison is the part that
+     actually works: hear it, say it, hear both, try again.
+
+     THE RECORDER IS SHARED, NOT COPIED. `GH.record` (js/record.js) is the
+     same machinery Listen and Speak uses — Safari's mp4 against everyone
+     else's webm, the secure-context gate, one permission for the whole
+     screen, blob urls revoked before they are replaced. A second copy in
+     here would have had to re-learn all four.
+
+     THE TAKES DO NOT SURVIVE THE DIALOGUE. They are blob urls in memory,
+     so leaving has to revoke them or every conversation she practises
+     leaks eight recordings for the rest of the session. Nothing is written
+     to disk: a recording of her voice is not something this app should
+     keep without being asked. */
+  function clearTakes(){
+    var k;
+    for (k in state.takes){
+      if (state.takes.hasOwnProperty(k)) GH.record.free(state.takes[k]);
+    }
+    state.takes = {};
+    state.recAt = -1;
+    if (GH.record) GH.record.release();
+  }
+
+  /* Her own take, played through a plain Audio element rather than the
+     speech engine — it is a recording, not synthesis. */
+  var mine = null;
+
+  function playMine(i){
+    var url = state.takes[i];
+    if (!url) return;
+    GH.speech.stop();
+    stopMine();
+    mine = new Audio(url);
+    mine.play()['catch'](function(){});
+  }
+
+  function stopMine(){
+    if (!mine) return;
+    try { mine.pause(); } catch (e){}
+    mine = null;
+  }
+
+  function toggleRec(i){
+    if (!GH.record) return;
+
+    /* Already recording this line: stop and keep it. */
+    if (state.recAt === i){
+      GH.record.stop();
+      return;
+    }
+    /* Recording a DIFFERENT line: stop that one first, then start here on
+       its way out, so two recorders are never live at once. */
+    if (GH.record.busy()){
+      GH.record.stop();
+      window.setTimeout(function(){ toggleRec(i); }, 60);
+      return;
+    }
+
+    var no = GH.record.why();
+    if (no){ state.micWhy = no; paintDialogue(); return; }
+
+    GH.speech.stop();
+    stopMine();
+    stopPlay();
+    state.micWhy = '';
+    state.recAt = i;
+    paintDialogue();
+
+    GH.record.start(function(url){
+      state.recAt = -1;
+      if (url){
+        /* Replacing a take revokes the old one; free() is a no-op on a
+           line that has none. */
+        GH.record.free(state.takes[i]);
+        state.takes[i] = url;
+      }
+      paintDialogue();
+    }, function(w){
+      state.recAt = -1;
+      state.micWhy = w;
+      paintDialogue();
+    });
+  }
+
+  /* Why it cannot record, in words, reusing Listen and Speak's own
+     messages — they are already written and already translated. */
+  function micNote(){
+    if (!state.micWhy) return null;
+    var key = state.micWhy === 'denied'   ? 'spMicDenied'
+            : state.micWhy === 'insecure' ? 'spMicDenied'
+            : state.micWhy === 'browser'  ? 'spNoMicBrowser'
+            : 'spMicError';
+    return el('p', 'dg-mic-note', t(key));
+  }
+
+  /* The mic, and — once there is a take — the two playback buttons. */
+  function recRow(l, i){
+    var wrap = el('div', 'dg-rec');
+
+    var rec = el('button', 'dg-mic' + (state.recAt === i ? ' is-rec' : ''));
+    rec.type = 'button';
+    rec.setAttribute('aria-label', t(state.recAt === i ? 'spStop' : 'spRecord'));
+    rec.setAttribute('aria-pressed', state.recAt === i ? 'true' : 'false');
+    rec.textContent = state.recAt === i ? '\u25a0' : '\ud83c\udfa4';
+    rec.addEventListener('click', function(){ toggleRec(i); });
+    wrap.appendChild(rec);
+
+    if (state.takes[i]){
+      var orig = el('button', 'btn dg-cmp', t('spHearTts'));
+      orig.type = 'button';
+      orig.addEventListener('click', function(){
+        stopMine();
+        GH.speech.sayAs(l.de, who(l));
+      });
+      wrap.appendChild(orig);
+
+      var me = el('button', 'btn dg-cmp', t('spHearMe'));
+      me.type = 'button';
+      me.addEventListener('click', function(){ playMine(i); });
+      wrap.appendChild(me);
+    }
+
+    return wrap;
   }
 
   /* Repaints nothing: moves one class. A full repaint per line would
@@ -482,6 +640,14 @@ GH.talkView = (function(){
         (state.picked === o ? ' is-wrong' : ''), o);
       b.type = 'button';
       b.addEventListener('click', function(){
+        /* THE FIRST ATTEMPT AT A GAP IS THE ONE THAT COUNTS. Same rule as
+           Word Lab: a gap got wrong and then right is a gap she did not
+           know, and retries in between are her working it out. Without
+           this the end screen would report a percentage of taps. */
+        if (!state.tried[state.qi]){
+          state.tried[state.qi] = true;
+          if (o === answer) state.right++; else state.wrong++;
+        }
         state.picked = o;
         paintDialogue();
       });
@@ -657,15 +823,79 @@ GH.talkView = (function(){
     return b;
   }
 
+  /* ---------- WHAT A PRACTICE RUN IS WORTH ----------
+
+     Steven: "If dialogue has two places to answer it should be worth half
+     of a exercise. If it has four, it should be worth a full exercise."
+
+     So a gap is a QUARTER of one of the five daily exercises, and the
+     dialogue is worth whatever it holds. Two gaps is half, four is one,
+     six is one and a half. A conversation with more to answer is worth
+     more, which is the only arrangement that does not reward picking the
+     shortest one.
+
+     Ten Kronen is a whole exercise, so a gap is two and a half — rounded,
+     because the purse holds whole coins. Two gaps pay 5, four pay 10.
+
+     `awardPart(game, coins, per)` counts ONE partial per call, so the run
+     calls it once per gap with `per:4`. The coins ride on the first call
+     and the rest carry zero, or a four-gap dialogue would pay four times
+     over.
+
+     It pays once and then rests, using the same store listening already
+     uses — a dialogue that has just been practised is spent either way,
+     and two rest timers on one conversation would be two ways to be
+     confused. */
+  var BLANKS_PER_TASK = 4;
+  var TASK_COINS = 10;
+
+  function payPractise(d, n){
+    if (state.paid) return state.paid;
+    if (!n || restingFor(d.id)) return null;
+    if (!GH.coins || !GH.coins.awardPart) return null;
+    var coins = Math.round(n * TASK_COINS / BLANKS_PER_TASK);
+    var got = GH.coins.awardPart('dialogue', coins, BLANKS_PER_TASK), i;
+    for (i = 1; i < n; i++) GH.coins.awardPart('dialogue', 0, BLANKS_PER_TASK);
+    markListened(d.id);
+    if (GH.purse) GH.purse.refresh();
+    state.paid = { n:n, coins:coins, got:got };
+    return state.paid;
+  }
+
   function paintDone(d){
-    host.appendChild(el('p', 'dg-done', t('dgDone')));
-    var again = el('button', 'btn dg-again', t('dgListen'));
-    again.type = 'button';
-    again.addEventListener('click', function(){
-      state.mode = 'listen'; state.qi = 0; state.picked = null; state.opts = null;
-      paintDialogue();
+    var n = blankedLines(d).length;
+    var paid = payPractise(d, n);
+    var right = state.right, wrong = state.wrong;
+
+    host.textContent = '';
+    GH.endScreen.render(host, {
+      tone: wrong === 0 ? 'perfect' : 'done',
+      glyph: '\ud83d\udcac',
+      title: t('dgDone'),
+      /* The badge says what this one was worth; the note says why. Steven
+         asked for the screen to EXPLAIN the rule, not just apply it. */
+      badge: t('dgWorth', { n:n, of:BLANKS_PER_TASK }),
+      note: t('dgCreditNote', { of:BLANKS_PER_TASK }),
+      stats: [
+        { n:right, label:t('fbRight'), kind:'good' },
+        { n:wrong, label:t('fbWrong'), kind:'bad' }
+      ],
+      coins: paid ? paid.got : null,
+      actions: [
+        { label:t('dgListen'), kind:'primary', onClick:function(){
+            state.mode = 'listen'; resetRun(); paintDialogue();
+          } },
+        { label:t('dgBackToList'), onClick:function(){
+            state.id = null; resetRun(); paintIndex();
+            if (GH.nav && GH.nav.top) GH.nav.top();
+          } }
+      ]
     });
-    host.appendChild(again);
+  }
+
+  function resetRun(){
+    state.qi = 0; state.picked = null; state.opts = null;
+    state.tried = {}; state.right = 0; state.wrong = 0; state.paid = null;
   }
 
   /* ---------- entry point ---------- */
@@ -673,7 +903,12 @@ GH.talkView = (function(){
   function open(container, onExit){
     host = container;
     state = { onExit:onExit, id:null, mode:'listen', at:-1,
-              playing:false, qi:0, picked:null, opts:null, paid:null };
+              playing:false, qi:0, picked:null, opts:null, paid:null,
+              tried:{}, right:0, wrong:0,
+              /* line index -> blob url of her own voice, and which line is
+                 recording right now. Per DIALOGUE, cleared when she opens
+                 another one — see clearTakes(). */
+              takes:{}, recAt:-1, micWhy:'' };
     GH.app.redraw = function(){
       /* The language switch must not restart the audio, and must not
          throw her back to the list from inside a conversation. */
@@ -692,7 +927,21 @@ GH.talkView = (function(){
     name:{ ru:'Диалоги', de:'Dialoge', en:'Dialogues' },
     sub:{ ru:'Послушай разговор, потом заполни пропуск',
           de:'Ein Gespräch hören, dann die Lücke füllen',
-          en:'Listen to a conversation, then fill the gap' },
+          /* Steven's line for the new recording work. The Russian and
+             German above still describe listen-then-fill only — accurate,
+             just narrower — and are NOT blanked to force an English
+             fallback, which would show Tanya English on her own hub. His
+             DE/RU to match when he wants to. */
+          en:'Record your voice against any line of dialogue and compare it to the spoken version' },
+    /* What opens behind the + on the game guide. Steven's text.
+
+       Written to be true only AFTER the recording work in this file: the
+       earlier draft of this sentence described a feature that did not
+       exist yet, which is the one thing a guide description must never
+       do. It exists now — see the mic block above recRow(). */
+    detail:{ en:'Listen to short conversations about everyday situations, then practice by completing missing words and phrases. Record your voice against any line of dialogue and compare it to the spoken version.',
+             de:'Höre kurze Gespräche über Alltagssituationen und übe anschließend, indem du fehlende Wörter und Ausdrücke ergänzt. Nimm deine Stimme zu einer beliebigen Dialogzeile auf und vergleiche sie mit der gesprochenen Version.',
+             ru:'Слушай короткие разговоры на повседневные темы, а затем тренируйся, заполняя пропущенные слова и фразы. Запиши свой голос для любой реплики и сравни его с озвученной версией.' },
     open:open
   };
 

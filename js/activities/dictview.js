@@ -1,3 +1,4 @@
+/* js/activities/dictview.js */
 /* The dictionary screen.
 
    Two views. A list of headwords, and one headword with all of its senses
@@ -104,6 +105,7 @@ GH.dictView = (function(){
       b.addEventListener('click', function(){
         state.head = entry.de;
         paintEntry();
+        if (GH.nav && GH.nav.top) GH.nav.top();
       });
       grid.appendChild(b);
     });
@@ -165,7 +167,7 @@ GH.dictView = (function(){
     if (other && other !== mine) card.appendChild(el('p', 'dc-sense-alt', other));
 
     /* The picture belongs to this sense and to no other. */
-    if (sn.img && GH.sprite && GH.sprite.has(sn.img)){
+    if (sn.img && GH.sprite){
       var pic = el('div', 'dc-sense-pic');
       pic.appendChild(GH.sprite.tile(sn.img, sn.de || head));
       card.appendChild(pic);
@@ -201,7 +203,12 @@ GH.dictView = (function(){
     /* Beside the word list rather than in Games: nothing here is scored. */
     kind:'ref',
     glyph:'\ud83d\udcd5',
-    name:{ ru:'Словарь', de:'Wörterbuch', en:'Dictionary' },
+    /* NOT "Dictionary". Steven's rename: the tile sat in the Reference row
+       next to the word list — 773 words — and called itself the
+       dictionary, which reads as the bigger of the two when it is the
+       five-headword file of words that mean more than one thing. The
+       `sub` below already said so; the name now agrees with it. */
+    name:{ ru:'Многозначные', de:'Mehrdeutig', en:'Multi-Meaning' },
     sub:{ ru:'Слова с несколькими значениями',
           de:'Wörter mit mehreren Bedeutungen',
           en:'Words with more than one meaning' },

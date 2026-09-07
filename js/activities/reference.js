@@ -1,3 +1,4 @@
+/* js/activities/reference.js */
 /* Wörterbuch — the whole vocabulary in one scrolling list.
 
    Not an exercise. Paper has one advantage over every drill in this

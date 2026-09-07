@@ -1,3 +1,4 @@
+/* js/facepic.js */
 /* One face out of a 2x2 sheet.
 
    `images/faces/face-1.webp` to `face-8.webp`, four people each, in reading
