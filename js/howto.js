@@ -168,5 +168,67 @@ GH.howto = (function(){
     return b;
   }
 
-  return { open: open, button: button, isNew: isNew, seen: seen, markSeen: markSeen };
+  /* ---------- A LEGEND, NOT A RULE LIST ----------
+
+     open() renders a NUMBERED list, because game rules are steps. An icon
+     legend is a different shape — a row per icon with its name and what it
+     does — and unnumbered, because the five rungs are a scale rather than
+     an order of operations.
+
+     A second entry point rather than a flag on open(). Twelve games' rule
+     panels go through that function; bending it to do two jobs would put
+     all twelve at risk for the sake of one new panel.
+
+     Everything around it is shared and already right: the same overlay,
+     the same close button, the same focus handling, and the `safe center`
+     fix that stops a tall panel hiding its own top on a phone.
+
+     `rows` is [{ icon, name, desc }], where `icon` is a live element the
+     caller built. This file does not know what the icons are and should
+     not — fill-blank.js owns them because it owns the rungs. */
+  function legend(titleKey, rows){
+    var o = ensure();
+    o.textContent = '';
+
+    var box = el('div', 'howto-box');
+    var head = el('div', 'howto-head');
+    head.appendChild(el('h2', null, t(titleKey)));
+    var x = el('button', 'howto-x');
+    x.type = 'button';
+    x.setAttribute('aria-label', t('close'));
+    x.textContent = '\u2715';
+    x.addEventListener('click', close);
+    head.appendChild(x);
+    box.appendChild(head);
+
+    var list = el('div', 'howto-legend');
+    (rows || []).forEach(function(r){
+      var row = el('div', 'howto-leg-row');
+      if (r.icon){
+        var slot = el('span', 'howto-leg-ico');
+        slot.appendChild(r.icon);
+        row.appendChild(slot);
+      }
+      var txt = el('div', 'howto-leg-txt');
+      txt.appendChild(el('span', 'howto-leg-name', r.name || ''));
+      txt.appendChild(el('span', 'howto-leg-desc', r.desc || ''));
+      row.appendChild(txt);
+      list.appendChild(row);
+    });
+    box.appendChild(list);
+
+    var done = el('button', 'btn btn-primary', t('howtoGot'));
+    done.type = 'button';
+    done.addEventListener('click', close);
+    var acts = el('div', 'done-actions');
+    acts.appendChild(done);
+    box.appendChild(acts);
+
+    o.appendChild(box);
+    o.className = 'howto-overlay is-open';
+    done.focus();
+  }
+
+  return { open: open, legend: legend, button: button,
+           isNew: isNew, seen: seen, markSeen: markSeen };
 })();

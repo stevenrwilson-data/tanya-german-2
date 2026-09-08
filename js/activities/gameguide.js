@@ -116,7 +116,18 @@ GH.guide = (function(){
        enough to earn the expander, and a lesson is no longer a card with
        nothing behind it on a screen whose subtitle promises more. */
     var more = lines.length > 1 || !!a.detail;
-    var open = state.open[a.id];
+    /* OPEN BY DEFAULT. Steven, 08 Sep: "the individual sections don't have
+       to have descriptions of all of the entire site so they can be opened
+       by default." The Table of Contents collapses because it lists the
+       whole site; a section guide lists one section, so hiding what each
+       game is behind a `+` made her tap fifteen times to learn the thing
+       the screen exists to tell her.
+
+       `state.open` still works and the expander still collapses — the only
+       change is which way round the default sits. `!==` rather than a
+       truthy test, so an untouched card reads open and a deliberately
+       closed one stays closed. */
+    var open = state.open[a.id] !== 'shut';
     if (more){
       head.appendChild(el('span', 'gd-more', open ? '\u2212' : '+'));
     }
@@ -124,7 +135,7 @@ GH.guide = (function(){
 
     if (more){
       head.addEventListener('click', function(){
-        state.open[a.id] = !state.open[a.id];
+        state.open[a.id] = open ? 'shut' : 'open';
         paint();
       });
       if (open){
@@ -169,9 +180,7 @@ GH.guide = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('gdTitle')));
@@ -193,6 +202,26 @@ GH.guide = (function(){
       host.appendChild(wrap);
     });
 
+    /* TO THE TABLE OF CONTENTS. Steven, 08 Sep: every section guide
+       should be able to link to the contents, and the contents links back
+       to each guide — so the two are reachable from each other rather
+       than the contents being the only way in.
+
+       `tocButton` is the label the real Table of Contents button already
+       uses, in all three languages. A new string would be a second name
+       for one screen. */
+    if (GH.toc && GH.toc.open){
+      var tb = el('button', 'btn btn-quiet gd-toc', t('tocButton'));
+      tb.type = 'button';
+      tb.addEventListener('click', function(){
+        GH.app.play({ id:'toc', open:GH.toc.open });
+      });
+      host.appendChild(tb);
+    }
+
+    /* AFTER the button, not before. `nav.ready()` tells the tour the
+       screen is finished painting, so anything appended after it is
+       something the tour was told about too late. */
     if (GH.nav) GH.nav.ready();
   }
 

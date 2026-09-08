@@ -435,9 +435,7 @@ GH.crystals = (function(){
     host.textContent = '';
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, pick(TXT.title)));
@@ -492,6 +490,26 @@ GH.crystals = (function(){
        Table of Contents is that it is a main entry there in its own
        right, not filed under Store. */
     kind:'ref',
+
+    /* THE LONG DESCRIPTION, Steven's own, three languages.
+
+       Shown behind the `+` in the game guide and available to the Table of
+       Contents. His source document also carried notes ABOUT the table of
+       contents — "Crystals should be treated as its own major section" and
+       an arrow diagram of the reward loop. Those are instructions to
+       whoever builds the TOC, not sentences Tanya reads, so they are not
+       here; only the descriptive text is.
+
+       ONE CLAIM IN HERE IS AHEAD OF THE CODE, deliberately left as he
+       wrote it and flagged rather than quietly softened: the quests are
+       drawn at RANDOM each day, seeded on the date and the profile, and
+       nothing remembers yesterday's draw. So the pool of 21 does spread
+       over weeks, but the same quest can appear two days running. Making
+       "leads you through many different kinds of activity" strictly true
+       needs a skip-what-she-had-recently rule in js/questday.js. */
+    detail:{ en:'Crystals is the central section for the reward system and the site\'s currency. It shows your balance and how crystals are earned by learning and completing activities around the site. Crystal Quests are here too: bonus challenges drawn at random from across the site, which earn extra crystals and encourage you to explore parts you have not used yet. Quests can involve reading, vocabulary, listening, pronunciation, grammar, Word Lab, sentence exercises, games, dialogues, comics and songs. From here you can go straight to the Store and spend what you have earned.',
+             de:'Kristalle ist der zentrale Bereich für das Belohnungssystem und die Währung der Website. Er zeigt dein Guthaben und wie Kristalle verdient werden, indem du lernst und Aktivitäten auf der Website abschließt. Auch die Kristall-Quests sind hier: zusätzliche Lernaufgaben, zufällig aus der ganzen Website ausgewählt, die Bonus-Kristalle einbringen und dazu anregen, Bereiche zu entdecken, die du noch nicht genutzt hast. Quests können Lesen, Wortschatz, Hörverständnis, Aussprache, Grammatik, Word Lab, Satzübungen, Lernspiele, Dialoge, Comics und Lieder umfassen. Von hier gelangst du direkt zum Shop und kannst verwenden, was du verdient hast.',
+             ru:'«Кристаллы» — центральный раздел системы наград и валюта сайта. Здесь показан твой баланс и то, как зарабатывать кристаллы, изучая немецкий и выполняя задания на сайте. Кристальные задания тоже здесь: дополнительные учебные задания, выбираемые случайно из разных частей сайта, — они приносят бонусные кристаллы и побуждают открывать разделы, которыми ты ещё не пользовалась. Задания могут быть связаны с чтением, словарным запасом, аудированием, произношением, грамматикой, Word Lab, упражнениями с предложениями, играми, диалогами, комиксами и песнями. Отсюда можно сразу перейти в Магазин и потратить заработанное.' },
     /* A glyph STRING, not the element — the hub's tile() takes text, and
        so does the game guide's card. Read from coins.js at registration
        time so it is still the one source. */

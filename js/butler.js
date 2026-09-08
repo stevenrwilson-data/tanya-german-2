@@ -75,9 +75,21 @@ GH.butler = (function(){
 
   /* A line may be a plain string or a per-language object. Steven writes
      whichever suits; this does not care. */
+  /* GENDERED RUSSIAN. Russian marks the listener in the ordinary past
+     tense, so half the tour's lines have two forms — прошла against
+     прошёл. `ru` holds the FEMININE one and `ruM` the masculine, and an
+     unset gender falls to feminine: the site is built for Tanya, and
+     that is the same convention petvoice.js already uses.
+
+     A line with no `ruM` behaves exactly as before, so the navigation
+     stops and everything ungendered stay single-valued. */
   function say(x){
     if (!x) return '';
     if (typeof x === 'string') return x;
+    if (lang() === 'ru' && x.ruM
+        && GH.player && GH.player.gender && GH.player.gender() === 'm'){
+      return x.ruM;
+    }
     return x[lang()] || x.en || x.de || '';
   }
 
@@ -121,6 +133,27 @@ GH.butler = (function(){
      than the next time the hub repaints. */
   var askedThisVisit = false;
 
+  /* IS THERE ANYTHING TO SAY AT ALL.
+
+     Split out of `due()` because two callers need it and only one of them
+     wants the rest: `due()` decides whether to speak up UNPROMPTED, while
+     the perch decides whether tapping him can do anything. Being asked
+     overrides a refusal and a finished tour; it cannot conjure a script
+     that has not been written.
+
+     Both conditions were already here and both are load-bearing. An
+     unwritten script ships as an object full of empty strings, and
+     testing that `offer` merely EXISTED once put an empty bubble over the
+     whole page with no way to close it. */
+  function hasScript(){
+    var o = script() && script().offer;
+    if (!o || !say(o.line)) return false;
+    var tours = (script().tours || []).filter(function(x){
+      return x && x.steps && x.steps.length;
+    });
+    return !!tours.length;
+  }
+
   function due(){
     /* HE MUST HAVE SOMETHING TO SAY.
 
@@ -131,16 +164,11 @@ GH.butler = (function(){
 
        An unwritten script is the normal state while the words are being
        written, and it has to be invisible rather than fatal. */
-    var o = script() && script().offer;
-    if (!o || !say(o.line)) return false;
-
     /* And somewhere for the answer to go. Every tour with steps becomes a
        button; with none, the only button would be the refusal, which is a
-       question not worth asking. */
-    var tours = (script().tours || []).filter(function(x){
-      return x && x.steps && x.steps.length;
-    });
-    if (!tours.length) return false;
+       question not worth asking. Both checks live in `hasScript()` now,
+       shared with the perch. */
+    if (!hasScript()) return false;
 
     if (askedThisVisit) return false;
     var mine = read();
@@ -153,6 +181,27 @@ GH.butler = (function(){
 
   function ensure(){
     if (host) return host;
+    /* THREE LAYERS, NOT TWO. The dim used to be the overlay's own
+       background, which made the scrim and the bubble one element and so
+       one stacking context — z-index 70. `.bt-lit` is 81, so ANY
+       highlighted element painted over the bubble, and a tall one buried
+       it completely: highlighting `#sec-gamesHead` put the whole games
+       grid on top of Waddles.
+
+       There was no value of `.bt-lit` that could work: above 70 covers
+       the bubble, below 70 gets dimmed, which defeats the highlight.
+
+       So the dim is its own element underneath:
+
+           .bt-scrim    70   paint only
+           .bt-lit      81   the thing he is pointing at
+           .bt-overlay  90   the bubble
+
+       The scrim is created first and appended first, so it is also below
+       in document order. Both are toggled together in show(). */
+    scrim = el('div', 'bt-scrim');
+    document.body.appendChild(scrim);
+
     host = el('div', 'bt-overlay');
     host.setAttribute('role', 'dialog');
     host.setAttribute('aria-modal', 'true');
@@ -301,6 +350,7 @@ GH.butler = (function(){
 
     host.appendChild(stage);
     host.className = 'bt-overlay is-open' + (blocking ? ' is-blocking' : '');
+    if (scrim) scrim.className = 'bt-scrim is-open' + (blocking ? ' is-blocking' : '');
     document.body.style.overflow = blocking ? 'hidden' : '';
 
     /* highlight() ran inside build(), before the bubble existed — it could
@@ -336,7 +386,26 @@ GH.butler = (function(){
         n.scrollIntoView({ block:'start', behavior:'smooth' });
         return;
       }
-      var desiredTop = (freeHeight - r.height) / 2;
+      /* JUST ABOVE THE BUBBLE, NOT CENTRED ABOVE IT.
+
+         This used to centre the element in the whole space above the
+         bubble. With a five-line bubble that space is most of the screen,
+         so a small tile ended up pinned at the very top — half behind the
+         jumpbar and about fifteen hundred pixels from the arrow pointing
+         at it. Correct by its own rule, useless to look at: Steven, 08
+         Sep, "look how far away the action is from Waddles."
+
+         So the element is parked a short gap above the bubble instead.
+         The pointer and the thing it points at then read as one unit, and
+         the eye travels a few dozen pixels rather than a screenful.
+
+         `minTop` keeps it clear of the header. The jumpbar and the title
+         bar sit at the top of the hub, and an element scrolled under them
+         is highlighted but unreadable — which was the other half of what
+         that screenshot showed. */
+      var minTop = 96;
+      var desiredTop = stageTop - gap - r.height;
+      if (desiredTop < minTop) desiredTop = minTop;
       var delta = r.top - desiredTop;
       if (Math.abs(delta) > 2){
         window.scrollBy({ top: delta, left: 0, behavior: 'smooth' });
@@ -357,8 +426,20 @@ GH.butler = (function(){
      So every written tour is a button, and refusing is the last one. A
      script with one tour shows one button and a refusal; with three, three.
      Nothing here needs to know how many there are. */
-  function offer(){
-    if (!due()) return;
+  /* `force` is the perch: SHE ASKED, so the once-per-visit rule and the
+     done/never flags do not apply. Steven: "It should be there regardless
+     at all times you should be able to repeat the tour you should be able
+     to do the 200s of times if you want."
+
+     Without this the perch was decorative after the first completed tour
+     — `due()` returns false once `done` is written, and `offer()` bailed
+     on that before doing anything. The content checks inside `due()` DO
+     still apply when forced; they are the difference between a written
+     script and an empty one, which no amount of asking changes. */
+  function offer(force){
+    if (force){
+      if (!hasScript()) return;
+    } else if (!due()) return;
     askedThisVisit = true;
     var o = script().offer || {};
 
@@ -373,7 +454,7 @@ GH.butler = (function(){
       show(function(box){
         box.appendChild(el('p', 'bt-line', say(o.hello)));
         var acts = el('div', 'bt-acts');
-        add(acts, say(o.helloOk) || script().nextLabel, 'primary', askWhat);
+        add(acts, say(o.helloOk) || say(script().nextLabel), 'primary', askWhat);
         box.appendChild(acts);
       }, true);
       return;
@@ -391,8 +472,12 @@ GH.butler = (function(){
       box.appendChild(el('p', 'bt-line', say(o.line)));
 
       var acts = el('div', 'bt-acts');
+      /* NO DEFAULT TOUR. `primary` on the first made the Quick Tour look
+         recommended over the Full Tour purely because it is written first
+         — and this is the first screen she ever sees, so that nudge was
+         the loudest one in the app. Two equal offers. */
       tours.forEach(function(tour, i){
-        add(acts, say(tour.label), i === 0 ? 'primary' : 'ghost', function(){
+        add(acts, say(tour.label), 'ghost', function(){
           start(indexOf(tour));
         });
       });
@@ -461,8 +546,9 @@ GH.butler = (function(){
       var o = script().offer;
       if (o.which) box.appendChild(el('p', 'bt-line', say(o.which)));
       var acts = el('div', 'bt-acts');
+      /* Same, for the perch's re-open screen. */
       script().tours.forEach(function(tour, i){
-        add(acts, say(tour.label), i === 0 ? 'primary' : 'ghost', function(){ start(i); });
+        add(acts, say(tour.label), 'ghost', function(){ start(i); });
       });
       box.appendChild(acts);
     }, true);
@@ -477,22 +563,86 @@ GH.butler = (function(){
     step();
   }
 
+  /* A way back to the Table of Contents, for anything the tour opens
+     itself. `undefined` when the TOC is not loaded, which makes
+     `GH.app.play` fall back to the hub exactly as it did before. */
+  function tocExit(){
+    if (!GH.toc || !GH.toc.open || !GH.app || !GH.app.play) return undefined;
+    return function(){
+      GH.app.play({ id:'toc', open:GH.toc.open });
+    };
+  }
+
+  /* WHICH STEP IS CALLED `name`.
+
+     A `picks` option jumps by NAME — the step it wants carries
+     `at:'name'` — because a numeric index in data breaks silently the
+     moment a step is inserted above it, and this tour is being written
+     one stop at a time. Returns -1 for an unknown name, and the caller
+     falls through to the next step rather than jumping nowhere. */
+  function stepNamed(name){
+    if (!name || !state || !state.tour) return -1;
+    var st = state.tour.steps || [];
+    for (var i = 0; i < st.length; i++){
+      if (st[i] && st[i].at === name) return i;
+    }
+    return -1;
+  }
+
   function step(){
     var s = state.tour.steps[state.i];
     if (!s){ finish(); return; }
 
-    /* A step that pays. Once ever, per profile — a replayable tour that
-       pays is a tour she can farm. */
-    if (s.gift && !read().paid){
+    /* A step that pays. ONCE EVER PER TOUR, per profile — the tour is
+       replayable without limit, so a gift that paid every time would be a
+       tour she can farm.
+
+       PER TOUR, not per profile. It was one `paid` flag for everything,
+       which meant the quick tour's ten crystals blocked the full tour's
+       twenty forever — the second tour would have paid nothing and looked
+       broken. Steven: "Giving crystals should be a one time event, but it
+       could be for each level of tour. 10 for quick. 20 for full."
+
+       The amount stays in data/butler-script.js on the step, so changing
+       it is a data edit. */
+    var paidKey = 'paid_' + (state.tour.id || 'x');
+    var alreadyPaid = !!read()[paidKey];
+    if (s.gift && !alreadyPaid){
       if (GH.coins && GH.coins.earn) GH.coins.earn(s.gift, 'butler');
-      write({ paid: s.gift });
+      var pay = {}; pay[paidKey] = s.gift;
+      write(pay);
       if (GH.purse) GH.purse.refresh();
     }
 
     var last = state.i >= state.tour.steps.length - 1;
 
     show(function(box){
-      box.appendChild(el('p', 'bt-line', say(s.line)));
+      /* SECOND TIME THROUGH, THE GIFT STEP SAYS SOMETHING ELSE.
+
+         The written line hands over crystals, which would be a lie on a
+         replay — the tour is repeatable without limit and the gift pays
+         once per tour. So on a replay this one step swaps to a line that
+         says so and still does the step's real job, which is showing her
+         where the balance lives. Steven's text, all three languages, in
+         js/i18n.js.
+
+         TWO RUSSIAN FORMS. Russian past tense is gendered — проходил
+         against проходила — so `btGiftDoneF` is the feminine one and the
+         profile's own setting picks. German and English have no gendered
+         past here and both keys carry the same line, so this asks for a
+         variant in every language rather than branching on which language
+         it is in.
+
+         Unset gender falls to the feminine: the site is Deutsch für
+         TANYA, so she is the one it is written for.
+
+         Only the gift step: every other step of a replayed tour reads
+         exactly as it did the first time. */
+      var again = t((GH.player && GH.player.gender
+                     && GH.player.gender() === 'm') ? 'btGiftDone'
+                                                    : 'btGiftDoneF');
+      box.appendChild(el('p', 'bt-line',
+        (s.gift && alreadyPaid) ? again : say(s.line)));
 
       /* `points` names something on the page to draw her eye to. Absent is
          fine; most steps are just words. */
@@ -500,6 +650,114 @@ GH.butler = (function(){
       if (s.points) lit = highlight(s.points);
 
       var acts = el('div', 'bt-acts');
+
+      /* A BRANCH THAT DOES NOT END THE TOUR.
+
+         `picks: [{ label, to, lesson, activity }]`. One button per
+         option, in place of the usual single Next — the same shape as
+         `choices` below and the opposite behaviour: `choices` is
+         TERMINAL, it writes `done`, closes and nulls `state`, so it
+         cannot be a branch point. This keeps `state` alive.
+
+         Steven's design: "The learner chooses one of the three, and that
+         choice becomes the next stop on the Full Tour. After showing
+         that area, we can return to the Table of Contents and continue
+         exploring the site." So the branches reconverge, which is why
+         this is a jump inside one flat `steps` array and not a nested
+         tree — no duplication, and the step counter stays honest.
+
+         `to` NAMES A STEP, it does not index one. A step carrying
+         `at:'somename'` is the target. Indices in data break the moment a
+         step is inserted above them; a name does not.
+
+         `lesson` opens a grammar lesson by id, `activity` a registered
+         activity. Either one means the app is about to repaint, so this
+         hands over exactly as a `tap` step does — `waitForPaint()` then
+         `close()`, and `resume()` draws the target step on the new
+         screen. With neither, it is a pure jump and draws immediately. */
+      if (s.picks && s.picks.length){
+        /* Same as `choices` above: no default. The three games are three
+           equal offers, and `primary` on the first made "Listen and pick"
+           look like the recommended one purely because it is written
+           first. */
+        s.picks.forEach(function(c, i){
+          add(acts, say(c.label), 'ghost', function(){
+            clearHighlight();
+            disarm();
+
+            var to = stepNamed(c.to);
+            state.i = (to < 0) ? state.i + 1 : to;
+
+            /* HAND OVER TO THE OTHER TOUR. `tour:'full'` on an option
+               ends this tour and starts that one immediately, which is
+               what lets the Quick Tour offer the Full Tour at its close
+               rather than only mentioning it.
+
+               `start()` takes an index, so the id is resolved here — a
+               name, not a number, so reordering `tours` cannot silently
+               launch the wrong one. Unknown id falls through to the
+               ordinary step, which is a dead option rather than a
+               crash. */
+            /* THE BONUS, same field name and meaning as on `choices`.
+               Moving the Quick Tour's ending from `choices` to `picks`
+               would otherwise have dropped it silently — she would be
+               promised a bonus and never paid one. Set BEFORE any of the
+               navigation below, so it survives every branch. */
+            if (c.bonus && GH.coins && GH.coins.setStarterBonus){
+              GH.coins.setStarterBonus(c.bonusGame || null, c.bonus);
+            }
+            if (c.tour){
+              var ti = -1;
+              script().tours.forEach(function(t, k){ if (t.id === c.tour) ti = k; });
+              if (ti >= 0){
+                clearHighlight();
+                disarm();
+                close();
+                state = null;
+                start(ti);
+                return;
+              }
+            }
+            if (c.lesson && GH.app && GH.app.lesson){
+              GH.app.lesson(c.lesson);
+              waitForPaint();
+              close();
+              return;
+            }
+            if (c.activity && GH.app && GH.app.find && GH.app.play){
+              var act = GH.app.find(c.activity);
+              if (act){
+                /* BACK GOES TO THE TABLE OF CONTENTS, not the hub.
+
+                   `GH.app.play(act)` with no exit defaults to the hub, so
+                   a game opened from a branch would have dropped her on
+                   the front page — and the Full Tour uses the Table of
+                   Contents as its home base, returning to it between
+                   every section. One step landing somewhere else breaks
+                   the pattern she is being taught.
+
+                   Falls back to the hub if the Table of Contents is not
+                   loaded, which is the old behaviour rather than a
+                   crash. */
+                GH.app.play(act, tocExit());
+                waitForPaint();
+                close();
+                return;
+              }
+            }
+            step();
+          });
+        });
+        add(acts, say(script().stopLabel), 'ghost', function(){
+          clearHighlight();
+          disarm();
+          stop();
+        });
+        box.appendChild(acts);
+        box.appendChild(el('p', 'bt-count',
+          t('btStepN', { n:state.i + 1, of:state.tour.steps.length })));
+        return;
+      }
 
       /* A STEP THAT ENDS THE TOUR WITH A CHOICE OF WHERE TO GO NEXT.
 
@@ -517,8 +775,14 @@ GH.butler = (function(){
          herself); `go` an activity id to open directly, for the one choice
          — reading — that already is a single real destination. */
       if (s.choices && s.choices.length){
+        /* ALL THREE EQUAL. The first used to be `primary`, which is the
+           recommended-action style — so whichever option happened to be
+           written first looked like the default and the other two looked
+           like alternatives. Steven, 08 Sep: there should be no default
+           choice between the three. `ghost` for all of them presents
+           them as three equal doors, which is what they are. */
         s.choices.forEach(function(c, i){
-          add(acts, say(c.label), i === 0 ? 'primary' : 'ghost', function(){
+          add(acts, say(c.label), 'ghost', function(){
             clearHighlight();
             disarm();
             if (c.bonus && GH.coins && GH.coins.setStarterBonus){
@@ -619,6 +883,14 @@ GH.butler = (function(){
     write({ done: Date.now() });
     close();
     state = null;
+    /* THE PERCH SURVIVES FINISHING. `stop()` and both refusal paths
+       already left it behind; `finish()` did not, so completing the tour
+       properly was the one way to lose access to it — `done` is written,
+       so `due()` will never offer again. Backwards.
+
+       `true` to flash: she has just finished, and this is the moment to
+       show her where he went and that he can be fetched back. */
+    perch(true);
     if (go && GH.app && GH.app.find && GH.app.play){
       var act = GH.app.find(go);
       if (act){ GH.app.play(act); return; }
@@ -669,9 +941,13 @@ GH.butler = (function(){
     }
 
     b.addEventListener('click', function(){
+      /* No `write({never:0})` any more. Clearing her refusal as a side
+         effect of one tap meant he would start volunteering again on
+         later visits, which is the opposite of what "no thanks, never"
+         asked for. Tapping him is a request for this one conversation,
+         not a change of standing instructions. */
       askedThisVisit = false;
-      write({ never: 0 });
-      offer();
+      offer(true);
     });
     host2.appendChild(b);
     if (flash !== false) blink(b);
@@ -872,6 +1148,10 @@ GH.butler = (function(){
               not hand out coins again. */
            resetAll:function(){
              askedThisVisit = false;
-             write({ never:0, done:0, paid:0, handedOver:0 });
+             /* `paid_<tour>` now, one per tour — the old single `paid` is
+                dead and clearing it would leave both real flags set, so
+                replaying would silently pay nothing and look broken. */
+             write({ never:0, done:0, paid:0,
+                     paid_quick:0, paid_full:0, handedOver:0 });
            } };
 })();

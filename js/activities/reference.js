@@ -447,10 +447,19 @@ GH.reference = (function(){
   function row(v){
     var wrap = el('div', 'ref-row');
 
-    var thumb = el('button', 'ref-thumb');
+    /* `has-pic` when there is a real drawing behind it. Every row has a
+       thumb, but a word with no art gets sprite.js's `.sp-noart`
+       placeholder — the German word on a dashed box — and enlarging that
+       shows nothing worth seeing.
+
+       The Full Tour needs it: its step says "tap a picture to see it full
+       size", and `querySelector('.ref-thumb')` would otherwise take the
+       first row in the list whether or not it has one. */
+    var art = GH.packs.imgOf(v);
+    var thumb = el('button', 'ref-thumb' + (art ? ' has-pic' : ''));
     thumb.type = 'button';
     thumb.setAttribute('aria-label', 'Enlarge ' + v.de);
-    thumb.appendChild(GH.sprite.tile(GH.packs.imgOf(v), v.de));
+    thumb.appendChild(GH.sprite.tile(art, v.de));
     thumb.addEventListener('click', function(){ GH.lightbox.open(v.n, v); });
     wrap.appendChild(thumb);
 
@@ -560,9 +569,7 @@ GH.reference = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     head.appendChild(back);
 
     var titles = el('div', 'practice-title');
@@ -652,7 +659,10 @@ GH.reference = (function(){
       var h = el('button', 'ref-group' + (isOpen ? ' open' : ''));
       h.type = 'button';
       h.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      h.appendChild(el('span', 'ref-group-caret', isOpen ? '▾' : '▸'));
+      /* One chevron that turns, not two filled triangles swapped. CSS
+         rotates it 90deg on `.open`. Filled triangles read as media
+         controls; a chevron reads as a fold. */
+      h.appendChild(el('span', 'ref-group-caret', '\u203a'));
       h.appendChild(el('span', 'ref-group-name', g.label));
       h.appendChild(el('span', 'ref-group-count', g.items.length));
       if (g.note) h.appendChild(el('span', 'ref-group-note', g.note));

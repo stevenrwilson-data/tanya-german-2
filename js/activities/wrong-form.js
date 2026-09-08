@@ -301,9 +301,7 @@ GH.wrongForm = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ clearTimers(); state.onExit(); });
+    var back = GH.back.button(function(){ clearTimers(); state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('wfTitle')));
@@ -467,6 +465,10 @@ GH.wrongForm = (function(){
 (function(){
   var entry = {
     id:'wrong-form',
+    /* GERMAN ONLY. This game is about German morphology and has no
+       English or Russian equivalent, so it is hidden when the course is
+       not German — see the filter in app.js. */
+    onlyDe:true,
     glyph:'🔍',
     name:{ ru:'Найди ошибку', de:'Falsche Form', en:'Spot the wrong form' },
     sub:{ ru:'Правильно ли стоит глагол?',

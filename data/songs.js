@@ -1707,3 +1707,87 @@ window.GH_SONGS = [
   }
 
 ];
+
+/* ------------------------------------------------------------------
+   WHAT LANGUAGE IS A SONG IN
+
+   Steven, 07 Sep: this is a MULTILINGUAL site. There will be sets of
+   songs in different languages, and she can listen in her own language
+   and in others. So the language is not a two-way English/Russian flag —
+   it is any language the app supports.
+
+   THE CONVENTION: the last hyphen-delimited segment of the audio
+   filename is the language code. `hello-world-en`, `cancion-es`,
+   `moya-pesnya-rus`. No suffix means German, which is the course.
+
+   `rus` IS AN ALIAS. Steven writes Russian as `-rus`, three letters,
+   while every other code is the two-letter one. So the suffix and the
+   language code are deliberately NOT the same string for Russian —
+   never compare a filename suffix to a language code directly, go
+   through here.
+
+   ANCHORED TO A WHOLE SEGMENT. Four German songs end in the letters
+   "en" — regen, herzen, rebellen, minuten — so a substring test would
+   call all four English and pull them out of German practice. Only a
+   complete trailing segment counts.
+
+   UNKNOWN SUFFIX MEANS GERMAN. A filename ending in something that is
+   not a supported code is treated as German, which is the existing
+   behaviour for all 17 songs and cannot regress them.
+
+   ONE RESOLVER, SIX CALLERS. songbook.js, jukebox.js, listen-speak.js,
+   scramble.js and grammar.js all need this, and this file loads before
+   every one of them (index.html line 81 against 109-120). Six copies of
+   the pattern would drift, and a drifted copy means a song that is
+   English in the list and German in the practice pool. */
+window.GH_SONG_LANG = (function(){
+  /* Every code the app supports: the speech LOCALE map and the
+     langName_* strings in i18n.js both cover exactly these. */
+  var CODES = { de:1, ru:1, en:1, es:1, fr:1, tl:1, ga:1 };
+
+  /* THREE-LETTER SUFFIXES, Steven's convention for the multilingual site
+     (07 Sep). After Tanya's deploy the songs that stay get an explicit
+     suffix — German becomes `-deu` rather than no suffix at all — so both
+     spellings are accepted and neither breaks the other.
+
+       -eng English   -rus Russian    -ita Italian   -fra French
+       -ukr Ukrainian -deu German     -tag Tagalog   -esp Spanish
+
+     These are the ISO 639-2 three-letter codes; the codes this returns
+     are the 639-1 two-letter ones the rest of the app uses (`fr`, `de`,
+     `ru`). `-fre` also resolves to French — it is the older
+     English-language variant of `fra` and both are real.
+
+     `eng:'en'` IS MY ASSUMPTION, not his instruction: he named English as
+     `-en` before the three-letter scheme and has not restated it. Both
+     resolve, so a song named either way works, but confirm which he
+     intends before renaming anything.
+
+     TWO OF STEVEN'S EIGHT ARE NOT WIRED UP YET: Italian (`it`) and
+     Ukrainian (`uk`). Neither is in CODES, so `-ita` and `-ukr` songs
+     resolve to GERMAN today — accepted but inert, and they would show up
+     in German practice. Each needs a row in speech.js's LOCALE map
+     (`it-IT`, `uk-UA`) and `langName_it` / `langName_uk` in all three
+     i18n blocks. Post-deploy work, Steven's decision 07 Sep. Do not
+     add songs in those two languages before that is done.
+
+     The other six — English, Russian, French, German, Tagalog, Spanish —
+     are fully supported and safe to use now. */
+  var ALIAS = { eng:'en', rus:'ru', ita:'it', fra:'fr', ukr:'uk',
+                deu:'de', tag:'tl', esp:'es',
+                /* also accepted, so a filename cannot be wrong. `fre` is
+                   the older English-language variant of `fra` — both are
+                   real ISO 639-2 codes for French. `en`, `ger` and `gle`
+                   are earlier or alternate forms. All resolve
+                   identically, so a file named either way works. */
+                fre:'fr', en:'en', ger:'de', gle:'ga' };
+
+  return function(song){
+    var a = (song && song.audio) || '';
+    var cut = a.lastIndexOf('-');
+    if (cut < 0) return 'de';
+    var tail = a.slice(cut + 1);
+    var code = ALIAS[tail] || tail;
+    return CODES[code] ? code : 'de';
+  };
+})();

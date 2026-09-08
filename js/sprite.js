@@ -153,5 +153,41 @@ GH.sprite = (function(){
     return out;
   }
 
-  return { tile:tile, cell:cell, url:url, missing:missing };
+  /* THE GEOMETRY OF ONE CELL, WITHOUT BUILDING AN ELEMENT.
+
+     `tile()` and `cell()` return a ready-made div. The lightbox needs the
+     same crop applied to an element it already owns and sizes itself, so
+     it needs the numbers rather than the div.
+
+     THIS FUNCTION WAS MISSING. `js/lightbox.js` has always called
+     `GH.sprite.locate(n)` on the first line of its `open()`, and this
+     module never exported it — so `GH.lightbox.open()` threw a TypeError
+     before painting anything, in every caller: the word list
+     (`reference.js`), `readerwords.js`, `songvocab.js` and
+     `vocabgame.js`. Tapping a picture did nothing, silently. Found when
+     Steven reported the word-list pictures not enlarging.
+
+     `openPic(url, caption)`, the other entry point, does not go through
+     here and was never affected — which is why the store and the end
+     screen could enlarge a picture while nothing else could.
+
+     Same arithmetic as `crop()` below, deliberately: a second copy that
+     drifts would put the thumbnail and its enlargement on different
+     cells of the same sheet. Cells are square, matching `.sp`. */
+  function locate(n){
+    var sheet = Math.ceil(n / PER_SHEET);
+    var pos = ((n - 1) % PER_SHEET) + 1;
+    var col = (pos - 1) % COLS;
+    var row = Math.floor((pos - 1) / COLS);
+    return {
+      url:   found[keyOf(sheet)] || url(sheet),
+      sizeX: COLS * 100,
+      sizeY: COLS * 100,
+      x:     col * 50,
+      y:     row * 50,
+      aspect:'1 / 1'
+    };
+  }
+
+  return { tile:tile, cell:cell, url:url, missing:missing, locate:locate };
 })();

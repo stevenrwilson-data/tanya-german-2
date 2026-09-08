@@ -202,9 +202,7 @@ GH.conjGame = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('cgTitle')));
@@ -405,6 +403,10 @@ GH.conjGame = (function(){
 (function(){
   var entry = {
     id:'conjugate',
+    /* GERMAN ONLY. This game is about German morphology and has no
+       English or Russian equivalent, so it is hidden when the course is
+       not German — see the filter in app.js. */
+    onlyDe:true,
     glyph:'🔀',
     name:{ ru:'Какая форма?', de:'Welche Form?', en:'Which form?' },
     sub:{ ru:'Спряжение: подбери форму к лицу',

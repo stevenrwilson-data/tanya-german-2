@@ -60,6 +60,12 @@ GH.nav = (function(){
                 works when the screen happens to have just repainted is
                 not working. */
              ' .rd-line, .rd-choice, .pt-lens, .cm-btn, .cm-de, .cm-swap,' +
+             /* The store's tier switches and its thumbnail row. Both are
+                new buttons on a screen that carries a `js-advance`, so
+                without these a tap to open a tier — or on a pet in the
+                squished row — would also move the screen on. Same reason
+                `.pt-lens` above is here. */
+             ' .gr-group, .pt-thumb,' +
              /* the pet's line in a coach panel: tapping it hears the pet */
              ' .co-pet-de,' +
              ' .sg-line, .sg-par-line, .sg-recur, .co-word, .es-item,' +
@@ -80,6 +86,14 @@ GH.nav = (function(){
                 has its own advance, and a tap that recorded her voice AND
                 moved the conversation on would be unusable. */
              ' .dg-rec, .dg-mic, .dg-cmp,' +
+             /* The shared recording deck's own classes. GH.record.deck()
+                mounts these on any screen that wants recording — the
+                songbook and the comic today — and both sit on screens
+                with a `js-advance`, so without this a tap on the mic or
+                on Computer/Me would also move the screen on. The
+                dg-* entries above are talkview's older copy of the same
+                UI, kept until it migrates. */
+             ' .rec-on, .rec-row, .rec-mic, .rec-cmp,' +
              /* The reader's translate button and its warning. The read
                 view arms nav, so without these one tap would translate
                 the piece AND start the questions it just spent. */

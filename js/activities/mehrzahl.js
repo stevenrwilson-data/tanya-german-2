@@ -329,9 +329,7 @@ GH.mehrzahl = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ GH.speech.stop(); state.onExit(); });
+    var back = GH.back.button(function(){ GH.speech.stop(); state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('mzTitle')));
@@ -476,6 +474,10 @@ GH.mehrzahl = (function(){
 (function(){
   var entry = {
     id:'mehrzahl',
+    /* GERMAN ONLY. This game is about German morphology and has no
+       English or Russian equivalent, so it is hidden when the course is
+       not German — see the filter in app.js. */
+    onlyDe:true,
     glyph:'\ud83d\udc65',
     name:{ ru:'Множественное число', de:'Mehrzahl', en:'Plurals' },
     sub:{ ru:'Пять образцов вместо ста слов',

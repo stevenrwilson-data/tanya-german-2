@@ -514,9 +514,7 @@ GH.comic = (function(){
        the button on purpose, so each activity's own cleanup runs. This
        one was called `js-back`, which nothing looks for, so Escape and
        swipe-left did nothing here and worked everywhere else. */
-    var back = el('button', 'backlink cm-exit', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); }, 'cm-exit');
     host.appendChild(back);
   }
 
@@ -607,7 +605,10 @@ GH.comic = (function(){
   function openComic(c){
     /* WHICH comic. The log had an open and a leave for this screen, so all
        forty-six looked like one activity. */
-    if (GH.events && GH.events.mark) GH.events.mark('read', 'comic:' + c.id);
+    /* `keyOf(c)` for the same reason as `comicNav()`: there is no `id` on
+       a comic, so this logged `comic:undefined` for all forty-six — the
+       exact thing the note below says it was added to stop. */
+    if (GH.events && GH.events.mark) GH.events.mark('read', 'comic:' + keyOf(c));
     state.comic = c;
     /* A new screen, so it starts at the top rather than inheriting the
        index's scroll offset. */
@@ -639,12 +640,16 @@ GH.comic = (function(){
     /* Same class as every other screen's back button, for the same
        reason, and it stops the speech on the way out — which is why
        nav.js clicks the button rather than calling the hub itself. */
-    var back = el('button', 'backlink cm-back', '\u2039 ' + t('back'));
-    back.type = 'button';
     /* stopAll(), not just speech.stop(): a Read-it-all chain keeps going
        on its callback, so cancelling the current utterance would only
        start the next one and follow her out of the comic. */
-    back.addEventListener('click', function(){ stopAll(); paintIndex(); });
+    var back = GH.back.button(function(){
+      stopAll();
+      /* Leaving frees every take: a blob URL outliving its screen is a
+         leak nothing will ever revoke. */
+      if (rec) rec.clear();
+      paintIndex();
+    }, 'cm-back');
     bar.appendChild(back);
     bar.appendChild(el('span', 'cm-bar-t',
       t('cmUnitN', { n:c.unit }) + ' \u00b7 ' + t('cmComicN', { n:c.comic })));
@@ -690,6 +695,15 @@ GH.comic = (function(){
     host.appendChild(frame);
 
     host.appendChild(tools());
+    /* PREV/NEXT IN BOTH PLACES. Steven: "The previous next should be at
+       the top not at the bottom of the text. In fact putting it both
+       places is actually a good idea."
+
+       At the bottom it is where she ends up after reading; at the top it
+       is reachable without scrolling past a whole comic's worth of text,
+       which in the all-text view is a long way. Same function called
+       twice, so the two rows cannot drift apart. */
+    host.appendChild(comicNav());
     host.appendChild(state.view === 'all' ? allBox() : readerBox());
     host.appendChild(comicNav());
     armNav();
@@ -731,7 +745,16 @@ GH.comic = (function(){
     var c = state.comic;
     var list = unitComics(c);
     var at = -1, i;
-    for (i = 0; i < list.length; i++) if (list[i].id === c.id) at = i;
+    /* `keyOf`, NOT `.id`. COMIC ENTRIES IN data/comics.js HAVE NO `id`
+       FIELD, so this was `undefined === undefined` — true for every entry
+       — and the loop always finished with `at` on the LAST comic of the
+       unit. Which is why prev read "Comic 9" from any comic in a
+       ten-comic unit and next was always hidden. Steven: "putting a link
+       to comic nine from comic two is incredibly stupid."
+
+       `keyOf(c)` is `unit + '-' + comic`, the same key read-tracking has
+       always used, which is why ticks and unit counts were unaffected. */
+    for (i = 0; i < list.length; i++) if (keyOf(list[i]) === keyOf(c)) at = i;
 
     var row = el('div', 'cm-cnav');
     if (at < 0) return row;
@@ -767,9 +790,38 @@ GH.comic = (function(){
 
   /* The two controls that belong to the whole comic rather than to one
      line: which view, and which language the narrator reads in. */
+  /* ---------- RECORDING, OFF BY DEFAULT ----------
+
+     Same deck as the songbook, and off by default for the same reason: a
+     comic page is six panels and a dozen lines, and a mic on every one of
+     them unasked is a wall.
+
+     Scoped to `comic`, so switching it on here does not switch it on in
+     the songs. The state machine, the takes and the one-recorder-at-a-time
+     rule all live in GH.record.deck(); this file only says where the
+     button goes and how a line is spoken — which for a comic means
+     `speak()`, so the take is compared against the same voice the
+     narrator is set to. */
+  var rec = null;
+
+  function deck(){
+    if (!rec && GH.record && GH.record.deck) rec = GH.record.deck(repaint);
+    return rec;
+  }
+
   function tools(){
     var c = state.comic;
     var row = el('div', 'card-tools cm-tools');
+
+    /* The recording switch. Only in the all-text view: the one-line view
+       shows a single line at a time and already has room for a mic
+       without a switch, and a toggle that changes what one line looks
+       like is more confusing than the mic itself. */
+    if (state.view === 'all'){
+      var d = deck();
+      var recBtn = d && d.button('comic');
+      if (recBtn) row.appendChild(recBtn);
+    }
 
     var v = el('div', 'mode-toggle');
     [['line', 'cmViewLine'], ['all', 'cmViewAll']].forEach(function(pair){
@@ -863,6 +915,14 @@ GH.comic = (function(){
           deBtn.disabled = !heard;
           deBtn.addEventListener('click', function(){ speak(heard); });
           row.appendChild(deBtn);
+          /* The mic sits after the line, never inside it — `.cm-de` is a
+             <button> and a button inside a button is invalid HTML whose
+             clicks fight each other. Keyed on panel and line so two lines
+             with identical German keep separate takes. */
+          var dk = deck();
+          var mic = dk && heard && dk.row('p' + p.n + 'l' + line.who + de,
+                                          function(){ speak(heard); });
+          if (mic) row.appendChild(mic);
         } else {
           /* No German yet: the English carries the line, and says which
              it is rather than passing itself off as the German. */

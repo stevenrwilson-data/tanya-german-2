@@ -191,9 +191,7 @@ GH.wordMatch = (function(){
 
   function head(onBack, title, sub){
     var bar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', onBack);
+    var back = GH.back.button(onBack);
     bar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, title));
@@ -370,6 +368,9 @@ GH.wordMatch = (function(){
 
   function stopAudio(){
     if (state && state.timer){ window.clearTimeout(state.timer); state.timer = null; }
+    /* The match flash too: a timer left running after she leaves repaints
+       a screen that is no longer there. */
+    clearFlash();
     if (GH.speech) GH.speech.stop();
   }
 
@@ -475,9 +476,7 @@ GH.wordMatch = (function(){
 
     /* A back link, because every screen in the app has one and nav.js
        leaves by clicking it. Kept small and out of the way. */
-    var back = el('button', 'backlink wm-exit', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ finishListening(); });
+    var back = GH.back.button(function(){ finishListening(); }, 'wm-exit');
     host.appendChild(back);
   }
 
@@ -628,6 +627,7 @@ GH.wordMatch = (function(){
         var cls = 'wm-cell';
         if (s.gone) cls += ' is-gone';
         if (picked) cls += ' is-picked';
+        if (s.hit) cls += ' is-hit';
         if (q.wrong && q.wrong.indexOf(s) >= 0) cls += ' is-wrong';
         var b = el('button', cls, text);
         b.type = 'button';
@@ -646,6 +646,9 @@ GH.wordMatch = (function(){
   function pick(side, s){
     var q = state.quiz;
     if (s.gone) return;
+    /* A tap while a flash is running cancels it, so the tile it was about
+       to clear does not vanish mid-thought. */
+    clearFlash();
     q.wrong = null;
     if (side === 'left') q.pickedLeft = s; else q.pickedRight = s;
     if (!q.pickedLeft || !q.pickedRight){ paintQuiz(); return; }
@@ -661,21 +664,57 @@ GH.wordMatch = (function(){
     q.run.saw('wm:' + (a.v.n || a.v.de), right);
 
     if (right){
-      a.gone = true;
+      /* GREEN FOR A SECOND, THEN IT GOES. Steven: "If your match is
+         correct, have them glow green for one second, fade and after
+         [the two] are matched have two new pairs come up."
+
+         `gone` used to be set here, in the same tick as the tap, so the
+         pair started fading before she could see it was right. Now `hit`
+         marks it green and holds; `gone` follows a second later and the
+         existing `.is-gone` opacity transition does the fade. The refill
+         and the end-of-round check move with it, or the board would
+         restock under a tile still glowing. */
+      a.hit = true;
       q.matched++;
       q.pickedLeft = null; q.pickedRight = null;
       if (GH.speech && GH.speech.sayIn) GH.speech.sayIn(sayable(a.v), 'de');
-      fillBoard(false);
       paintQuiz();
-      if (q.matched >= q.total || !q.board.filter(function(x){ return !x.gone; }).length){
-        window.setTimeout(finishQuiz, 500);
-      }
+      clearFlash();
+      q.flash = window.setTimeout(function(){
+        q.flash = null;
+        a.hit = false;
+        a.gone = true;
+        fillBoard(false);
+        paintQuiz();
+        if (q.matched >= q.total || !q.board.filter(function(x){ return !x.gone; }).length){
+          window.setTimeout(finishQuiz, 500);
+        }
+      }, 1000);
       return;
     }
 
+    /* RED FOR TWO SECONDS, AND THE PAIR STAYS PUT. Steven: "If the pair
+       is wrong, have them glow red for 2 seconds and stay there." So the
+       glow clears itself rather than waiting for her next tap — a board
+       left glowing red until she touches something else cannot say
+       whether it means THIS pair was wrong or the next one will be. The
+       tiles themselves do not move. */
     q.wrong = [a, b];
     q.pickedLeft = null; q.pickedRight = null;
     paintQuiz();
+    clearFlash();
+    q.flash = window.setTimeout(function(){
+      q.flash = null;
+      q.wrong = null;
+      paintQuiz();
+    }, 2000);
+  }
+
+  /* One timer for both flashes: a tap during either has to cancel the one
+     in flight, or a stale callback repaints a board that has moved on. */
+  function clearFlash(){
+    var q = state && state.quiz;
+    if (q && q.flash){ window.clearTimeout(q.flash); q.flash = null; }
   }
 
   function finishQuiz(){

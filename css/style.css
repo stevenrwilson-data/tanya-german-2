@@ -459,6 +459,24 @@ html[data-type="loud"] button.ref-group.open{ --fg-soft:var(--on-dark) }
   background:var(--sand); color:var(--ink-on-sand);
 }
 
+/* THE BACK-ARROW ROW. Third axis of the same decision, so it is built
+   exactly like `.typeswitch` rather than inventing a look — see the note
+   in js/back.js. The glyphs run larger than the `Aa` marks because an
+   arrow at .8rem is a hairline, and because the swatch here IS the thing
+   being chosen: she is judging the mark itself, not a label for it. */
+.backswitch{ display:flex; gap:2px; padding:3px; border-radius:999px;
+  background:rgb(var(--shade-rgb) / .18) }
+.backswitch button{
+  border:0; background:transparent; color:var(--fg-soft);
+  font:700 1.05rem/1 var(--ff-ui);
+  padding:7px 10px; border-radius:999px; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.backswitch button[aria-pressed="true"]{
+  background:var(--sand); color:var(--ink-on-sand);
+}
+.backswitch button svg{ width:20px; height:20px; display:block }
+
 
 *{box-sizing:border-box}
 
@@ -1286,14 +1304,35 @@ h2{
   box-shadow:0 3px 14px rgb(var(--scrim-rgb) / .3);
   border:1.5px solid rgb(var(--mauve-rgb) / .55);
   border-radius:999px;
-  padding:8px 15px 8px 12px;
+  /* Symmetric now. The 15px/12px split was for a chevron followed by a
+     word — the extra right padding balanced the text. With a single
+     arrow in there, uneven padding puts the glyph visibly off-centre. */
+  padding:8px 13px;
+
+  /* The glyph is inline SVG now, not a character. An SVG with a
+     viewBox and no width fills its container, so without the rule
+     below the arrow expands to the whole content box. */
   color:var(--ink);
   font-family:var(--ff-ui);
-  font-weight:700;font-size:.86rem;line-height:1;
+  /* Was .86rem, which read as tiny next to everything around it.
+     Steven asked for 3px more; written as the sum rather than resolved to
+     1.05rem so the intent stays visible and it tracks the root size.
+
+     The pill grows with it: the padding is in px, so the height follows
+     the text. And this is EVERY back button in the app — `.backlink` is
+     the same class on all 36 screens — which is deliberate. One control
+     that changed size depending on where she was would be worse than a
+     small one. */
+  font-weight:700;font-size:calc(.86rem + 3px);line-height:1;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   transition:background .12s ease, border-color .12s ease, color .12s ease;
 }
+/* Tied to the font-size above in `em`, so the 3px Steven asked for still
+   applies and the size stays one number in one place. `block` kills the
+   inline baseline gap that would push the arrow off-centre in the pill. */
+.backlink svg{ width:1.1em; height:1.1em; display:block }
+
 .backlink:hover{
   background:var(--flame);
   border-color:var(--flame);
@@ -1357,7 +1396,13 @@ h2{
 
 /* --- theme picker ------------------------------------------- */
 
-.topbar-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+/* `position:relative` because `.purse-pop` is absolute inside this row
+   with `top:calc(100% + 6px)`, and GH.nav.clampPanel writes a `left`
+   measured from this element's own box. Without it the containing block
+   is the viewport: the panel lands a full screen height below the header
+   and off the bottom, so tapping the balance looks like it does nothing.
+   `.pick` next to it declares the same thing for the same reason. */
+.topbar-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;position:relative}
 
 /* The listening counter above a song, and the one-off explanation of what
    tapping every line is worth. The tip is a note, not a dialog: it appears
@@ -1536,14 +1581,16 @@ h2{
    border, the background and the padding, and a bordered box inside a
    bordered box reads as a mistake. */
 .pick-panel .themeswitch,
-.pick-panel .typeswitch{
+.pick-panel .typeswitch,
+.pick-panel .backswitch{
   background:none; border:0; padding:0;
   max-width:none; width:auto;
   justify-content:flex-start;
 }
 /* A hairline between the colours and the faces, so the four `Aa` read as a
    second choice rather than a thirteenth swatch. */
-.pick-panel .typeswitch{
+.pick-panel .typeswitch,
+.pick-panel .backswitch{
   border-top:1px solid rgb(var(--mauve-rgb) / .35);
   padding-top:8px;
 }
@@ -1580,6 +1627,11 @@ h2{
 .pick-panel .typeswitch button{
   padding:13px 12px;         /* 14.4px line + 26 = 40.4px, a real target */
   font-size:.9rem;
+}
+/* Same 40px target as the faces: a 20px glyph plus 20 of padding. */
+.pick-panel .backswitch button{
+  padding:10px 14px;
+  font-size:1.25rem;
 }
 
 /* WHICH WAY IT OPENS IS MEASURED, NOT GUESSED.
@@ -1866,6 +1918,24 @@ h2{
    than scrollable when the last pill is sliced mid-word, and six long
    Russian labels will not fit one phone row at any font size worth
    reading. Two or three short rows beats one clipped one. */
+/* Back to the top. Narrower than the labelled pills — it is a glyph,
+   not a word, and at label width it would read as a section jump. */
+.jump.is-up{
+  padding:11px 13px;
+  font-size:1.05rem;
+  line-height:1;
+}
+
+/* The Table of Contents pill. Same shape as the eight jumps beside it,
+   marked by colour only — it is the one button in the row that leaves the
+   page rather than scrolling it, so it should read as related but not
+   identical. */
+.jump.is-toc{
+  border-color:var(--flame);
+  color:var(--flame);
+  font-weight:700;
+}
+
 .jumpbar{
   position:sticky;top:0;z-index:20;
   display:flex;flex-wrap:wrap;gap:6px;
@@ -1915,6 +1985,37 @@ h2{
 }
 .filter-toggle:hover{border-color:var(--sand-deep)}
 .filter-toggle.has{background:var(--liver);color:var(--on-dark);border-color:var(--liver)}
+
+/* OPEN SAYS SO ON THE BUTTON ITSELF. Steven: "When you click filter by
+   topic that button should glow to make it obvious that you clicked on
+   it, not just pop out the filter filters."
+
+   The only feedback was the caret flipping from ▾ to ▴ — a 0.85rem glyph
+   at 80% opacity, which is not feedback on a phone.
+
+   `[aria-expanded="true"]` rather than a new class: the button already
+   sets that attribute for the state, so nothing in js/app.js needs to
+   change and the visual state cannot drift out of step with the real one.
+
+   A ring rather than a background, so it layers over `.has` (which turns
+   the button liver when topics are selected) instead of fighting it.
+   Declared AFTER `.has` because both selectors weigh the same and order
+   decides. */
+.filter-toggle[aria-expanded="true"]{
+  background:color-mix(in srgb, var(--flame) 16%, var(--paper));
+  border-color:var(--flame);
+  color:var(--ink);
+}
+/* Topics selected AND open. `.has` paints the button liver with light
+   text, so a pale tint would be unreadable here — darken the liver
+   instead, which reads as the same "pressed" idea in the other
+   direction. Two classes plus an attribute, so it outweighs both the
+   rule above and `.has` on its own. */
+.filter-toggle.has[aria-expanded="true"]{
+  background:color-mix(in srgb, #000 18%, var(--liver));
+  border-color:var(--flame);
+  color:var(--on-dark);
+}
 .filter-caret{font-size:0.85rem;opacity:.8}
 .filter-badge{
   background:var(--flame);color:var(--on-flame);
@@ -1977,7 +2078,17 @@ button.ref-group.open .ref-group-note{color:var(--fg-soft)}
 button.ref-group.open .ref-group-count{
   background:rgb(var(--shade-rgb) / .35);color:var(--ink-on-dark);
 }
-.ref-group-caret{font-size:0.94rem;color:var(--fg-soft);margin-right:2px}
+/* One glyph that turns rather than two that swap — the open state is
+   the rotation, so it has to be declared here now. */
+.ref-group-caret{
+  font-size:1rem;color:var(--fg-soft);margin-right:2px;
+  display:inline-block;
+  transition:transform .18s ease;
+}
+button.ref-group.open .ref-group-caret{ transform:rotate(90deg) }
+@media (prefers-reduced-motion: reduce){
+  .ref-group-caret{ transition:none }
+}
 
 /* --- word list: group jump row ------------------------------- */
 
@@ -4404,13 +4515,374 @@ body{
 }
 @media (min-width:430px){ .pt-grid{grid-template-columns:repeat(2, minmax(0,1fr))} }
 @media (min-width:760px){ .pt-grid{grid-template-columns:repeat(3, minmax(0,1fr))} }
+
+/* ---- THE TABLE OF CONTENTS, IN COLLAPSIBLE GROUPS ---------------
+
+   Steven: "Also need a way to collapse a lot of this stuff and expand it
+   so it's not a giant list. You have to scroll down through like the old
+   pet store... collapsible groups would be a great idea, with an obvious
+   expand button and a description for each section."
+
+   The flat version was forty-eight rows under four headings, which put
+   Reference three screens down — a table of contents doing the very
+   thing it exists to prevent. Now the four section buttons and the four
+   group headings fit one screen, and a group opens where it stands. */
+/* THE HEADING AND ITS GUIDE BUTTON, side by side.
+
+   `.toc-head` is a <button> and so is the guide button, and a button
+   inside a button is invalid HTML whose clicks fight each other — the
+   same trap reference.js hit with its thumbnail and its word. So they are
+   siblings in a plain wrapper instead.
+
+   The wrapper carries the heading's own top margin and the heading drops
+   its own, so a group with a guide button sits exactly where a group
+   without one does. */
+.toc-head-row{
+  display:flex; align-items:stretch; gap:8px;
+  margin:14px 0 0;
+}
+.toc-head-row .toc-head{ margin:0; flex:1 1 auto; min-width:0 }
+
+/* A question mark, sized to the 44px tap target the rest of the app uses
+   rather than to the glyph. Same border and paper as the heading it sits
+   beside, so the pair reads as one control with two halves. */
+.toc-head-guide{
+  flex:none; width:44px;
+  display:grid; place-items:center;
+  border-radius:var(--r-md);
+  border:1.5px solid rgb(var(--mauve-rgb) / .4);
+  background:rgb(var(--paper-rgb) / .9);
+  color:var(--ink);
+  font:600 1.1rem/1 var(--ff-ui);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.toc-head-guide:hover{ border-color:var(--sand-deep) }
+
+/* The Table of Contents button every section guide carries, at the foot
+   of the screen. Full width and spaced off the list above it, matching
+   `.gd-open`/`.rg-open` at the other end. */
+.gd-toc{ width:100%; margin:20px 0 0 }
+
+.toc-head{
+  display:flex; align-items:center; gap:10px;
+  width:100%; margin:14px 0 0; padding:12px 14px;
+  text-align:left;
+  border-radius:var(--r-md);
+  border:1.5px solid rgb(var(--mauve-rgb) / .4);
+  background:rgb(var(--paper-rgb) / .9);
+  color:var(--ink);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.toc-head.is-open{ border-color:var(--flame) }
+.toc-head-l{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:3px }
+.toc-head-t{ font:var(--t-card); letter-spacing:var(--t-card-ls) }
+/* The description. This is what makes a CLOSED group useful: without it
+   a collapsed group is just a word. */
+.toc-head-s{
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--ink-soft);
+}
+/* How many are inside — the other half of deciding whether to open it. */
+/* FIXED WIDTH, NOT VARIABLE. The badge sits between the chevron and the
+   title, so any change in its width moves the title — and a badge that
+   sized itself to its content started "Lessons" 4px right of "Reference".
+   Wide enough for three digits, so nothing here is ever variable again
+   however long a group gets.
+
+   `tabular-nums` on top of that, so the digits themselves are equal
+   width and a 1 does not sit in less room than an 8. Manrope carries
+   tabular figures; `.purse-n` already relies on the same thing. The
+   fixed width is what guarantees the alignment, though — the numerals
+   only stop the number looking off-centre inside it. */
+.toc-head-n{
+  flex:0 0 auto;
+  width:40px; padding:3px 0;
+  border-radius:999px;
+  background:rgb(var(--mauve-rgb) / .22);
+  font:700 .8rem/1.3 var(--ff-ui);
+  font-variant-numeric:tabular-nums;
+  text-align:center;
+  color:var(--ink);
+}
+/* Turns rather than swapping character, same as the store's.
+
+   No circle and no background fill. A filled glyph inside a filled
+   circle is the play button, and this control does not play anything —
+   the whole heading is the hit target and this only shows which way the
+   group is folded. A bare chevron that turns is the pattern every
+   settings list and FAQ already uses. */
+.toc-caret{
+  flex:0 0 auto;
+  width:22px; height:22px;
+  display:flex; align-items:center; justify-content:center;
+  font:700 1rem/1 var(--ff-ui);
+  color:var(--ink-soft);
+  transition:transform .18s ease;
+}
+.toc-head.is-open .toc-caret{ transform:rotate(90deg) }
+@media (prefers-reduced-motion: reduce){ .toc-caret{ transition:none } }
+
+/* A row inside an open group, indented so the grouping reads without a
+   second container. */
+.toc-list .toc-row{ margin-left:12px }
+
+/* ==== THE STORE DROPS THE THEME ENTIRELY =========================
+
+   Steven, looking at it on the phone: "Absolutely lose with prejudice
+   all colors and identity of the themes in the store... Look how much
+   fucking wasted space that is lost to theme cruft that can bugger off
+   and die. I want the beautiful background images edge to edge."
+
+   He is right on both counts. `.card` gave the store a `--liver`
+   gradient and clamp(22px,5vw,38px) of padding on every side, so the
+   velvets were postage stamps in a wide olive frame, and the tier
+   headings sat on a translucent theme wash that made their text nearly
+   unreadable.
+
+   TWO LOOKS, NOT TWELVE. Light for the nine light themes, dark for
+   midnight, ember and pine. Every colour in here resolves from these
+   four variables and none of them come from the theme.
+
+   EDGE TO EDGE. The card keeps its vertical padding and loses its
+   horizontal padding, so a tier section spans the full width of the
+   card and the velvet reaches both edges. Anything that is text gets its
+   own side padding back, individually, below. */
+:root{
+  --store-page:#EFEAE1;
+  --store-plate:#FAF7F1;
+  --store-ink:#221F1B;
+  --store-ink-soft:#5C554C;
+}
+html[data-theme="midnight"],
+html[data-theme="ember"],
+html[data-theme="pine"]{
+  --store-page:#141317;
+  --store-plate:#1F1E22;
+  --store-ink:#F4F1EA;
+  --store-ink-soft:#A8A29A;
+}
+
+/* THE PAGE ITSELF, while the store is open. `st-mode` is put on <html>
+   by store.js and taken off on every route out. This is what kills the
+   last of the theme: the gradient behind the card, the ink in the header,
+   and the strip above and below.
+
+   `!important` on the body background because `body` declares a
+   three-layer gradient and a single override would otherwise lose to it
+   on specificity of the shorthand. Used here and nowhere else. */
+html.st-mode body{
+  background:var(--store-page) !important;
+  color:var(--store-ink);
+}
+html.st-mode .st-head h1,
+html.st-mode .st-head p{ color:var(--store-ink) }
+html.st-mode .st-head p{ color:var(--store-ink-soft) }
+html.st-mode .st-head .backlink{
+  background:var(--store-plate);
+  color:var(--store-ink);
+  border-color:rgb(0 0 0 / .14);
+}
+html[data-theme="midnight"].st-mode .st-head .backlink,
+html[data-theme="ember"].st-mode .st-head .backlink,
+html[data-theme="pine"].st-mode .st-head .backlink{
+  border-color:rgb(255 255 255 / .16);
+}
+
+.st-card{
+  background:var(--store-page);
+  color:var(--store-ink);
+  padding:16px 0;
+  box-shadow:none;
+  /* FULL BLEED. `main` puts clamp(16px,4vw,40px) of padding down each
+     side, so even with the card's own padding gone there were 16 to 40px
+     of theme page showing beside every velvet. Pulling the card out by
+     exactly that amount takes it to the screen edges, and the square
+     corners stop it reading as a card sitting on a page. */
+  margin:0 calc(-1 * clamp(16px, 4vw, 40px));
+  border-radius:0;
+}
+/* Text needs its margins back — only the velvet wants the full width. */
+.st-card > h2,
+.st-card > h3,
+.st-card > p,
+.st-card > .gr-note,
+.st-card > .pt-tokens,
+.st-card > button{ margin-left:16px; margin-right:16px }
+.st-card > p, .st-card > .gr-note{ color:var(--store-ink-soft) }
+
+/* THE HEADING IS AN OPAQUE TILE. Steven: "The text of each section has
+   to be on a tile that is either light or dark depending on the theme."
+   It was a translucent tint over the card, which on a mid-green page
+   left the label fighting the background. Solid plate, tier-coloured
+   text, tier-coloured border — nothing translucent anywhere. */
+/* THE BAND TAKES THE TIER COLOUR. Steven: "I do like how Epic sits on a
+   border row, but make that purple for epic, Blue for Rare, Green for
+   common, and amber for Legendary, not this grey color."
+
+   18% of the tier colour mixed over the plate — enough that the band
+   reads as green/blue/purple/amber at a glance, while staying a solid
+   opaque ground for the label rather than a wash over the velvet. The
+   border and the tier name were already tier-coloured; the band makes it
+   three, which is the point: the row should say which tier it is before
+   the word is read. */
+/* THE STRIPE IS THE TIER'S COLOUR; THE PILL IS READABLE.
+
+   Steven: "Make that the color of that tier. The pill behind the text is
+   totally fine. That has to be set so the text is readable. But the rest
+   of that stripe should be the color for their tier."
+
+   So two elements doing two jobs. `.gr-band` is a full-bleed stripe of
+   the tier colour at full strength, butting straight against the velvet
+   above and below it — no store-page background anywhere on the screen.
+   `.gr-pill` is the readable ground the text sits on, and it keeps the
+   plate colour, which is what the tier-coloured text was contrast-checked
+   against when the tier palette was chosen.
+
+   The band wraps the heading AND the run note, so an open tier is one
+   solid stripe rather than a heading and then a second strip. */
+.st-card .gr-band{ background:var(--store-plate) }
+.st-card .gr-band.gr-common   { background:var(--tier-common) }
+.st-card .gr-band.gr-rare     { background:var(--tier-rare) }
+.st-card .gr-band.gr-epic     { background:var(--tier-epic) }
+.st-card .gr-band.gr-legendary{ background:var(--tier-legendary) }
+
+/* The heading is now just a transparent hit area filling the band. */
+.st-card .gr-group{
+  margin:0;
+  width:100%;
+  border:0;
+  border-radius:0;
+  padding:12px 16px;
+  background:transparent;
+}
+.st-card .gr-pill{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:var(--store-plate);
+  color:var(--store-ink);
+}
+/* The note gets the same treatment for the same reason — its text would
+   otherwise sit straight on a saturated stripe. */
+.st-card .gr-note{
+  display:inline-block;
+  margin:0 16px 12px;
+  padding:8px 14px;
+  border-radius:var(--r-md);
+  background:var(--store-plate);
+  color:var(--store-ink);
+}
+/* The tier tint that used to sit on the heading itself is GONE — the
+   colour is the band's job now, and `.st-card .gr-group.gr-<tier>` at
+   three classes outranked `background:transparent` at two, so leaving it
+   would have kept a second tinted layer over the band. */
+.st-card .gr-group .gr-count{ color:var(--store-ink-soft) }
+/* Colour only. The background overrides that used to sit here painted
+   the circle in the store's own palette; the circle is gone, and a
+   background with no border-radius would paint a square instead. */
+.st-card .gr-caret{ color:var(--store-ink-soft) }
+
+/* The velvet, full width and square-edged at the sides so it truly
+   reaches the card's edges. */
+/* A collapsed tier is one big tap target — see the note in store.js.
+   `is-tap` is only on the collapsed one, so the cursor tells the truth:
+   the open section is not clickable as a whole. */
+.st-card .gr-sect.is-tap{ cursor:pointer }
+
+/* No margins: the velvet meets the coloured band directly. Its own
+   margins were the other half of the pale stripe. */
+.st-card .gr-sect{
+  margin:0;
+  border-radius:0;
+  background:var(--store-page);
+}
+.st-card .gr-sect.has-bg{ padding:12px }
+
+/* NO PLATE. Steven: "I would lose that grey background and have the pet
+   cards just sit on the colorful background.. that grey background
+   obscures much of the nice background image and doesn't add value."
+
+   The plate existed so nothing readable sat over a photograph. That
+   reason does not apply here — every pet card is itself opaque
+   (`--card-paper`), so all the text is already on a solid ground and the
+   plate was covering the velvet for nothing. Padding stays, so the cards
+   do not touch the card's edges. */
+.st-card .gr-plate{
+  background:transparent;
+}
+
+/* The pet card uses the same two-look palette, so `--card-*` simply
+   follows `--store-*` rather than being a second set to keep in step. */
+.st-card{
+  --card-paper:var(--store-plate);
+  --card-ink:var(--store-ink);
+  --card-ink-soft:var(--store-ink-soft);
+  /* The edge too, or the four tier borders would color-mix against a
+     theme colour and the cards would still be following the page. */
+  --card-edge:rgb(0 0 0 / .14);
+}
+html[data-theme="midnight"] .st-card,
+html[data-theme="ember"] .st-card,
+html[data-theme="pine"] .st-card{ --card-edge:rgb(255 255 255 / .16) }
+
+/* ---- THE STORE HAS ITS OWN IDENTITY ------------------------------
+
+   Steven: "The store, the background for the pets which has an image,
+   and the pet cards are allowed to have their own visual identity. It
+   doesn't have to borrow from the theme of the entire site... the store
+   is a special place where you buy pets. You don't spend all day there
+   so it should have its own visual identity, unique to itself."
+
+   So a pet card has TWO looks, not twelve. `--card-paper` and
+   `--card-ink` are declared here and NOT taken from the theme, and the
+   three dark themes swap them. Every colour on the card resolves from
+   those two.
+
+   WHY THIS IS THE RIGHT CALL AND NOT JUST A SHORTCUT. The card now sits
+   on a velvet photograph rather than on the page, so the theme's paper is
+   no longer the surface it has to sit against. And the rarity colours
+   have to be readable on the card — with twelve papers that was a
+   twelve-way compromise which put legendary amber at 4.33, under the 4.5
+   a small label needs. Against two known backgrounds the colours can be
+   chosen properly instead.
+
+   The card is the ONLY thing that opts out. The hub, the reader, the
+   games and everything else still follow the theme exactly. */
+:root{
+  --card-paper:#FAF7F1;
+  --card-ink:#221F1B;
+  --card-ink-soft:#5C554C;
+  --card-edge:#E2DACE;
+}
+html[data-theme="midnight"],
+html[data-theme="ember"],
+html[data-theme="pine"]{
+  --card-paper:#1F1E22;
+  --card-ink:#F4F1EA;
+  --card-ink-soft:#A8A29A;
+  --card-edge:#3A3740;
+}
+
 .pt-card{
   display:flex;flex-direction:column;gap:9px;align-items:center;
   padding:16px 14px;border-radius:var(--r-md);
-  background:var(--sand-wash);
-  border:2px solid rgb(var(--sand-rgb) / .35);
+  background:var(--card-paper);
+  border:2px solid var(--card-edge);
+  color:var(--card-ink);
   text-align:center;
 }
+/* Every line on the card, in the card's own ink rather than the theme's.
+   Listed together so nothing on a card can quietly go back to following
+   the page. */
+.pt-card .pt-name,
+.pt-card .pt-word,
+.pt-card .pt-tr{ color:var(--card-ink) }
+.pt-card .pt-full,
+.pt-card .pt-about,
+.pt-card .pt-locked-cost,
+.pt-card .pt-form{ color:var(--card-ink-soft) }
 .pt-card.is-own{border-color:rgb(var(--yes-rgb) / .55)}
 .pt-card.is-picked{
   border-color:var(--flame);
@@ -4425,30 +4897,298 @@ body{
    readable while rare, epic and legendary went dark under text that is
    still --ink. Layering the tint over --sand-wash in the same
    declaration is what the original intent actually requires. */
-.pt-common{background:var(--sand-wash)}
+/* Each tier tints its card, and the tint is the tier's own colour rather
+   than the theme's mauve and flame.
+
+   THESE COME AFTER `.pt-card` AND ARE EQUALLY SPECIFIC, so they win the
+   background outright — which is why they had to move onto the card's
+   palette too. Left alone they would have kept painting `--sand-wash`
+   over `--card-paper` and the card would have gone on following the
+   theme no matter what `.pt-card` said.
+
+   `color-mix` over the card's own paper, so one rule works for both the
+   light and the dark card: the tint is a percentage of the tier colour
+   laid over whatever `--card-paper` currently is. A browser without
+   color-mix falls back to the flat paper, which is the previous look
+   rather than a broken one. */
+.pt-common{ background:var(--card-paper) }
 .pt-rare{
-  background:
-    linear-gradient(rgb(var(--mauve-rgb) / .18), rgb(var(--mauve-rgb) / .18)),
-    var(--sand-wash);
+  background:color-mix(in srgb, var(--tier-rare) 8%, var(--card-paper));
 }
 .pt-epic{
-  background:
-    linear-gradient(rgb(var(--flame-rgb) / .13), rgb(var(--flame-rgb) / .13)),
-    var(--sand-wash);
+  background:color-mix(in srgb, var(--tier-epic) 10%, var(--card-paper));
 }
 .pt-legendary{
-  background:
-    linear-gradient(150deg, rgb(var(--flame-rgb) / .2), rgb(var(--mauve-rgb) / .22)),
-    var(--sand-wash);
-  border-color:rgb(var(--flame-rgb) / .5);
+  background:color-mix(in srgb, var(--tier-legendary) 12%, var(--card-paper));
+  border-color:color-mix(in srgb, var(--tier-legendary) 45%, var(--card-edge));
 }
+/* The other three take a matching edge, so the four tiers differ by more
+   than a word and a wash. */
+.pt-rare{ border-color:color-mix(in srgb, var(--tier-rare) 35%, var(--card-edge)) }
+.pt-epic{ border-color:color-mix(in srgb, var(--tier-epic) 35%, var(--card-edge)) }
+.pt-common{ border-color:color-mix(in srgb, var(--tier-common) 25%, var(--card-edge)) }
 .pt-card .sp{width:70px;border-radius:var(--r-sm)}
 .pt-blank{
   font-size:2rem;line-height:1;color:var(--fg-soft);opacity:.55;
 }
 .pt-body{display:flex;flex-direction:column;gap:1px}
-.pt-name{font-family:var(--ff-display);font-size:1.45rem;line-height:1.15;color:var(--fg)}
+.pt-name{font-family:var(--ff-display);font-size:1.45rem;line-height:1.15;color:var(--card-ink)}
 .pt-tr{font:500 1.05rem/1.3 var(--ff-ui);color:var(--fg)}
+
+/* ---- THE STORE'S TIERS, COLLAPSED --------------------------------
+
+   Sixteen full cards was a very long page, and its shape hid what she
+   was shopping for: a legendary pet could not be seen without scrolling
+   past eleven others. So each tier is a switch with a row of thumbnails
+   under it, and tapping one opens that tier at full size. One open at a
+   time — see the note in js/activities/store.js.
+
+   The heading is a real button, so it needs its own reset: a <button>
+   inherits none of the h2 styling it replaced. */
+.gr-group{
+  display:flex; align-items:center; gap:10px;
+  width:100%;
+  margin:18px 0 0;
+  padding:10px 12px;
+  text-align:left;
+  border-radius:var(--r-md);
+  border:1.5px solid rgb(var(--mauve-rgb) / .35);
+  background:rgb(var(--sand-rgb) / .35);
+  color:var(--ink);
+  font:var(--t-card); letter-spacing:var(--t-card-ls);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+/* Open. The tier's own border stays; the fill is the accent, so "this
+   one is expanded" reads the same way on all four and does not compete
+   with the tier colour for meaning. */
+.gr-group.is-open{
+  background:rgb(var(--flame-rgb) / .12);
+}
+.gr-group-t{ flex:1 1 auto; min-width:0 }
+/* Not `.gr-count` from the old heading — it sat inside an h2 and took
+   its colour from the page. Inside a button it needs its own. */
+.gr-group .gr-count{
+  flex:0 0 auto;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--ink-soft);
+}
+/* One triangle that turns. Pointing right when closed, down when open —
+   the rotation IS the state, so there is no second character to keep in
+   step with the panel. */
+/* Bare chevron, no circle — same reason as `.toc-caret`. These tier
+   headings really are pressable, unlike the TOC's, so the circle was
+   less of a lie here, but a filled triangle in a filled circle still
+   says "play this" rather than "unfold this". */
+.gr-caret{
+  flex:0 0 auto;
+  width:22px; height:22px;
+  display:flex; align-items:center; justify-content:center;
+  font:700 1rem/1 var(--ff-ui);
+  color:var(--ink-soft);
+  transition:transform .18s ease;
+}
+.gr-group.is-open .gr-caret{ transform:rotate(90deg) }
+@media (prefers-reduced-motion: reduce){
+  .gr-caret{ transition:none }
+}
+
+
+/* ---- EACH TIER ITS OWN SECTION ------------------------------------
+
+   Steven's velvets, one per tier, behind the cards. His framing: "The
+   point isn't to stare at the background, the point is to have some sort
+   of visual identity for the section."
+
+   THE CARDS STAY OPAQUE. The texture shows in the gaps between them and
+   in the padding around them, so no text ever sits on gold embroidery —
+   the rule about opaque text boxes holds with no exception carved for
+   this.
+
+   `cover` and a fixed position, so one wide velvet fills a section of any
+   height without tiling into a visible seam. A section with no `bg` gets
+   `.gr-sect` alone and reads as a plain block. */
+/* ONE ROUNDED RECTANGLE, EITHER WAY.
+
+   Collapsed it holds the pets in miniature; open it holds them full size.
+   Same panel, same background, same corners, so opening a tier reads as
+   the panel growing rather than one thing swapped for another.
+
+   NOTHING IS WRITTEN ON IT. Steven: "The background colors for each tier
+   don't need to have any text visible on top of it. It's simply a
+   background color." The run note moved out to the page above, so the
+   panel carries pictures and nothing else — and there is no plate to
+   design, no contrast to check, no rule to bend.
+
+   `padding` is what makes the background visible at all: the cards are
+   opaque, so the texture shows in the 12px margin around them and the
+   6px gaps between them, and nowhere else. */
+/* TWO LAYERS.
+
+   Steven: "The collapsed strip is just a rounded rectangle with all the
+   pets sitting on it. The background is behind the rounded rectangle
+   containing all of the pets. The rounded rectangle doesn't fill the
+   entire page/screen. There's a little bit of the background visible
+   behind it."
+
+   So `.gr-sect` is the velvet and nothing else — no padding tricks, no
+   text, no corners doing double duty. `.gr-plate` is the rounded
+   rectangle that holds the pets, inset far enough that the velvet shows
+   as a margin around it.
+
+   THE VELVET STAYS PUT WHILE THE SECTION SCROLLS. His words: "as you
+   scroll, the background stays in place until you get to the next section
+   in which case the new background is visible behind all the stuff."
+   `background-attachment:fixed` does exactly that — the picture is
+   painted relative to the viewport, so it holds still under a scrolling
+   section and the next tier's own background takes over as it arrives.
+
+   IOS IS THE RISK, AND IT IS A REAL ONE. Safari on iOS has never
+   supported fixed attachment properly — it paints the image at document
+   size and often stutters or ignores it. So `scroll` is the declared
+   value and `fixed` follows it: a browser that handles fixed uses it, and
+   iOS falls back to a background that simply moves with the section,
+   which looks ordinary rather than broken. Worth checking on her phone
+   before deciding whether the effect is worth keeping at all. */
+.gr-sect{
+  margin:0 0 10px;
+  border-radius:var(--r-md);
+  background:var(--card-edge);
+}
+.gr-sect.has-bg{
+  padding:14px;
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:scroll;
+  background-attachment:fixed;
+}
+.gr-sect:not(.has-bg){ padding:14px }
+
+/* The rounded rectangle the pets sit on. Slightly translucent so the
+   velvet reads THROUGH it as a tint rather than being hidden — the
+   pictures are already opaque, so nothing here affects text. */
+.gr-plate{
+  border-radius:var(--r-md);
+  padding:10px;
+  background:rgb(var(--paper-rgb) / .82);
+}
+
+/* NOT a second `.gr-note` rule — one already exists further up and styles
+   every note on the grammar screens too. Only the margin differs here,
+   because this one sits between a heading and a panel rather than under a
+   page title. A whole duplicate rule would have been two places to
+   change the note's colour. */
+.gr-sect + .gr-note, .gr-group + .gr-note{ margin:8px 2px 6px }
+
+/* ---- THE FOUR TIER COLOURS ----
+
+   Steven: common green, rare blue, epic purple, legendary amber — "but
+   make sure it's still readable."
+
+   READABLE IS THE WHOLE PROBLEM, and it needs two sets. Nine themes have
+   near-white paper (#E8FFF4 through #FFF5E8) and three are dark
+   (midnight #161C2A, ember #241A14, pine #142117). A mid-green that
+   reads well on cream is nearly invisible on midnight, and a green pale
+   enough for midnight washes out on cream.
+
+   So: variables, with the light-paper values here and lightened
+   overrides for the three dark themes below. That is exactly the pattern
+   Word Lab already uses for its coloured tiles — same problem, same
+   shape, one convention rather than two.
+
+   Variables and not four hardcoded rules per element, because the colour
+   now appears in two places — the section heading and the rarity word on
+   every card — and two copies of a colour drift. */
+/* Chosen against the CARD's two backgrounds — #FAF7F1 and #1F1E22 — not
+   against twelve theme papers. That is what lets legendary be a true
+   amber: the earlier twelve-way value had to be darkened to #A34608 to
+   clear 4.5 on the palest paper, and against one known off-white it does
+   not. */
+:root{
+  --tier-common:#1F7A47;
+  --tier-rare:#1D5BB8;
+  --tier-epic:#7B31B5;
+  --tier-legendary:#B4530A;
+}
+html[data-theme="midnight"],
+html[data-theme="ember"],
+html[data-theme="pine"]{
+  --tier-common:#63D695;
+  --tier-rare:#7FB8FF;
+  --tier-epic:#C79BF0;
+  --tier-legendary:#F0AF62;
+}
+
+.gr-group.gr-common    { border-color:var(--tier-common) }
+.gr-group.gr-rare      { border-color:var(--tier-rare) }
+.gr-group.gr-epic      { border-color:var(--tier-epic) }
+.gr-group.gr-legendary { border-color:var(--tier-legendary) }
+
+/* The heading's own name takes the tier colour too, so the section says
+   which tier it is before the word is read. */
+.gr-common .gr-group-t    { color:var(--tier-common) }
+.gr-rare .gr-group-t      { color:var(--tier-rare) }
+.gr-epic .gr-group-t      { color:var(--tier-epic) }
+.gr-legendary .gr-group-t { color:var(--tier-legendary) }
+
+/* ---- THE RARITY WORD ON EACH CARD ----
+
+   `.pt-card` already carries `pt-<tier>`, so the chip needs no new class.
+   Bolder than the surrounding text as well as coloured: colour alone is
+   not a distinction for anyone who cannot see it, and this is the one
+   piece of the card that sorts the sixteen pets. */
+.pt-common .pt-tier    { color:var(--tier-common);    font-weight:700 }
+.pt-rare .pt-tier      { color:var(--tier-rare);      font-weight:700 }
+.pt-epic .pt-tier      { color:var(--tier-epic);      font-weight:700 }
+.pt-legendary .pt-tier { color:var(--tier-legendary); font-weight:700 }
+
+/* The squished row. `auto-fill` rather than a fixed count: five common
+   pets and three epic ones should not be forced into the same columns,
+   and a tier gaining a pet must not need a rule change here. */
+.pt-strip-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(56px, 1fr));
+  gap:6px;
+  margin:8px 0 0;
+}
+.pt-thumb{
+  padding:4px;
+  border-radius:var(--r-sm);
+  border:1.5px solid rgb(var(--mauve-rgb) / .3);
+  background:var(--paper);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.pt-thumb .sp, .pt-thumb img{
+  width:100%; height:auto; display:block; border-radius:var(--r-sm);
+}
+/* Owned reads as collected, so the row is a collection and not a menu. */
+.pt-thumb.is-own{
+  border-color:var(--yes);
+  background:rgb(var(--flame-rgb) / .06);
+}
+/* No art yet: the initial, so a missing picture is a placeholder rather
+   than an empty box of unknown purpose. */
+.pt-thumb-t{
+  display:flex; align-items:center; justify-content:center;
+  aspect-ratio:1/1;
+  font:700 1.1rem/1 var(--ff-display);
+  color:var(--ink-soft);
+}
+
+/* WHO THE PET IS — two or three sentences between the rarity chip and
+   the price. Body text, not a heading: it is there to be read, and a
+   card that shouts its personality line competes with its own name.
+   `pt-about` is absent on a pet with no `about` written yet, so nothing
+   here needs an empty state. */
+.pt-about{
+  margin:8px 0 0;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  line-height:1.45;
+  color:var(--ink-soft);
+}
+
 .pt-tier{
   font:700 .92rem/1.15 var(--ff-ui);text-transform:uppercase;letter-spacing:.07em;
   color:var(--fg);
@@ -4568,6 +5308,20 @@ body{
   color:var(--fg-soft);
   padding:5px 0 2px;
 }
+/* The way out of a locked card that wants achievements — a link, not a
+   buy button, so it must not look like one. */
+.pt-gate-link{
+  display:block; width:100%;
+  margin-top:6px; padding:8px 10px;
+  border:0; border-radius:999px;
+  background:transparent;
+  color:var(--store-ink-soft);
+  font:600 .9rem/1.3 var(--ff-ui);
+  text-decoration:underline;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+
 .pt-need.is-open{
   color:var(--fg-soft); font-weight:700;
   text-align:center; padding-top:4px;
@@ -6411,11 +7165,71 @@ body{
   border:1.5px solid var(--sand-deep); border-radius:var(--r-md);
   background:var(--paper); color:var(--fg);
   font-size:1rem; font-weight:600; line-height:1.25; text-align:center;
-  cursor:pointer; transition:opacity .35s ease, border-color .12s ease;
+  cursor:pointer;
+  /* `box-shadow` joined the list so the glow fades in with the border
+     instead of snapping on. Same .12s, so the two move together. */
+  transition:opacity .35s ease, border-color .12s ease, box-shadow .12s ease;
 }
 .wm-cell:hover:not(:disabled){ border-color:var(--ink-on-light) }
-.wm-cell.is-picked{ border-color:var(--flame); background:linear-gradient(rgb(var(--flame-rgb) / .14), rgb(var(--flame-rgb) / .14)), var(--paper) }
-.wm-cell.is-wrong{ border-color:var(--no); color:var(--fg-soft) }
+/* A GLOW, NOT A FILL. This was flame at 14% over paper, which measures a
+   contrast ratio of 1.18 against an unpicked tile — 1.0 being identical.
+   Steven: "I have selected food is ready which you could see very
+   clearly Given it's .00001% different color than the other buttons."
+
+   A solid flame fill was tried first and works, but Steven's call was
+   better: "put a very, very obvious glow effect when you click a button
+   that way it wouldn't interfere with legibility."
+
+   The tile keeps its paper background and its ink, so the word reads
+   exactly as it did — the change is entirely OUTSIDE the text. It also
+   removes a real problem the fill created: a wrong pair keeps
+   `is-picked` and adds `is-wrong`, and `is-wrong` only changes the border
+   and the text colour, so against a flame fill the word went pale grey on
+   orange. With a glow there is nothing to resolve.
+
+   Two shadows: a hard 4px ring for the edge and a soft 20px bloom for the
+   glow. `.wm-board` is a plain grid with no `overflow`, so neither is
+   clipped, and the 10px gap means the bloom bleeds slightly into the
+   space around the tile rather than onto its neighbours. */
+/* PINK, so it cannot be confused with either answer state. Steven asked
+   for yellow or pink; pink wins on the cream paper every theme uses for a
+   tile, where a yellow glow washes out. Fixed rather than themed, for the
+   same reason the store's tier colours are: this is a signal, and a
+   signal that changes hue with the palette is not one.
+
+   Same two shadows as before — a hard 4px ring for the edge, a soft 20px
+   bloom for the glow — and the tile keeps its paper background and its
+   ink, so the word reads exactly as it did. */
+.wm-cell.is-picked{
+  border-color:#FF4098;
+  box-shadow:0 0 0 4px rgb(255 64 152 / .60),
+             0 0 20px 6px rgb(255 64 152 / .50);
+}
+
+/* RIGHT: green for one second, then `.is-gone` fades it. wordmatch.js
+   holds `hit` for 1000ms before setting `gone`, so this is what she sees
+   when a pair lands. */
+.wm-cell.is-hit{
+  border-color:var(--yes);
+  box-shadow:0 0 0 4px rgb(var(--yes-rgb) / .70),
+             0 0 22px 7px rgb(var(--yes-rgb) / .55);
+}
+/* WRONG: red for two seconds, and the pair stays where it is.
+   wordmatch.js clears `wrong` after 2000ms. No `color` change any more —
+   dimming the text made a wrong pair harder to read at the exact moment
+   she is trying to work out what went wrong. */
+.wm-cell.is-wrong{
+  border-color:var(--no);
+  box-shadow:0 0 0 4px rgb(var(--no-rgb) / .70),
+             0 0 22px 7px rgb(var(--no-rgb) / .55);
+}
+/* A cell can be both — a wrong pair keeps `is-picked` — and two glows on
+   one tile is no signal at all. Wrong wins. */
+.wm-cell.is-picked.is-wrong{
+  border-color:var(--no);
+  box-shadow:0 0 0 4px rgb(var(--no-rgb) / .70),
+             0 0 22px 7px rgb(var(--no-rgb) / .55);
+}
 /* A matched pair fades but keeps its slot, so the board does not jump
    under her hand. The JS refills only once two or more are free. */
 .wm-cell.is-gone{ opacity:0; pointer-events:none }
@@ -7577,7 +8391,10 @@ body{
    because reading about a game and starting it should not be two
    screens.
    ============================================================== */
-.gd-open{ width:100%; margin:0 0 12px }
+/* The two section guides share one rule: `gd-open` under Games,
+   `rg-open` under Reference. Same job, same place in the layout, so they
+   must not drift apart visually. */
+.gd-open, .rg-open{ width:100%; margin:0 0 12px }
 .gd-sec{
   margin:20px 0 0;
   font:var(--t-section); letter-spacing:var(--t-section-ls);
@@ -7871,6 +8688,7 @@ body{
 .cm-btn[aria-pressed="true"],
 .mode-toggle button[aria-pressed="true"],
 .typeswitch button[aria-pressed="true"],
+.backswitch button[aria-pressed="true"],
 /* `.sp-noart` is the tile sprite.js builds for a word with NO drawing —
    the German set large on a pale dashed box — and `.sp-word` paints it
    with --fg. NAMED WRONG UNTIL NOW: this note said `.sprite-word` and
@@ -8414,6 +9232,175 @@ body{
 .purse:active{ transform:translateY(1px) }
 .purse-mark{ color:var(--sand-deep) }
 .purse-n{ font-variant-numeric:tabular-nums }
+
+
+
+/* ---- RECORDING, ANYWHERE ------------------------------------------
+
+   One switch at the top of a screen, then a mic beside every line while
+   it is on. Built by GH.record.deck(), so the songbook, the comic and
+   anything added later share these classes rather than each inventing
+   their own — see the long note in js/record.js.
+
+   OFF BY DEFAULT is the whole design: a song is thirty lines and a comic
+   page a dozen, and mics on all of them unasked is a wall. */
+.rec-on{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1.5px solid rgb(var(--mauve-rgb) / .45);
+  background:transparent;
+  color:var(--fg-soft);
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.rec-on.is-on{
+  border-color:var(--flame);
+  color:var(--flame);
+  background:rgb(var(--flame-rgb) / .1);
+}
+.rec-on-ico{ font-size:.95rem; line-height:1 }
+
+/* The per-line row: mic, then Computer and Me once there is a take. */
+.rec-row{
+  display:inline-flex; align-items:center; gap:6px;
+  flex:0 0 auto;
+}
+.rec-mic{
+  width:32px; height:32px; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  border:1.5px solid rgb(var(--mauve-rgb) / .45);
+  background:var(--paper);
+  font-size:.9rem; line-height:1;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+/* Live. Colour AND a ring, because colour alone is not a state on a
+   screen she may be looking at from an angle in bad light. */
+.rec-mic.is-rec{
+  border-color:var(--no);
+  box-shadow:0 0 0 3px rgb(var(--flame-rgb) / .18);
+}
+.rec-cmp{
+  padding:4px 10px;
+  border-radius:999px;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  background:rgb(var(--sand-rgb) / .55);
+  color:var(--ink);
+  border:none;
+  cursor:pointer;
+}
+
+/* A song line and its mic share a row: the line is a <button>, so the
+   mic cannot live inside it. `min-width:0` lets the line shrink instead
+   of pushing the mic off the screen. */
+.sg-line-wrap{
+  display:flex; align-items:flex-start; gap:8px;
+}
+.sg-line-wrap .sg-line{ flex:1 1 auto; min-width:0 }
+.sg-line-wrap .rec-row{ padding-top:4px }
+
+/* The comic's all-text view stacks speaker, line and mic. */
+.cm-all-line .rec-row{ margin-top:6px }
+
+/* ---- THE FIVE RUNGS ------------------------------------------------
+
+   Steven's fill-blank ladder: Choose, Copy, Options, Peek, Type. Five
+   buttons where there were two, so the toggle carries ICONS and only the
+   active rung shows its name underneath. Five words on one phone row was
+   never going to work — "Посмотреть, затем ввести" alone is wider than a
+   fifth of a 380px screen.
+
+   `currentColor` is the whole mechanism. The icon markup declares no
+   paint at all, so the SVG takes the button's colour: accent when
+   active, soft ink otherwise, and every theme works with no extra art.
+   This is also why the icons are inline and not <img> — an <img> cannot
+   inherit currentColor. */
+.mode-toggle.is-five{
+  display:grid;
+  grid-template-columns:repeat(5, minmax(0,1fr));
+  gap:4px;
+}
+.fb-rung{
+  display:flex; align-items:center; justify-content:center;
+  padding:7px 0;
+  border-radius:var(--r-sm);
+  border:1.5px solid rgb(var(--mauve-rgb) / .35);
+  background:transparent;
+  color:var(--fg-soft);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.fb-rung.is-on{
+  border-color:var(--flame);
+  color:var(--flame);
+  background:rgb(var(--flame-rgb) / .1);
+}
+.fb-ico{ display:block; line-height:0 }
+.fb-ico svg{ width:22px; height:22px; display:block }
+
+/* The active rung's name, and the ? that opens the legend. */
+.fb-mode-why{
+  display:flex; align-items:center; justify-content:center;
+  gap:8px; margin:8px 0 2px;
+}
+.fb-mode-name{
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  text-transform:uppercase; color:var(--fg);
+}
+.fb-mode-q{
+  width:19px; height:19px; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  border:1.5px solid rgb(var(--mauve-rgb) / .5);
+  background:transparent; color:var(--fg-soft);
+  font:700 .72rem/1 var(--ff-ui);
+  cursor:pointer;
+}
+.fb-mode-help{
+  margin:0 0 10px; text-align:center;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg-soft);
+}
+
+/* COPY and PEEK show the answer. Big, because she is reading it to
+   reproduce it, and centred so it sits over the input below. */
+.fb-show{
+  margin:4px 0 10px; text-align:center;
+  font:600 1.5rem/1.2 var(--ff-display);
+  color:var(--fg);
+}
+.fb-ready{ display:block; margin:0 auto 12px }
+
+/* OPTIONS keeps the four words on screen as plain chips — readable, not
+   tappable. A tappable one here would just be Choose again. */
+.fb-ref{
+  display:flex; flex-wrap:wrap; justify-content:center;
+  gap:6px; margin:0 0 12px;
+}
+.fb-ref-w{
+  padding:4px 10px;
+  border-radius:var(--r-sm);
+  background:rgb(var(--sand-rgb) / .5);
+  color:var(--ink-soft);
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+}
+
+/* ---- THE LEGEND, in howto.js's panel ---- */
+.howto-legend{ display:flex; flex-direction:column; gap:14px; margin:4px 0 16px }
+.howto-leg-row{ display:flex; align-items:flex-start; gap:12px }
+.howto-leg-ico{ flex:0 0 auto; color:var(--fg-accent); line-height:0 }
+.howto-leg-ico svg{ width:24px; height:24px; display:block }
+.howto-leg-txt{ display:flex; flex-direction:column; gap:2px; min-width:0 }
+.howto-leg-name{
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  text-transform:uppercase; color:var(--fg);
+}
+.howto-leg-desc{
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls); color:var(--fg-soft);
+}
 
 /* ---- THE PURSE PANEL ------------------------------------------------
 

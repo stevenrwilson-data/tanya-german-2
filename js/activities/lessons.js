@@ -230,9 +230,7 @@ GH.lessons = (function(){
 
   function head(){
     var h = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ GH.speech.stop(); state.onExit(); });
+    var back = GH.back.button(function(){ GH.speech.stop(); state.onExit(); });
     h.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, say(state.lesson.name)));
@@ -527,9 +525,7 @@ GH.lessons = (function(){
     var l = state.lesson;
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, say(l.name)));
@@ -587,9 +583,7 @@ GH.lessons = (function(){
   function paintList(){
     host.textContent = '';
     var h = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     h.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('lsTitle')));

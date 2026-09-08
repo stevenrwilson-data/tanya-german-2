@@ -390,9 +390,7 @@ GH.wordlab = (function(){
 
   function head(title, sub, onBack){
     var bar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ stopSpeech(); onBack(); });
+    var back = GH.back.button(function(){ stopSpeech(); onBack(); });
     bar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, title));

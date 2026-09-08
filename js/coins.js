@@ -58,6 +58,10 @@ GH.coins = (function(){
      Above five exercises she still earns ten each, so a long session is
      not wasted; it simply cannot substitute for tomorrow. */
   var PER_EXERCISE = 10;
+  /* The whole day's crystals when she is "learning" a language she already
+     speaks. Deliberately below PER_EXERCISE * DAILY_TARGET, so the five is
+     unreachable and every gate downstream of it stays shut. */
+  var SAME_LANG_CAP = 20;
   var DAILY_TARGET = 5;
   var DAILY_BONUS  = 100;
 
@@ -164,6 +168,10 @@ GH.coins = (function(){
     p.part = 0;
     p.gotBonus = false;
     p.dayCoins = 0;
+    /* The same-language allowance is per day, like everything else here.
+       Without this reset the twenty would be a lifetime ceiling, and a
+       returning player would find it already spent. */
+    p.samePaid = 0;
   }
 
   /* Every push went through its own copy of the trim, which is how four
@@ -301,9 +309,84 @@ GH.coins = (function(){
     /* roll the day over before counting into it */
     rollDay(p);
 
+    /* ---------- SAME LANGUAGE: CRYSTALS ONLY, CAPPED AT TWENTY ----------
+
+       Steven, 08 Sep. Once English and Russian became target languages,
+       she can learn a language she already speaks — which is an amusement
+       rather than a course, since most prompts show the answer.
+
+       Rather than decide which activities are trivial and switch them off,
+       this pays and stops. Everything stays playable; only the number
+       stops going up:
+
+           twenty crystals a day, and nothing else
+           no daily count, so the five is never reached
+           no full day, so no streak, so no pet ever unlocks
+           no daily bonus
+           no achievements  (blocked in awards.js, not here)
+           no daily quests
+
+       WHY THE CAP CLOSES EVERYTHING. Twenty is below the five-exercise
+       threshold, so `p.done` never has to be defended — but it is left
+       alone anyway, because a day that counted four same-language rounds
+       and one real one would be a cheap full day. Both belts.
+
+       The ledger still records it, so Crystals shows where it came from. */
+    var sameLang = GH.player && GH.player.target && GH.i18n && GH.i18n.lang
+                 && GH.player.target() === GH.i18n.lang();
+
     /* one unit is one exercise: ten crystals and one of the five */
     var units = opts.units || unitsFor(r);
     if (units < 1) units = 1;
+
+    if (sameLang){
+      var already = p.samePaid || 0;
+      var room = SAME_LANG_CAP - already;
+      var pay = PER_EXERCISE * units;
+      if (pay > room) pay = room;
+      if (pay < 0) pay = 0;
+
+      if (pay > 0){
+        p.samePaid = already + pay;
+        p.n += pay;
+        p.lifetime += pay;
+        p.dayCoins = (p.dayCoins || 0) + pay;
+        note(p, { t:Date.now(), game:game, n:pay });
+        lines.push({ key:'coExercise', n:pay, units:units });
+      }
+      /* TWO NOTICES, not one.
+
+         The first is shown ONCE, on the first crystal ever earned this
+         way, and states the whole rule — the cap, the daily tasks, the
+         bonus, the pets and the achievements — because she is about to
+         notice her day count did not move and one line beats three
+         discoveries. `sameTold` is on the purse, so it survives a reload
+         and does not reappear tomorrow.
+
+         The second replaces it once the allowance is gone, and appears
+         every round after that: without it a round that pays nothing
+         looks broken.
+
+         The masculine Russian is chosen HERE rather than in the end
+         screen, which renders a key and knows nothing about gender.
+         Unset gender falls to feminine, as everywhere else. */
+      if (pay > 0 && !p.sameTold){
+        p.sameTold = 1;
+        lines.push({ key:'coSameLangIntro', n:SAME_LANG_CAP });
+      } else if (pay <= 0){
+        var male = GH.player && GH.player.gender
+                && GH.player.gender() === 'm'
+                && GH.i18n && GH.i18n.lang && GH.i18n.lang() === 'ru';
+        lines.push({ key:male ? 'coSameLangFullM' : 'coSameLangFull',
+                     n:SAME_LANG_CAP });
+      }
+      pending = 0;
+      write();
+      /* `done` and `need` are reported as they stand, unchanged by this
+         round, so the screen shows honestly that it did not count. */
+      return { total:pay, lines:lines, done:dayCount(), need:DAILY_TARGET,
+               sameLang:true };
+    }
 
     p.done = (p.done || 0) + units;
     var total = PER_EXERCISE * units;

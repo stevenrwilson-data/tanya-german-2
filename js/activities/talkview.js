@@ -192,9 +192,7 @@ GH.talkView = (function(){
     GH.speech.stop();
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ clearTakes(); state.onExit(); });
+    var back = GH.back.button(function(){ clearTakes(); state.onExit(); });
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('dgTitle')));
@@ -252,9 +250,7 @@ GH.talkView = (function(){
     host.textContent = '';
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){
+    var back = GH.back.button(function(){
       GH.speech.stop();
       state.id = null; state.playing = false;
       paintIndex();

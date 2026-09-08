@@ -227,6 +227,11 @@ GH.listenSpeak = (function(){
   function fromSongs(){
     var out = [], seen = {};
     (window.GH_SONGS || []).forEach(function(s){
+      /* NOT A COURSE SONG, SO NOT COURSE PRACTICE. The language comes
+         from the audio filename — `GH_SONG_LANG`, in data/songs.js, the
+         one resolver for all six callers. Anything that is not German is
+         there to be listened to, not drilled. */
+      if (window.GH_SONG_LANG(s) !== 'de') return;
       /* ONLY THE LINES THE SONG ACTUALLY SHOWS.
 
          `s.lines` is an inventory, not a lyric. `das-lied-zweier-herzen`
@@ -519,9 +524,7 @@ GH.listenSpeak = (function(){
 
   function head(sub){
     var h = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){
+    var back = GH.back.button(function(){
       stopAll(); stopRec(); dropMic();
       if (state.phase === 'lab'){ state.phase = 'pick'; paint(); return; }
       state.onExit();
@@ -538,7 +541,11 @@ GH.listenSpeak = (function(){
     host.textContent = '';
     host.appendChild(head());
 
-    var card = el('div', 'card');
+    /* `sp-setup` alongside `card` so the Full Tour can point at this one.
+       `.card` on its own is used on dozens of screens, and the five
+       option blocks inside are all `.sp-opts` with nothing to tell them
+       apart, so there was no way to name the setup panel. */
+    var card = el('div', 'card sp-setup');
 
     card.appendChild(el('h2', 'sp-h', t('spFrom')));
     var srcs = el('div', 'sp-opts');
@@ -626,7 +633,9 @@ GH.listenSpeak = (function(){
 
     var foot = el('div', 'card-foot');
     foot.appendChild(el('span', 'spacer'));
-    var go = el('button', 'btn btn-primary js-advance', t('start'));
+    /* `sp-start` so the tour can send her through to the practice screen.
+       `btn btn-primary js-advance` is shared with half the app. */
+    var go = el('button', 'btn btn-primary js-advance sp-start', t('start'));
     go.type = 'button';
     go.disabled = !state.src.length;
     go.addEventListener('click', function(){

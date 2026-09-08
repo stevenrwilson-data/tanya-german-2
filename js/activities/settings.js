@@ -43,9 +43,7 @@ GH.settings = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('stTitle')));
@@ -53,7 +51,15 @@ GH.settings = (function(){
     head.appendChild(titles);
     host.appendChild(head);
 
-    var card = el('div', 'card');
+    /* `settings-card` so the Full Tour can point at this screen. A bare
+       `.card` is used on dozens of screens, and the headings inside are
+       `.gr-group` — shared with the store's tier bands and the grammar
+       reference — so there was nothing here a tour step could name.
+
+       NOT `st-...`: that prefix already belongs to the store's own
+       styling (`st-card`, `st-mode`, `st-head`), and a settings class
+       that looked like a store class would be read as one. */
+    var card = el('div', 'card settings-card');
 
     /* ---------- who is playing ---------- */
     card.appendChild(el('h2', 'gr-group', t('stWhoHead')));
@@ -353,39 +359,18 @@ GH.settings = (function(){
     engRow.appendChild(eng);
     card.appendChild(engRow);
 
-    /* Every pet above common is gated on consecutive full days — ninety
-       for a legendary, a hundred and fifty for Ember. Kronen alone will
-       not open the shelf, so without this the store cannot be looked at
-       for five months. */
-    if (GH.store && GH.store.setGod){
-      var godOn = GH.store.god();
-      var godRow = el('div', 'pk-row' + (godOn ? ' is-on' : ''));
-      var godBtn = el('button', 'pk-toggle');
-      godBtn.type = 'button';
-      godBtn.appendChild(el('span', 'pk-mark', godOn ? '\u2713' : ''));
-      var godBody = el('span', 'pk-body');
-      godBody.appendChild(el('span', 'pk-name', t('stGodMode')));
-      godBody.appendChild(el('span', 'pk-sub', t('stGodNote')));
-      godBtn.appendChild(godBody);
-      godBtn.addEventListener('click', function(){
-        GH.store.setGod(!GH.store.god());
-        paint();
-      });
-      godRow.appendChild(godBtn);
-      card.appendChild(godRow);
-    }
+    /* THE PET GATE BYPASS AND THE CRYSTAL GRANT LIVE IN js/devtools.js.
 
-    var giveRow = el('div', 'st-warn st-test');
-    [1500, 10000, 80000].forEach(function(n){
-      var g = el('button', 'btn btn-ghost', '\u25c8 +' + n);
-      g.type = 'button';
-      g.addEventListener('click', function(){
-        GH.coins.earn(n, 'testing');
-        paint();
-      });
-      giveRow.appendChild(g);
-    });
-    card.appendChild(giveRow);
+       Steven's instruction: those two, and only those two, have to come
+       off this screen for Tanya by DELETING A FILE and go back by
+       putting it back. So they are not written here any more.
+
+       With the file absent `GH.devtools` is undefined and this draws
+       nothing — the next section follows immediately, with no gap and no
+       error. Everything else under the heading above stays here: the
+       English prompts toggle is a preference, and the resets below are
+       real features. */
+    if (GH.devtools && GH.devtools.mount) GH.devtools.mount(card, paint);
 
     /* ---------- starting over ---------- */
     card.appendChild(el('h2', 'gr-group', t('stResetHead')));

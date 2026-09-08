@@ -314,6 +314,50 @@ GH.packs = (function(){
      will not be a lesson. */
   function playable(v){ return !(v && v.only); }
 
+  /* ---------- THE TARGET LANGUAGE ----------
+
+     Every game reads the word it is teaching off `.de`, because German was
+     the only language anyone could be learning. Ten games do it, about a
+     hundred times between them, so teaching each of them about a target
+     language would mean a hundred edits and ten chances to get it wrong.
+
+     Instead the swap happens HERE, at the one door they all come through.
+     When the target is not German, an item is handed over with `.de`
+     holding the TARGET language's text. A game that grades against `.de`
+     is then grading against English or Russian without knowing it, and
+     without a line changing inside it.
+
+     WHEN THE TARGET IS GERMAN THIS IS A LITERAL NO-OP. Same objects, same
+     array, nothing copied. So the site Tanya is getting behaves exactly as
+     it did — that is the whole reason the swap belongs here rather than in
+     ten games.
+
+     THE FIELD NAME LIES ON PURPOSE. `.de` holding English reads oddly,
+     but the alternative is renaming a field that a hundred lines depend
+     on. The lie is contained to this function and reversible; the rename
+     would not be.
+
+     SCHEDULING IS ALREADY SAFE. `scope()` puts the target in the storage
+     key, so a word's history under an English target is separate from its
+     history under German — which is correct, since they are different
+     courses, not the same word twice.
+
+     A word with no text in the target language is DROPPED rather than
+     handed over empty: a prompt with nothing in it cannot be answered. */
+  function targ(){
+    return (GH.player && GH.player.target) ? GH.player.target() : 'de';
+  }
+
+  function asTarget(v, code){
+    if (!v) return v;
+    var txt = v[code];
+    if (txt === undefined || txt === null || String(txt).trim() === '') return null;
+    var out = {}, k;
+    for (k in v) if (Object.prototype.hasOwnProperty.call(v, k)) out[k] = v[k];
+    out.de = txt;
+    return out;
+  }
+
   function vocab(){
     var V = window.GH_VOCAB || [];
     var out = [];
@@ -343,7 +387,17 @@ GH.packs = (function(){
       if (!taken[d.de]) out = out.concat(expand(d, null));
     });
 
-    return out;
+    /* The swap, last, so everything above still reasons in German —
+       `dictEntry`, `packOf` and the claim map all key on the German
+       headword and must keep doing so. */
+    var code = targ();
+    if (code === 'de') return out;
+    var swapped = [];
+    out.forEach(function(v){
+      var x = asTarget(v, code);
+      if (x) swapped.push(x);
+    });
+    return swapped;
   }
 
   /* How well the live words are holding.
@@ -451,10 +505,22 @@ GH.packs = (function(){
   function sentencesOf(word){
     if (!word || !word.s) return [];
     var t = tenses();
-    return word.s.filter(function(x){
+    var out = word.s.filter(function(x){
       if (!x.t) return true;                 /* untagged is present */
       return !!t[x.t];
     });
+    /* Same swap as `vocab()`, for the same reason: a game builds its
+       prompt from `sentence.de`. A sentence with no text in the target
+       language is dropped, which is also what keeps a game from showing
+       an empty line. */
+    var code = targ();
+    if (code === 'de') return out;
+    var swapped = [];
+    out.forEach(function(x){
+      var y = asTarget(x, code);
+      if (y) swapped.push(y);
+    });
+    return swapped;
   }
 
   /* How much past material exists, so the setting can say whether turning

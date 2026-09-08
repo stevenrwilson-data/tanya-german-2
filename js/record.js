@@ -158,6 +158,208 @@ GH.record = (function(){
     stream = null;
   }
 
+  /* ==================================================================
+     A DECK — the recording UI, once, for every screen that wants it
+
+     Steven: "I want you to add the 'record me' to sections with spoken L2
+     language... You can actually have this 'record' button at the top of
+     every place you add it then it allows you to record literally
+     anything and compare it to the active section. If there's more than 1
+     line then add a mic next to every line (like do that for songs) but
+     it is off by default so they only appear if you toggle it on up at
+     the top."
+
+     WHY THIS IS HERE AND NOT COPIED INTO FIVE SCREENS. Everything above
+     in this file is capture — permission, MediaRecorder, the Safari
+     container. The UI around it was written once, in talkview.js: a mic
+     per line, a take per line, Computer and Me appearing after the first
+     recording, one recorder live at a time. Five screens each with their
+     own copy of that state machine is five places for the same bug.
+
+     So a deck owns: the on/off switch, the takes, which line is live, and
+     the two elements a caller mounts.
+
+       d = GH.record.deck(repaint)
+       d.button()            the 🎤 Record toggle for the top of the screen
+       d.on()                is it switched on
+       d.row(key, sayFn)     the mic + compare row for one line
+       d.clear()             free every take, on leaving the screen
+
+     OFF BY DEFAULT, and remembered. A song has thirty lines; thirty mics
+     nobody asked for is a wall. But a learner who wants to practise
+     pronunciation wants it on for every song, not once — so the switch is
+     stored, per player and per screen.
+
+     `sayFn` is a function rather than a string because the caller knows
+     how its own line should be spoken — talkview uses a per-character
+     voice, the songbook a plain line, the comic a panel. This file must
+     not know any of that.
+
+     ONE RECORDER AT A TIME, enforced here: starting on a new line stops
+     the old one first and retries on its way out. Two live recorders is
+     the failure that produces silent takes on iOS. */
+  function deck(repaint){
+    var d = {
+      takes: {},        /* key -> blob url */
+      at: null,         /* key currently recording */
+      why: '',          /* why it cannot, in words */
+      key: null         /* the storage key for the on/off switch */
+    };
+
+    function paint(){ if (typeof repaint === 'function') repaint(); }
+
+    function storeKey(){
+      var k = 'gh-rec-on' + (d.key ? '-' + d.key : '');
+      return (GH.player && GH.player.scope) ? GH.player.scope(k) : k;
+    }
+
+    function isOn(){
+      try { return window.localStorage.getItem(storeKey()) === 'on'; }
+      catch (e){ return false; }
+    }
+
+    function setOn(on){
+      try { window.localStorage.setItem(storeKey(), on ? 'on' : 'off'); }
+      catch (e){}
+    }
+
+    function stopMine(){
+      if (d.audio){
+        try { d.audio.pause(); } catch (e){}
+        d.audio = null;
+      }
+    }
+
+    function playMine(k){
+      var url = d.takes[k];
+      if (!url) return;
+      if (GH.speech) GH.speech.stop();
+      stopMine();
+      d.audio = new Audio(url);
+      d.audio.play();
+    }
+
+    function toggleRec(k, sayFn){
+      if (d.at === k){ stop(); return; }
+
+      /* A different line is live: stop it, then start here on its way
+         out. Two recorders at once is what produces silent takes. */
+      if (busy()){
+        stop();
+        window.setTimeout(function(){ toggleRec(k, sayFn); }, 60);
+        return;
+      }
+
+      var no = why();
+      if (no){ d.why = no; paint(); return; }
+
+      if (GH.speech) GH.speech.stop();
+      stopMine();
+      d.why = '';
+      d.at = k;
+      paint();
+
+      start(function(url){
+        d.at = null;
+        if (url){
+          free(d.takes[k]);     /* replacing a take revokes the old one */
+          d.takes[k] = url;
+        }
+        paint();
+      }, function(w){
+        d.at = null;
+        d.why = w;
+        paint();
+      });
+    }
+
+    function el(tag, cls, text){
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text !== undefined && text !== null) n.textContent = text;
+      return n;
+    }
+
+    function t(k){ return GH.i18n ? GH.i18n.t(k) : k; }
+
+    d.on = isOn;
+
+    /* The switch. Hidden entirely where recording is impossible — an
+       http:// origin has no getUserMedia at all, and a toggle that
+       cannot do anything is worse than no toggle. */
+    d.button = function(scopeKey){
+      d.key = scopeKey || d.key;
+      if (!can()) return null;
+      var b = el('button', 'rec-on' + (isOn() ? ' is-on' : ''));
+      b.type = 'button';
+      b.setAttribute('aria-pressed', isOn() ? 'true' : 'false');
+      b.appendChild(el('span', 'rec-on-ico', '\ud83c\udfa4'));
+      b.appendChild(el('span', 'rec-on-t', t('recOn')));
+      b.addEventListener('click', function(){
+        setOn(!isOn());
+        if (!isOn()) d.clear();
+        paint();
+      });
+      return b;
+    };
+
+    /* One line's mic, and the two compare buttons once there is a take.
+       Returns null when the switch is off, so a caller can append
+       unconditionally. */
+    d.row = function(k, sayFn){
+      if (!isOn() || !can()) return null;
+      var wrap = el('span', 'rec-row');
+
+      var mic = el('button', 'rec-mic' + (d.at === k ? ' is-rec' : ''));
+      mic.type = 'button';
+      mic.setAttribute('aria-label', t(d.at === k ? 'spStop' : 'spRecord'));
+      mic.setAttribute('aria-pressed', d.at === k ? 'true' : 'false');
+      mic.textContent = d.at === k ? '\u25a0' : '\ud83c\udfa4';
+      mic.addEventListener('click', function(e){
+        e.stopPropagation();
+        toggleRec(k, sayFn);
+      });
+      wrap.appendChild(mic);
+
+      if (d.takes[k]){
+        var orig = el('button', 'btn rec-cmp', t('spHearTts'));
+        orig.type = 'button';
+        orig.addEventListener('click', function(e){
+          e.stopPropagation();
+          stopMine();
+          if (typeof sayFn === 'function') sayFn();
+        });
+        wrap.appendChild(orig);
+
+        var me = el('button', 'btn rec-cmp', t('spHearMe'));
+        me.type = 'button';
+        me.addEventListener('click', function(e){
+          e.stopPropagation();
+          playMine(k);
+        });
+        wrap.appendChild(me);
+      }
+      return wrap;
+    };
+
+    /* Why it cannot record, for a caller that wants to say so. */
+    d.note = function(){ return d.why; };
+
+    d.clear = function(){
+      var k;
+      stopMine();
+      if (busy()) stop();
+      for (k in d.takes){
+        if (d.takes.hasOwnProperty(k)) free(d.takes[k]);
+      }
+      d.takes = {};
+      d.at = null;
+    };
+
+    return d;
+  }
+
   return { why:why, can:can, start:start, stop:stop, busy:busy,
-           free:free, release:release };
+           free:free, release:release,
+           deck:deck };
 })();

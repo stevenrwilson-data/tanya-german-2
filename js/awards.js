@@ -230,6 +230,20 @@ GH.awards = (function(){
      screen can say so — an achievement nobody is told about is a database
      row. */
   function afterRound(game, r){
+    /* NOTHING COUNTS WHEN THE TWO LANGUAGES MATCH. Steven, 08 Sep: no
+       achievements from same-language play.
+
+       This has to be here as well as in coins.js, because achievements
+       are a separate path — capping the crystals would not have stopped
+       one unlocking, and twelve of them are what opens the last pet.
+
+       Returns early rather than filtering at the end, so the COUNTERS are
+       not touched either: rounds played, perfect rounds and best streak
+       all feed achievements, and a round that must not count must not
+       leave a mark on them. */
+    if (GH.player && GH.player.target && GH.i18n && GH.i18n.lang
+        && GH.player.target() === GH.i18n.lang()) return [];
+
     var m = mine();
     m.counts.rounds++;
     if (game) m.counts.games[game] = 1;

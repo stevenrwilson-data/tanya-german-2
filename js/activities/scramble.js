@@ -82,6 +82,11 @@ GH.scramble = (function(){
        weil clauses, and without them the subordinate level has four
        sentences in it. */
     (window.GH_SONGS || []).forEach(function(song){
+      /* NOT A COURSE SONG, SO NOT COURSE PRACTICE. The language comes
+         from the audio filename — `GH_SONG_LANG`, in data/songs.js, the
+         one resolver for all six callers. Anything that is not German is
+         there to be listened to, not drilled. */
+      if (window.GH_SONG_LANG(song) !== 'de') return;
       Object.keys(song.lines).forEach(function(id){
         var l = song.lines[id];
         out.push({ de:l.de, ru:l.ru, en:l.en, img:0 });
@@ -273,9 +278,7 @@ GH.scramble = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ GH.speech.stop(); state.onExit(); });
+    var back = GH.back.button(function(){ GH.speech.stop(); state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('scTitle')));

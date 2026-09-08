@@ -214,9 +214,7 @@ GH.listenPick = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', leave);
+    var back = GH.back.button(leave);
     head.appendChild(back);
 
     var titles = el('div', 'practice-title');
@@ -378,9 +376,7 @@ GH.listenPick = (function(){
     state.playing = false;      /* no round in progress, so no shortcuts */
     host.textContent = '';
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', leave);
+    var back = GH.back.button(leave);
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('lpTitle')));

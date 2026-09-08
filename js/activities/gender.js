@@ -290,9 +290,7 @@ GH.gender = (function(){
 
   function head(){
     var h = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ stopClock(); state.onExit(); });
+    var back = GH.back.button(function(){ stopClock(); state.onExit(); });
     h.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('gnTitle')));
@@ -609,6 +607,10 @@ GH.gender = (function(){
 (function(){
   var entry = {
     id:'gender',
+    /* GERMAN ONLY. This game is about German morphology and has no
+       English or Russian equivalent, so it is hidden when the course is
+       not German — see the filter in app.js. */
+    onlyDe:true,
     glyph:'⚖️',
     name:{ ru:'der · die · das', de:'der · die · das', en:'der · die · das' },
     sub:{ ru:'Род существительных — там, где русский подводит',

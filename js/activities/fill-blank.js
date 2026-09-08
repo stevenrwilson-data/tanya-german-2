@@ -148,6 +148,135 @@ GH.fillBlank = (function(){
      than returning null, hence the try/catch. */
   var AUTO_KEY = 'gh-autoplay';
 
+  /* ---------- FOUR TIERS, NOT TWO ----------
+
+     Steven: "What happened to having the 1/2 point where you could see
+     the word and type it out? This is a steep cliff between MC and type
+     out from no help at all."
+
+     He is right and the cliff was real: tapping one of four options and
+     typing a word from nothing are not adjacent skills. Two rungs go
+     between them.
+
+       choose   four options, tap one
+       copy     the word is shown; type it while looking at it
+       options  the four options stay on screen; type it
+       peek     look at the word, then it goes; type it from memory
+       type     nothing shown but the audio
+
+     FIVE, because Steven asked for both middles. His third rung was
+     "type from MC" — the options still visible while she types — and
+     GPT's was see-it-then-lose-it. Those are different exercises: one
+     removes the tapping but keeps the spelling in front of her, the other
+     removes the spelling but not the recall. Steven: "I would prefer you
+     see it.. but we could have a see and disappear version in the middle,
+     too. That could be a 5th.. More scaffolding is good."
+
+     So the ladder takes away one support at a time: the tap, then the
+     spelling, then the sight of it, then the options.
+
+     `copy` is the rung Word Lab already uses — its own COPY_AGAIN line
+     reads "Type it while you can see it" — so the idea is not new to the
+     app, only new to the fill-blank screens.
+
+     REMEMBERED, AND EVERYWHERE. Steven: "That should be persistent across
+     ALL fill in blank type games all of sections 1, 2, 4. And anywhere
+     else sentence completion exists." The mode used to live on `state`,
+     so it reset to `choose` on every round and every screen. It is a
+     stored preference now — and because this one file drives the blanks
+     in Sections 1, 2 and 4, in the Reader and in the songbook, storing it
+     here is what makes it apply in all five.
+
+     SCOPED PER PLAYER, because Nazar and Tanya are not on the same rung
+     and a shared key would put one of them on the wrong one. */
+
+  /* ---------- THE FIVE ICONS ----------
+
+     Steven's, drawn to spec: 24x24, monochrome, every stroke and fill
+     `currentColor`.
+
+     INLINE AND NOT FIVE .svg FILES, and that is a requirement rather than
+     a preference: an `<img src="icon.svg">` CANNOT inherit currentColor.
+     The whole reason these are monochrome is so the active rung takes the
+     accent and the rest take soft ink, across twelve themes, with no
+     extra art — and that only works if the markup is in the document.
+
+     `innerHTML` on a span, once per button. The markup is a constant in
+     this file, never anything a user typed, so there is nothing to
+     sanitise.
+
+     WHY THE LABELS STILL EXIST. An icon nobody has been taught is a
+     guess, so the toggle shows the ACTIVE rung's name underneath, and the
+     legend behind the ? explains all five in her own language. Steven:
+     "you see icons but there's a help sheet/screen that pops up and shows
+     the icons and their names in L1 with a description in L1."
+
+     Copy against Peek is the pair doing the most work: both mean the word
+     is visible, and the slashed eye is the only thing saying "was". If it
+     ever reads as mute-or-hidden instead, that is the one to redraw. */
+  var ICON = {
+    choose: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2" fill="currentColor" stroke="none"/>',
+    copy: '<rect x="4.5" y="3.25" width="15" height="8.5" rx="1.4"/><path d="M8 6.5h8M8 9.25h5.5"/><path d="M12 12.25v3.5"/><path d="M9.75 14.5L12 16.75 14.25 14.5"/><path d="M5.5 20.5h13"/>',
+    options: '<path d="M3.5 5.5h8"/><path d="M3.5 10h6.5"/><path d="M3.5 14.5h7"/><path d="M16.25 6.5v11"/><path d="M16.25 18.75h4.25"/>',
+    peek: '<path d="M3.5 12s3.2-5.25 8.5-5.25S20.5 12 20.5 12s-3.2 5.25-8.5 5.25S3.5 12 3.5 12z"/><circle cx="12" cy="12" r="2.35"/><path d="M4.5 19.5L19.5 4.5"/>',
+    /* v2, Steven's redraw: speaker → two waves → I-beam, with a gap
+       before the caret. The first version put a bare cursor beside a
+       speaker outline and read as neither. A filled speaker says AUDIO
+       plainly, and a proper I-beam with serifs reads as a text caret
+       rather than a stray line. */
+    type: '<path d="M2.4 9.05h2.45v5.9H2.4z" fill="currentColor" stroke="none"/>' +
+          '<path d="M4.85 9.05L9.55 6.15v11.7L4.85 14.95z" fill="currentColor" stroke="none"/>' +
+          '<path d="M11.55 8.35c1.25 1.2 1.9 2.55 1.9 3.65s-.65 2.45-1.9 3.65"/>' +
+          '<path d="M14.15 6.55c1.85 1.75 2.8 3.7 2.8 5.45s-.95 3.7-2.8 5.45"/>' +
+          '<path d="M20.35 4.2v15.6"/>' +
+          '<path d="M18.5 4.2h3.7"/>' +
+          '<path d="M18.5 19.8h3.7"/>'
+  };
+
+  function icon(m){
+    var span = document.createElement('span');
+    span.className = 'fb-ico';
+    span.setAttribute('aria-hidden', 'true');
+    span.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' +
+      (ICON[m] || '') + '</svg>';
+    return span;
+  }
+
+  var MODES = ['choose', 'copy', 'options', 'peek', 'type'];
+  var MODE_LABEL = { choose:'choose', copy:'fbmCopy', options:'fbmOptions',
+                     peek:'fbmPeek', type:'type' };
+  var MODE_HELP  = { choose:'fbhChoose', copy:'fbhCopy', options:'fbhOptions',
+                     peek:'fbhPeek', type:'fbhType' };
+
+  /* The help sheet: all five, each with its icon, its name and what it
+     asks of her — in her own language. Handed to howto.js, which already
+     owns the overlay, the close button and the focus handling, and whose
+     panel was fixed earlier so it cannot clip its own top on a phone. */
+  function legend(){
+    if (!GH.howto || !GH.howto.legend) return;
+    GH.howto.legend('fbLegendTitle', MODES.map(function(m){
+      return { icon:icon(m), name:t(MODE_LABEL[m]), desc:t(MODE_HELP[m]) };
+    }));
+  }
+
+  function modeKey(){
+    var k = 'gh-fb-mode';
+    return (GH.player && GH.player.scope) ? GH.player.scope(k) : k;
+  }
+
+  function savedMode(){
+    try {
+      var v = window.localStorage.getItem(modeKey());
+      return MODES.indexOf(v) >= 0 ? v : 'choose';
+    } catch (e){ return 'choose'; }
+  }
+
+  function setMode(m){
+    try { window.localStorage.setItem(modeKey(), m); } catch (e){}
+  }
+
   function autoOn(){
     try {
       return window.localStorage.getItem(AUTO_KEY) !== 'off';
@@ -178,9 +307,7 @@ GH.fillBlank = (function(){
 
     host.textContent = '';
 
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){
+    var back = GH.back.button(function(){
       GH.speech.stop();
       state.onExit();
     });
@@ -265,20 +392,42 @@ GH.fillBlank = (function(){
       tools.appendChild(auto);
     }
 
-    var modes = el('div', 'mode-toggle');
-    [['choose', 'choose'], ['type', 'type']].forEach(function(pair){
-      var b = el('button', null, t(pair[1]));
+    var modes = el('div', 'mode-toggle is-five');
+    MODES.forEach(function(m){
+      var b = el('button', 'fb-rung' + (state.mode === m ? ' is-on' : ''));
       b.type = 'button';
-      b.setAttribute('aria-pressed', state.mode === pair[0] ? 'true' : 'false');
+      /* The name is on the button for a screen reader and in the tooltip
+         for a mouse, but only the ACTIVE rung shows it on screen — see
+         the note by ICON. */
+      b.setAttribute('aria-label', t(MODE_LABEL[m]));
+      b.setAttribute('title', t(MODE_LABEL[m]));
+      b.appendChild(icon(m));
+      b.setAttribute('aria-pressed', state.mode === m ? 'true' : 'false');
       b.addEventListener('click', function(){
-        if (state.mode === pair[0]) return;
-        state.mode = pair[0];
+        if (state.mode === m) return;
+        state.mode = m;
+        setMode(m);                 /* remembered — see the note above */
+        state.shown = false;        /* a new rung starts unpeeked */
         paint();
       });
       modes.appendChild(b);
     });
     tools.appendChild(modes);
     card.appendChild(tools);
+
+    /* One line saying what this rung asks of her. Labels of Choose, Copy,
+       See-then-type and Type are not self-explanatory, and the difference
+       between the middle two is exactly what a button label cannot
+       carry. */
+    var why = el('div', 'fb-mode-why');
+    why.appendChild(el('span', 'fb-mode-name', t(MODE_LABEL[state.mode])));
+    var q = el('button', 'fb-mode-q', '?');
+    q.type = 'button';
+    q.setAttribute('aria-label', t('fbLegendTitle'));
+    q.addEventListener('click', legend);
+    why.appendChild(q);
+    card.appendChild(why);
+    card.appendChild(el('p', 'fb-mode-help', t(MODE_HELP[state.mode])));
 
     /* `sheet`/`pos` addresses a cell in one of data/gallery.js's named
        sheets (fruit-1, vegetables-01-leafy-greens, ...) — the newer
@@ -402,7 +551,46 @@ GH.fillBlank = (function(){
       answers.appendChild(opts);
     }
 
-    if (!state.solved && state.mode === 'type'){
+    /* COPY — the answer is on screen and she types it while looking at
+       it. No options alongside: a word plus four alternatives is a harder
+       screen than the word alone, not an easier one. */
+    if (!state.solved && state.mode === 'copy'){
+      answers.appendChild(el('p', 'fb-show', r.answer));
+    }
+
+    /* PEEK — the word first, then gone. Revealed by a button rather than
+       a timer: a word that vanishes on a clock vanishes while she is
+       still reading it, and there is no way to ask for it back. */
+    if (!state.solved && state.mode === 'peek' && !state.shown){
+      answers.appendChild(el('p', 'fb-show', r.answer));
+      var ready = el('button', 'btn btn-primary fb-ready', t('fbReady'));
+      ready.type = 'button';
+      ready.addEventListener('click', function(){
+        state.shown = true;
+        paint();
+      });
+      answers.appendChild(ready);
+    }
+
+    /* OPTIONS — the four choices stay on screen but she types instead of
+       tapping. Plain chips, not buttons: they are there to be read, and a
+       tappable one here would just be `choose` again. */
+    if (!state.solved && state.mode === 'options'){
+      if (!r.options){
+        r.options = GH.text.shuffle(
+          [r.answer].concat(distractors(r.answer, r.words, r.sentence.cat || state.cat, 3))
+        );
+      }
+      var ref = el('div', 'fb-ref');
+      r.options.forEach(function(w){ ref.appendChild(el('span', 'fb-ref-w', w)); });
+      answers.appendChild(ref);
+    }
+
+    var typing = state.mode === 'type' || state.mode === 'copy' ||
+                 state.mode === 'options' ||
+                 (state.mode === 'peek' && state.shown);
+
+    if (!state.solved && typing){
       var box = el('div', 'typebox');
       var input = document.createElement('input');
       input.type = 'text';
@@ -643,6 +831,10 @@ GH.fillBlank = (function(){
     state.feedback = '';
     state.feedbackKind = '';
     state.typed = '';
+    /* RE-ARM THE PEEK. Without this, `shown` stays true after the first
+       reveal and every later round in peek mode goes straight to the type
+       box — silently turning that rung into plain Type. */
+    state.shown = false;
     state.ruledOut = {};
     state.missedHere = false;   /* fresh round, fresh slate for scoring */
     paint();
@@ -662,7 +854,8 @@ GH.fillBlank = (function(){
       setStart:0,
       run:GH.run.create(),
       missed:[],
-      mode:'choose',
+      mode:savedMode(),   /* her rung, remembered — see modeKey() above */
+      shown:false,
       solved:false,
       feedback:'',
       feedbackKind:'',

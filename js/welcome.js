@@ -135,10 +135,21 @@ GH.welcome = (function(){
      the app in German AND learn it. Spanish would arrive as target-only
      until someone translates the interface. */
   var LANGS = [
+    /* ENGLISH AND RUSSIAN ARE NOW TARGETS TOO. Steven, 08 Sep — Tanya
+       asked for English, and Nazar could use it.
+
+       The content was already there: every word, example sentence, story,
+       poem, article and dialogue carries all three languages with zero
+       gaps, measured 08 Sep. What was missing was the games, and that is
+       handled at one point in packs.js rather than in ten games.
+
+       A language can be both a UI language and a target. Choosing the
+       same one for both is the caller's problem to prevent, not this
+       list's — it only says which are possible. */
     { code:'en', flag:'\uD83C\uDDFA\uD83C\uDDF8', own:'English',
-      ask:'Choose your language', ui:true,  target:false },
+      ask:'Choose your language', ui:true,  target:true },
     { code:'ru', flag:'\uD83C\uDDF7\uD83C\uDDFA', own:'\u0420\u0443\u0441\u0441\u043A\u0438\u0439',
-      ask:'\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u044F\u0437\u044B\u043A', ui:true, target:false },
+      ask:'\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u044F\u0437\u044B\u043A', ui:true, target:true },
     { code:'de', flag:'\uD83C\uDDE9\uD83C\uDDEA', own:'Deutsch',
       ask:'Sprache w\u00E4hlen', ui:true,  target:true }
 
@@ -155,8 +166,19 @@ GH.welcome = (function(){
   function uiLangs(){
     return LANGS.filter(function(l){ return l.ui; });
   }
+  /* HER OWN LANGUAGE IS NOT ON THE LIST. Now that English and Russian are
+     targets as well as interface languages, the same language could be
+     picked for both — and a course that teaches you your own language,
+     with every prompt and every answer identical, is not a course. It
+     would also make the translate view show a line twice.
+
+     Filtered here rather than guarded at the tap, so the impossible
+     choice is never offered in the first place. */
   function targetLangs(){
-    return LANGS.filter(function(l){ return l.target; });
+    var mine = current('gh-lang', '');
+    return LANGS.filter(function(l){
+      return l.target && l.code !== mine;
+    });
   }
 
   /* A language's name IN HER LANGUAGE — "Немецкий" once she has chosen

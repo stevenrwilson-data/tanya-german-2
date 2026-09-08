@@ -322,9 +322,7 @@ GH.guessWho = (function(){
 
   function head(bare){
     var h = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){
+    var back = GH.back.button(function(){
       GH.speech.stop();
       /* With no chooser there is nowhere between the round and the hub, so
          Back leaves. Abandoning a round mid-way is allowed and costs

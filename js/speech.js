@@ -206,11 +206,21 @@ GH.speech = (function(){
     return 'de';
   }
 
+  /* Matches on the LOCALE, not the language code. They are the same first
+     two letters for every language except Tagalog, where the code is `tl`
+     and the voice says `fil-PH` — which is why Tagalog silently had no
+     voice before 08 Sep.
+
+     Only the language part is compared, so an `es-MX` voice still serves
+     an `es-ES` target: a regional accent is a better answer than silence.
+     Falls back to the raw code if a language is somehow not in the map. */
   function voicesIn(code){
     if (!supported) return [];
-    var c = (code || target()).toLowerCase();
+    var raw = (code || target()).toLowerCase();
+    var tag = (LOCALE[raw] || raw).toLowerCase();
+    var lang = tag.split('-')[0];
     return (window.speechSynthesis.getVoices() || []).filter(function(v){
-      return v.lang && v.lang.toLowerCase().indexOf(c) === 0;
+      return v.lang && v.lang.toLowerCase().split('-')[0] === lang;
     });
   }
 
@@ -433,8 +443,18 @@ GH.speech = (function(){
      interface is written in. A target with no locale here would fall back
      to German, which is how a Spanish course would have been read aloud in
      a German accent. */
+  /* Language code to the BCP-47 tag a browser voice reports. Italian and
+     Ukrainian added 08 Sep with Steven's eight target languages.
+
+     TAGALOG IS THE ODD ONE AND IT WAS BROKEN. Its code here is `tl` but
+     every real voice reports `fil-PH`, and `voicesIn()` used to match the
+     CODE against the voice's language — so `'fil-ph'.indexOf('tl')` was 1
+     rather than 0 and Tagalog matched no voice at all, on any device.
+     `voicesIn()` now matches against this map's value instead, which is
+     the string the voice actually carries. */
   var LOCALE = { de:'de-DE', ru:'ru-RU', en:'en-GB',
-                 es:'es-ES', fr:'fr-FR', tl:'fil-PH', ga:'ga-IE' };
+                 es:'es-ES', fr:'fr-FR', it:'it-IT', uk:'uk-UA',
+                 tl:'fil-PH', ga:'ga-IE' };
 
   /* Same tiers as score(), with two corrections that matter away from
      German: a novelty voice is worse than anything, and an unrecognised

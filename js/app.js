@@ -231,24 +231,42 @@ GH.app = (function(){
   var SHOW_FIRST = 4;
   var openedSections = {};
 
+  /* A CAP THAT OPENS MUST ALSO CLOSE. Steven: "there needs to be a way to
+     hide the extras after you uncollapse."
+
+     It used to be one-way. `openedSections[key]` made this function
+     return immediately, so an opened section showed every tile and no
+     button at all — and the only route back was reloading the page. On a
+     section of 21 that is a lot of scrolling with no way out.
+
+     So the flag now chooses WHICH button rather than whether to draw
+     one, and the same click handler shape toggles it either way. Both
+     buttons carry `.sec-more`, so there is nothing new to style and the
+     two cannot drift apart visually. */
   function capTiles(sec, key){
     if (catCount) return;                    /* she filtered; show what she asked for */
-    if (openedSections[key]) return;
     var total = sec._tiles.children.length;
     if (total <= SHOW_FIRST) return;
-    while (sec._tiles.children.length > SHOW_FIRST){
-      var last = sec._tiles.lastChild;
-      if (watcher && watcher.unobserve) watcher.unobserve(last);
-      sec._tiles.removeChild(last);
+
+    var btn = el('button', 'btn btn-quiet sec-more');
+    btn.type = 'button';
+
+    if (openedSections[key]){
+      btn.textContent = t('secShowLess');
+    } else {
+      while (sec._tiles.children.length > SHOW_FIRST){
+        var last = sec._tiles.lastChild;
+        if (watcher && watcher.unobserve) watcher.unobserve(last);
+        sec._tiles.removeChild(last);
+      }
+      btn.textContent = t('secShowAll', { n:total });
     }
-    var more = el('button', 'btn btn-quiet sec-more',
-                  t('secShowAll', { n:total }));
-    more.type = 'button';
-    more.addEventListener('click', function(){
-      openedSections[key] = true;
+
+    btn.addEventListener('click', function(){
+      openedSections[key] = !openedSections[key];
       hub();
     });
-    sec.appendChild(more);
+    sec.appendChild(btn);
   }
 
   function section(headKey, count){
@@ -270,9 +288,45 @@ GH.app = (function(){
     if (jumps.length < 2) return null;
     var bar = el('nav', 'jumpbar');
     bar.setAttribute('aria-label', t('jumpTo'));
+
+    /* BACK TO THE TOP, FIRST IN THE ROW. Steven: "Up top is the filters,
+       the crystal totals with a link to crystal section, and language
+       change and theme change. A small arrow that lets you jump up there
+       might be worth having."
+
+       Why it earns its place: this row is the ONLY sticky thing on the
+       hub. Everything at the top — the purse, the language switch, the
+       theme picker, the filters — scrolls away, so from three sections
+       down there is no route back to any of it but a long swipe.
+
+       First rather than last, so the two navigation aids bracket the
+       eight section jumps: up-arrow, the sections, then the Table of
+       Contents. */
+    var up = el('button', 'jump is-up');
+    up.type = 'button';
+    up.setAttribute('aria-label', t('jumpTop'));
+    up.setAttribute('title', t('jumpTop'));
+    up.textContent = '\u2191';
+    up.addEventListener('click', function(){
+      if (window.scrollTo) window.scrollTo({ top:0, behavior:'smooth' });
+    });
+    bar.appendChild(up);
     jumps.forEach(function(j){
       var b = el('button', 'jump');
       b.type = 'button';
+      /* SOMETHING FOR THE TOUR TO POINT AT. Every pill was just `.jump`,
+         so `querySelector('.jump')` returned whichever came first and no
+         step could name a particular one — only `.jump.is-up` and
+         `.jump.is-toc` were distinguishable.
+
+         The Quick Tour navigates by these pills, deliberately: Steven,
+         08 Sep — the Quick Tour teaches the jumpbar, the Full Tour
+         teaches the Table of Contents, so one tour covers each way of
+         getting around. A step can now say `[data-jump="gamesHead"]`.
+
+         `j.key` is the section's head key, the same string `section()`
+         builds `#sec-<key>` from, so the two cannot drift apart. */
+      b.setAttribute('data-jump', j.key);
       /* full label on a wide screen, just the section number on a phone;
          CSS picks which one shows */
       var full = t(j.key);
@@ -284,6 +338,48 @@ GH.app = (function(){
       });
       bar.appendChild(b);
     });
+
+    /* THE TABLE OF CONTENTS, LAST IN THE ROW. Steven: "Add TOC to the
+       rolling buttons. It can be on the bottom row and would be very
+       useful."
+
+       It is the odd one out and deliberately so: every other button here
+       scrolls to a section of this page, and this one leaves for another
+       screen. Last rather than first for that reason — the eight jumps
+       stay a contiguous group and the thing that behaves differently sits
+       after them rather than in the middle.
+
+       `jump is-toc` and not a class of its own, so it inherits the pill
+       shape, the wrapping and the sticky row's sizing for free. Only the
+       colour says it is different.
+
+       Opened exactly as the button in the filter row is: stop the speech,
+       log the exit, clear the view, launch() with `hub` as the way back.
+       launch() is the only thing that records which screen she is on, so
+       any other route would lose her from the event log. */
+    if (GH.toc){
+      var tb = el('button', 'jump is-toc');
+      tb.type = 'button';
+      /* Always the abbreviation, at every width — not the row's
+         long/short mechanism. The full label already appears on the
+         filter-row button directly above this row, so spelling it out
+         twice on one screen is the thing to avoid. Steven's
+         abbreviations: TOC, IV, ОГЛ.
+
+         aria-label and title carry the full name so the short text is
+         not the only thing a screen reader gets. */
+      tb.appendChild(document.createTextNode(t('tocShort')));
+      tb.setAttribute('aria-label', t('tocButton'));
+      tb.setAttribute('title', t('tocButton'));
+      tb.addEventListener('click', function(){
+        GH.speech.stop();
+        leaving();
+        view.textContent = '';
+        launch(function(){ GH.toc.open(view, hub); }, 'toc');
+      });
+      bar.appendChild(tb);
+    }
+
     return bar;
   }
 
@@ -735,6 +831,25 @@ GH.app = (function(){
        visit. One code path, not two. */
     if (GH.welcome && GH.welcome.open(hub)) return;
 
+    /* HE IS ALWAYS REACHABLE FROM THE HEADER.
+
+       Steven: "There's no icon for waddles at the top. He's the only
+       thing that will let you get a tour of the site and without him,
+       there's no explanation of what's in the inside or how to find
+       anything or how to do anything."
+
+       `offer()` only speaks up when `due()` says so — once per visit, and
+       never again after the tour is finished or refused for good. The
+       perch was the way back, but it was only ever CREATED on a refusal,
+       so finishing the tour, or dismissing him for good, removed the only
+       route to the one thing that explains the site.
+
+       So the perch is mounted first and unconditionally. `false` means no
+       flash: a permanent control should not blink at her every time she
+       loads the hub. `perch()` itself is idempotent — it returns early if
+       one is already there. */
+    if (GH.butler && GH.butler.perch) GH.butler.perch(false);
+
     if (GH.butler) GH.butler.offer();
 
     /* She is here, so today counts — recorded before anything can decide
@@ -958,25 +1073,20 @@ GH.app = (function(){
        this month; the grammar lessons are a permanent library and can
        wait below. */
     var taught = extras.filter(function(a){ return a.kind === 'lesson'; });
-    var grammarLessons = (GH.lessons && GH.lessons.all()) || [];
+    /* THE SEVENTEEN GRAMMAR LESSONS ARE GERMAN. haben-or-sein, separable
+       verbs, der/die/das, the two-way prepositions — every one is about
+       German and none has an English or Russian counterpart. Empty on
+       another course, same as the grammar reference they link to.
+
+       Word Lab and Tanya's own course lessons come through `extras` as
+       `kind:'lesson'` and are NOT filtered here: those are vocabulary
+       sets, and packs.js hands them the language being learned. */
+    var grammarLessons = (learningTarget() === 'de' && GH.lessons && GH.lessons.all()) || [];
 
     /* Named rather than inline, so the overview list below can open the
        exact same lesson the same way a tile does \u2014 one place that
        decides what "open lesson X" means, not two that have to be kept
        in step. */
-    function openTaughtLesson(a){
-      GH.speech.stop();
-      leaving();
-      view.textContent = '';
-      launch(function(){ a.open(view, hub); }, a.id);
-    }
-    function openGrammarLesson(l){
-      GH.speech.stop();
-      leaving();
-      view.textContent = '';
-      launch(function(){ GH.lessons.open(view, hub, l.id); }, 'lessons');
-    }
-
     if (taught.length || grammarLessons.length){
       var secL = section('lsHead');
 
@@ -1036,6 +1146,30 @@ GH.app = (function(){
     /* the word list — reference, not an exercise */
     if (window.GH_VOCAB && GH.reference){
       var secR = section('refHead');
+
+      /* WHAT'S HERE? Same idea as the Games section's `gd-open`, for the
+         same reason: eight unrelated destinations, and a glyph plus a
+         one-word name does not say which one she wants. Steven, 08 Sep —
+         Reference is the site's control centre, so it earns a guide.
+
+         Before the tiles, not after: `section()` has already appended the
+         grid by now, so appendChild would bury the button under eight
+         tiles where she would never see it. Same reason gameguide's
+         button uses insertBefore. */
+      if (GH.refguide){
+        var rb = el('button', 'btn btn-quiet rg-open', t('rgOpen'));
+        rb.type = 'button';
+        rb.addEventListener('click', function(){
+          GH.speech.stop();
+          leaving();
+          view.textContent = '';
+          launch(function(){
+            GH.refguide.open(view, hub);
+          }, 'refguide');
+        });
+        secR.insertBefore(rb, secR._tiles);
+      }
+
       /* how she is doing comes first — it is the thing she opens */
       if (GH.progressView){
         secR._tiles.appendChild(tile('📈', t('pvTitle'), t('pvSub'), null, function(){
@@ -1098,8 +1232,17 @@ GH.app = (function(){
           }, a.id));
       });
 
-      /* the rules, beside the words */
-      if (GH.grammar){
+      /* the rules, beside the words.
+
+         GERMAN ONLY, same reason as the five German games: the reference
+         is German grammar — cases, articles, separable verbs — and there
+         is no English or Russian version of it. Hidden on another course
+         rather than offered empty. Steven, 08 Sep: "we can dim out the
+         grammar section because there is no English grammar created yet."
+
+         `learning` is read once at the top of the games filter below and
+         reused here. */
+      if (GH.grammar && learningTarget() === 'de'){
         secR._tiles.appendChild(tile('📐', t('grTitle'), t('grSub'), null, function(){
           GH.speech.stop();
           leaving();
@@ -1154,8 +1297,25 @@ GH.app = (function(){
        to be `kind !== 'read'`, which is a default-yes list: the first
        activity to arrive with a third kind appeared here as well as in
        its own section, twice on one screen, with nothing to say so. */
+    /* GERMAN-ONLY ACTIVITIES DISAPPEAR ON ANOTHER COURSE.
+
+       Five games teach German morphology and nothing else: noun gender,
+       German plurals, the two-way prepositions, German conjugation, and
+       spotting a wrong German verb form. There is no English or Russian
+       version of any of them — English has no der/die/das to choose and
+       Russian marks case on the noun rather than the preposition.
+
+       So they are hidden rather than served with content they cannot
+       teach. `onlyDe` on the activity's own entry, so the game declares
+       this about itself instead of app.js keeping a list that drifts.
+
+       The other games follow the target automatically: packs.js hands
+       them the language being learned, so nothing here has to know. */
+    var learning = learningTarget();
     var games = extras.filter(function(a){
-      return a.kind !== 'read' && a.kind !== 'ref' && a.kind !== 'lesson';
+      if (a.kind === 'read' || a.kind === 'ref' || a.kind === 'lesson') return false;
+      if (a.onlyDe && learning !== 'de') return false;
+      return true;
     });
     if (games.length){
       var sec3 = section('gamesHead');
@@ -1220,15 +1380,38 @@ GH.app = (function(){
     return fallback;
   }
 
-  function openLessonsOverview(taught, grammarLessons, openTaught, openGrammar){
+  /* LIFTED OUT OF `hub()`. These were nested inside it, so the exported
+     `lessonsOverview` below — which the Table of Contents' Lessons guide
+     button calls — could not see them and would have thrown.
+
+     Nothing in either depends on hub's scope: `leaving`, `view`, `launch`
+     and `hub` are all module-level, which is why lifting them is safe
+     rather than a rewrite. */
+  function openTaughtLesson(a){
+    GH.speech.stop();
+    leaving();
+    view.textContent = '';
+    launch(function(){ a.open(view, hub); }, a.id);
+  }
+  function openGrammarLesson(l){
+    GH.speech.stop();
+    leaving();
+    view.textContent = '';
+    launch(function(){ GH.lessons.open(view, hub, l.id); }, 'lessons');
+  }
+
+  /* `exit` is optional and defaults to the hub — which is what the hub's
+     own overview button has always wanted. The Table of Contents passes
+     its own return path instead, so opening the Lessons guide from the
+     contents and pressing back lands her in the contents rather than on
+     the front page. */
+  function openLessonsOverview(taught, grammarLessons, openTaught, openGrammar, exit){
     GH.speech.stop();
     leaving();
     view.textContent = '';
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', hub);
+    var back = GH.back.button(exit || hub);
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('lsOverviewTitle')));
@@ -1267,6 +1450,18 @@ GH.app = (function(){
     });
 
     view.appendChild(list);
+
+    /* TO THE TABLE OF CONTENTS, the third of the three section guides to
+       carry it. `tocButton` is the label the real contents button already
+       uses in all three languages. */
+    if (GH.toc && GH.toc.open){
+      var tb = el('button', 'btn btn-quiet gd-toc', t('tocButton'));
+      tb.type = 'button';
+      tb.addEventListener('click', function(){
+        GH.app.play({ id:'toc', open:GH.toc.open });
+      });
+      view.appendChild(tb);
+    }
     if (GH.nav) GH.nav.ready();
   }
 
@@ -1368,7 +1563,28 @@ GH.app = (function(){
      a picker that lets her choose Spanish and then shows her an empty app
      is worse than one that says "not yet" out loud. */
   var TARGETS = ['de', 'ru', 'es', 'fr', 'tl', 'en', 'ga'];
-  var HAS_COURSE = { de:true };
+  /* WHICH TARGETS HAVE ENOUGH CONTENT TO BE A COURSE.
+
+     German, English and Russian, as of 08 Sep. Measured rather than
+     assumed: every word, every example sentence, and every line of every
+     story, poem, article and dialogue carries all three languages with
+     zero gaps. The games follow because the language swap happens at one
+     point in packs.js rather than inside each game.
+
+     The other four stay off. They have a speech voice and a name and
+     nothing else — no words, no sentences, no reading — so they show
+     `lgSoon` rather than a course with nothing in it.
+
+     HER OWN LANGUAGE IS FILTERED OUT BELOW, not here. This list says what
+     exists; the picker decides what to offer her. */
+  var HAS_COURSE = { de:true, en:true, ru:true };
+
+  /* WHICH LANGUAGE SHE IS LEARNING, in one place. Several parts of the
+     hub need it — the games filter, the grammar tile — and reading it
+     from three different spots is three chances to read it differently. */
+  function learningTarget(){
+    return (GH.player && GH.player.target) ? GH.player.target() : 'de';
+  }
 
   function langShort(code){
     var s = t('langShort_' + code);
@@ -1429,6 +1645,11 @@ GH.app = (function(){
     var list = el('div', 'lg-opts');
     var now = GH.player ? GH.player.target() : 'de';
     TARGETS.forEach(function(code){
+      /* Her own language is not a course she can take — every prompt and
+         every answer would be the same string. Skipped entirely rather
+         than shown as unavailable, so the list never offers something
+         nonsensical. Same rule as welcome.js's first-run picker. */
+      if (code === GH.i18n.lang()) return;
       var ok = !!HAS_COURSE[code];
       list.appendChild(lgOption(t('langName_' + code), ok ? null : t('lgSoon'),
         code === now, !ok,
@@ -1499,16 +1720,65 @@ GH.app = (function(){
      tells the event log which game she is using, and it lives here. */
   function list(){ return extras.slice(); }
 
-  function play(a){
+  /* `back` is optional and defaults to the hub, which is what every hub
+     tile wants. The Table of Contents passes its own, so that Back from
+     a screen SHE OPENED FROM THE TOC returns her to the TOC rather than
+     dropping her on the hub — she did not come from the hub, and sending
+     her there loses her place in the contents. */
+  function play(a, back){
     if (!a || !a.open) return;
     GH.speech.stop();
     leaving();
     view.textContent = '';
-    launch(function(){ a.open(view, hub); }, a.id);
+    launch(function(){ a.open(view, back || hub); }, a.id);
+  }
+
+  /* OPEN A GRAMMAR LESSON BY ID.
+
+     There was already an `openGrammarLesson` doing exactly this, but it
+     lives INSIDE the lessons-overview closure, so nothing outside app.js
+     could reach it. The Table of Contents therefore listed all eighteen
+     lessons and every row jumped to the hub's Lessons section instead of
+     opening the lesson it named — and the Full Tour needs to open a
+     specific one when she picks it from Waddles.
+
+     Same shape as `play()`, including the optional `back`, so the TOC can
+     send Back to itself rather than to the hub. `launch()` is what
+     records which screen she is on, which is why this cannot be done by
+     calling GH.lessons.open directly from outside. */
+  function lesson(id, back){
+    if (!id || !GH.lessons || !GH.lessons.open) return;
+    GH.speech.stop();
+    leaving();
+    view.textContent = '';
+    launch(function(){ GH.lessons.open(view, back || hub, id); }, 'lessons');
+  }
+
+  /* THE LESSONS OVERVIEW, from outside. The Table of Contents' heading
+     buttons open each section's guide, and Lessons' guide is this screen —
+     but it lived inside `hub()` as a local call, so nothing else could
+     reach it.
+
+     The two lists are rebuilt here rather than captured from `hub()`, so
+     this works whether or not the hub has been painted, and cannot serve
+     a stale list of lessons.
+
+     `exit` is where its back button goes; omitted, the hub, which is what
+     the hub's own overview button has always done. */
+  function lessonsOverview(exit){
+    var taught = extras.filter(function(a){ return a.kind === 'lesson'; });
+    /* SAME GATE AS THE HUB. This reads the lesson list a second time, so
+       without the target check the overview would list all seventeen
+       German grammar lessons on an English course while the hub showed
+       none — two answers to one question. */
+    var grammarLessons = (learningTarget() === 'de' && GH.lessons && GH.lessons.all()) || [];
+    openLessonsOverview(taught, grammarLessons,
+      openTaughtLesson, openGrammarLesson, exit);
   }
 
   return { start:start, hub:hub, register:register, find:find,
-           list:list, play:play, redraw:null };
+           list:list, play:play, lesson:lesson,
+           lessonsOverview:lessonsOverview, redraw:null };
 })();
 
 document.addEventListener('DOMContentLoaded', GH.app.start);

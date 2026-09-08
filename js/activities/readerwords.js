@@ -149,9 +149,7 @@ GH.readerWords = (function(){
     var piece = state.piece;
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){
+    var back = GH.back.button(function(){
       GH.speech.stop();
       state.onExit();
     });

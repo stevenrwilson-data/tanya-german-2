@@ -97,6 +97,11 @@ GH.grammar = (function(){
       st.sentences.forEach(function(l){ out.push(l); });
     });
     (window.GH_SONGS || []).forEach(function(song){
+      /* NOT A COURSE SONG, SO NOT COURSE PRACTICE. The language comes
+         from the audio filename — `GH_SONG_LANG`, in data/songs.js, the
+         one resolver for all six callers. Anything that is not German is
+         there to be listened to, not drilled. */
+      if (window.GH_SONG_LANG(song) !== 'de') return;
       Object.keys(song.lines).forEach(function(id){ out.push(song.lines[id]); });
     });
     return out;
@@ -108,9 +113,7 @@ GH.grammar = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('grTitle')));
@@ -162,9 +165,7 @@ GH.grammar = (function(){
 
   function topicHead(tp){
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.topic = null; paintList(); });
+    var back = GH.back.button(function(){ state.topic = null; paintList(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t(tp.key)));
@@ -647,9 +648,7 @@ GH.grammar = (function(){
     /* Return sits at the top, where the back link would be, because that is
        where she will look for the way out. */
     var bar = el('div', 'gr-over-bar');
-    var back = el('button', 'backlink gr-over-back', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', closeOverlay);
+    var back = GH.back.button(closeOverlay, 'gr-over-back');
     bar.appendChild(back);
     var ret = el('button', 'btn btn-primary gr-over-return', t('grReturn'));
     ret.type = 'button';

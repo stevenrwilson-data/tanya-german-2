@@ -72,9 +72,7 @@ GH.dictView = (function(){
     host.textContent = '';
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('dcTitle')));
@@ -124,9 +122,7 @@ GH.dictView = (function(){
     host.textContent = '';
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.head = null; paintIndex(); });
+    var back = GH.back.button(function(){ state.head = null; paintIndex(); });
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     var h = el('h1', null, entry.de);
@@ -212,6 +208,12 @@ GH.dictView = (function(){
     sub:{ ru:'Слова с несколькими значениями',
           de:'Wörter mit mehreren Bedeutungen',
           en:'Words with more than one meaning' },
+    /* The longer line, for the Table of Contents and anywhere else that
+       wants more than the tile's own four words. Steven's text, all three
+       languages. `sub` above stays as the tile caption. */
+    detail:{ ru:'Изучай слова с несколькими значениями: каждое значение показывается отдельно, а не объединяется в один общий перевод.',
+             de:'Erkunde Wörter mit mehreren Bedeutungen. Die verschiedenen Bedeutungen werden getrennt gezeigt, statt sie in einer einzigen Übersetzung zusammenzufassen.',
+             en:'Explore words that have more than one meaning, with their different senses kept separate instead of collapsed into one translation.' },
     open:open
   };
 

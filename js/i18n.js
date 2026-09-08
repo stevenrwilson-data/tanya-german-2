@@ -208,11 +208,23 @@ GH.i18n = (function(){
       refNoRussian:'Пока без сравнения',
       refNoRussianNote:'{n} {n|слово|слова|слов} ждут русского перевода',
       jumpTo:'Перейти к разделу',
+      jumpTop:'Наверх',
       filterBy:'Фильтр по теме',
       filterHint:'Выбери одну или несколько тем.',
       tocButton:'Содержание',
+      tocShort:'ОГЛ',
       tocTitle:'Содержание',
       tocSub:'Всё, что есть на сайте, и где это найти.',
+      tocNoteLessons:'Лаборатория слов и семнадцать уроков грамматики — сначала объяснение, потом практика.',
+      tocNoteRead:'Чтение и аудирование без оценок: рассказы, песни, комиксы и диалоги.',
+      tocNoteGames:'Одиннадцать игр с оценкой: словарь, род, падежи, порядок слов и спряжение.',
+      tocNoteRef:'Прогресс, словарь, грамматика, награды, настройки и магазин.',
+      descProgress:'Посмотри, что уже пора повторить, что ещё изучается, что уже усвоено, а что пока даётся с трудом. Проверь недавнюю активность и результаты по разделам и вернись к материалу, который стоит повторить.',
+      descWords:'Ищи и просматривай немецкую лексику сайта. Фильтруй слова по теме, роду, типу, множественному числу, сложным словам, алфавиту и другим признакам; слушай произношение и смотри изображения и примеры предложений, где они доступны.',
+      descAwards:'Посмотри, какие достижения ты уже получила, что для них требовалось, какие ещё впереди и сколько кристаллов можно получить за каждое из них.',
+      descStore:'Трать кристаллы на питомцев-компаньонов. Просматривай питомцев по редкости, сравнивай их характеры, лексику, цены и условия открытия и выбирай, кто будет сопровождать тебя во время занятий.',
+      descSettings:'Настрой, кто занимается, как сайт выбирает материал для повторения, какие наборы слов активны, какие голоса используются, и другие параметры обучения.',
+      descGrammar:'Открой грамматический справочник для языка, который ты изучаешь. Объяснения, модели, таблицы и примеры: формы слов, структура предложения, времена и правила, характерные именно для этого языка.',
       allTopics:'Все темы',
       nothingHere:'По этой теме пока ничего нет.',
       cwTitle:'Поймай слово',
@@ -371,6 +383,8 @@ GH.i18n = (function(){
       lgName_it:'Итальянский',
       upNew:'Есть новая версия приложения.',
       upReload:'Обновить',
+      btGiftDone:'Ты уже проходил этот тур и получил бесплатные кристаллы! Вот где находится твой баланс кристаллов.',
+      btGiftDoneF:'Ты уже проходила этот тур и получила бесплатные кристаллы! Вот где находится твой баланс кристаллов.',
       stSendHead:'Что уходит с этого устройства',
       stSendNote:'Раз в день приложение отправляет Стивену, что и когда ты делала: какие упражнения, сколько ответов, что открывала. Ни слова из твоих ответов, никаких имён. Только так он может понять, что улучшить.',
       stSendOn:'Отправлять',
@@ -588,6 +602,7 @@ GH.i18n = (function(){
       lgSoon:'not yet',
       lgSwitchNote:'Your German stays exactly where it is. Switching back brings it all straight back.',
       secShowAll:'Show all {n}',
+      secShowLess:'Свернуть',
       /* The voice picker in Settings. English placeholders in all three
          blocks — Steven's German and Russian to write. */
       stVoiceHead:'Voices',
@@ -709,7 +724,8 @@ GH.i18n = (function(){
       stAllPets:'все звери из лавки',
       stAllSlots:'все места',
       stNeedMature:'{n} закреплённых слов',
-      stNeedDays:'{n} {n|день|дня|дней} занятий',
+      stNeedDays:'5 заданий в день: {at} / {n} дней',
+      stSeeAwards:'Посмотреть достижения',
       stLegendaryNote:'Эти не продаются. Их надо заслужить.',
       ptCommon:'Обычные',
       ptRare:'Редкие',
@@ -749,7 +765,7 @@ GH.i18n = (function(){
       mzEnd_er:'добавляется -er',
       mzEnd_s:'добавляется -s',
       mzEnd_same:'ничего не добавляется',
-      stNeedRun:'{at} / {n} дней подряд',
+      stNeedRun:'5 заданий в день: {at} / {n} дней подряд',
       stNeedNow:'серия сейчас: {at} из {n} дней подряд',
       skRule:'Серия падает медленно: первые три дня — по 1 в день, потом по 2, а с двенадцатого дня по 3. Больше трёх в день не снимается никогда.',
       skPassRule:'Каждые 10 дней подряд ты получаешь один свободный день. Он тратится сам, когда ты пропускаешь, — до того как серия начнёт падать.',
@@ -768,13 +784,25 @@ GH.i18n = (function(){
       stNeedAwards2:'{at} / {n} достижений',
       stNeedLegend:'{at} / {n} легендарных',
       stLegendaryLede:'Их нельзя купить. Каждый требует месяцев занятий подряд — и чего-то ещё сверху. Самый долгий отрезок, который у тебя когда-либо был, засчитывается навсегда: один пропущенный день его не отнимет.',
-      stGateOpen:'месяц пройден',
+      stGateOpen:'Питомец разблокирован — теперь его можно купить.',
       stEpicNote:'Их мало купить. Нужен ещё месяц занятий подряд — за три хороших недели такого не наберёшь.',
       stNote_common:'Три дня занятий подряд — и полка открыта.',
       stNote_rare:'Неделя подряд.',
       stNote_epic:'Месяц подряд. Одними кристаллами тут не обойтись.',
-      stNote_legendary:'Не продаются. Три месяца подряд у каждого, у феникса пять — и что-то своё сверху. Засчитывается самый долгий отрезок, который у тебя когда-либо был: пропущенный день его не отнимет.',
+      stNote_legendary:'Сначала заслужить, потом купить. Для каждого нужно три месяца подряд, для Феникса — пять, плюс ещё одно особое условие. Считается твоя самая длинная серия за всё время, и один пропущенный день уже не сможет её отнять.',
       coExercise:'за упражнение',
+      /* SAME-LANGUAGE PLAY, two notices. The first is shown once, on the
+         first crystal ever earned this way, and states the whole rule so
+         she is not left discovering three limits separately. The second
+         appears every round after the daily allowance runs out.
+
+         `coSameLangFullM` is the masculine Russian — достиг against
+         достигла. The first notice needs no twin: nothing in it is past
+         tense. coins.js picks the key, since the end screen renders a key
+         and knows nothing about gender. */
+      coSameLangIntro:'Ты используешь один и тот же язык для L1 и L2. Ты можешь заработать до 20 кристаллов в день, но эти задания не засчитываются для ежедневных заданий, бонусных кристаллов, разблокировки питомцев или достижений.',
+      coSameLangFull:'Ты достигла сегодняшнего лимита в 20 кристаллов для обучения на одном языке. Ты можешь продолжать заниматься, но сегодня больше кристаллов не получишь.',
+      coSameLangFullM:'Ты достиг сегодняшнего лимита в 20 кристаллов для обучения на одном языке. Ты можешь продолжать заниматься, но сегодня больше кристаллов не получишь.',
       coPart:'за прослушивание',
       coDailyBonus:'пять за день — бонус!',
       /* Steven's Russian to write. */
@@ -1242,6 +1270,34 @@ GH.i18n = (function(){
       gnRule5:'На скорость: чем длиннее серия без ошибок, тем дороже каждый ответ. Ошибка обнуляет серию.',
       howtoPlay:'Как играть',
       gdOpen:'Что это за игры?',
+      /* THE REFERENCE GUIDE. Steven, 08 Sep: Reference holds eight
+         unrelated destinations and a glyph plus a name does not say what
+         is inside any of them. Deliberately RICHER than the `desc*` keys
+         the Table of Contents uses — those sit permanently under a tile
+         and must stay short; this is an optional panel she opens, so it
+         can afford two sentences: what the section holds, then what she
+         can do there.
+
+         THREE ARE GENDERED. Russian marks the listener in the past tense,
+         so Progress, Achievements and Crystals each carry a masculine
+         twin with the `M` suffix. `rgProgress` is the FEMININE one and an
+         unset gender falls to feminine, the same convention petvoice.js
+         and butler-script.js already use. Two keys rather than a gender
+         helper because that is the pattern already in this file
+         (btGiftDone / btGiftDoneF). The other five need no twin. */
+      rgOpen:'Что здесь есть?',
+      rgTitle:'Справочник',
+      rgProgress:'Посмотри, над чем ты работала и насколько хорошо материал уже усвоен. Узнай, что пора повторить, что ещё закрепляется, и сразу переходи к подходящим упражнениям.',
+      rgProgressM:'Посмотри, над чем ты работал и насколько хорошо материал уже усвоен. Узнай, что пора повторить, что ещё закрепляется, и сразу переходи к подходящим упражнениям.',
+      rgWords:'Просматривай немецкую лексику со всего сайта. Смотри картинки, переводы и примеры предложений, слушай слова или используй фильтры, чтобы найти нужные слова.',
+      rgAwards:'Посмотри, какие достижения ты уже получила и что для этого сделала. Узнай, какие ещё впереди и за какие можно получить дополнительные кристаллы.',
+      rgAwardsM:'Посмотри, какие достижения ты уже получил и что для этого сделал. Узнай, какие ещё впереди и за какие можно получить дополнительные кристаллы.',
+      rgStore:'Трать кристаллы на питомцев-компаньонов. Сравнивай питомцев, их характеры, уровни редкости и цены, а также серии учебных дней, необходимые для их открытия.',
+      rgSettings:'Настрой сайт под себя. Управляй параметрами обучения, активными наборами слов, разблокированными словами, голосами и другими настройками.',
+      rgCrystals:'Посмотри, сколько у тебя кристаллов и где ты их заработала. Проверь недавние результаты, свои лучшие дни и ежедневные Кристальные задания с дополнительными наградами.',
+      rgCrystalsM:'Посмотри, сколько у тебя кристаллов и где ты их заработал. Проверь недавние результаты, свои лучшие дни и ежедневные Кристальные задания с дополнительными наградами.',
+      rgGrammar:'Изучай немецкую грамматику с объяснениями, примерами, схемами и таблицами. Многие темы также ведут прямо к урокам, где их можно потренировать.',
+      rgMulti:'Изучай немецкие слова, которые в разных ситуациях могут иметь разные значения. Каждое значение показано отдельно, чтобы было понятно, как именно используется слово.',
       gdTitle:'Что это за игры',
       gdSub:'Коротко о каждой. Нажми на игру, чтобы узнать больше.',
       gdLesson:'Уроки',
@@ -1250,7 +1306,7 @@ GH.i18n = (function(){
       gdRef:'Справочник',
       gdPlay:'Играть',
       /* Steven's Russian to write. */
-      gdGo:'Go there',
+      gdGo:'Перейти',
       gdEmpty:'Пока ничего нет.',
       howtoGot:'Понятно',
       close:'Закрыть',
@@ -1351,7 +1407,18 @@ GH.i18n = (function(){
       listen:'Послушать',
       listenAgain:'Послушать ещё раз',
       choose:'Выбрать',
-      type:'Написать',
+      type:'Ввести',
+      fbmCopy:'Списать',
+      fbmOptions:'Варианты',
+      fbmPeek:'Подсмотреть',
+      fbhChoose:'Четыре варианта — выбери один.',
+      fbhCopy:'Слово показано — введи его, пока смотришь на него.',
+      fbhOptions:'Четыре варианта остаются на экране — введи слово.',
+      fbhPeek:'Посмотри на слово, затем оно исчезнет — введи его по памяти.',
+      fbhType:'Только аудио, больше никаких подсказок.',
+      fbReady:'Готово',
+      fbLegendTitle:'Уровни подсказок',
+      recOn:'Записать',
       typeHere:'Напиши слово…',
       check:'Проверить',
       next:'Дальше',
@@ -1576,11 +1643,23 @@ GH.i18n = (function(){
       refNoRussian:'Noch kein Vergleich',
       refNoRussianNote:'{n} Wörter warten auf die russische Übersetzung',
       jumpTo:'Zum Abschnitt',
+      jumpTop:'Nach oben',
       filterBy:'Nach Thema filtern',
       filterHint:'Wähle ein oder mehrere Themen.',
       tocButton:'Inhaltsverzeichnis',
+      tocShort:'IV',
       tocTitle:'Inhaltsverzeichnis',
       tocSub:'Alles auf der Seite und wo du es findest.',
+      tocNoteLessons:'Wortlabor und siebzehn Grammatiklektionen, jede erklärt und dann geübt.',
+      tocNoteRead:'Lesen und Hören, ohne Bewertung: Geschichten, Lieder, Comics und Dialoge.',
+      tocNoteGames:'Elf bewertete Spiele — Wortschatz, Genus, Kasus, Wortstellung und Konjugation.',
+      tocNoteRef:'Fortschritt, Wortschatz, Grammatik, Belohnungen, Einstellungen und der Shop.',
+      descProgress:'Sieh, was fällig, noch in Arbeit, bereits gefestigt oder besonders hartnäckig ist. Prüfe deine letzten Aktivitäten und Ergebnisse nach Bereichen und kehre direkt zu dem Stoff zurück, den du noch einmal üben solltest.',
+      descWords:'Durchsuche und erkunde den deutschen Wortschatz der Seite. Filtere nach Thema, Genus, Wortart, Plural, zusammengesetzten Wörtern, Alphabet und mehr; höre Wörter und sieh Bilder und Beispielsätze, wo sie verfügbar sind.',
+      descAwards:'Sieh, welche Erfolge du bereits erreicht hast, was dafür nötig war, welche noch vor dir liegen und welche Kristallbelohnungen damit verbunden sind.',
+      descStore:'Gib Kristalle für Lernbegleiter aus. Durchsuche die Haustiere nach Seltenheit, vergleiche ihre Persönlichkeiten, ihren Wortschatz, ihre Preise und Freischaltbedingungen und wähle, welche Begleiter dich beim Lernen begleiten.',
+      descSettings:'Lege fest, wer übt, wie die Seite Wiederholungsstoff auswählt, welche Wortschatzpakete aktiv sind, welche Stimmen verwendet werden und weitere Lerneinstellungen.',
+      descGrammar:'Öffne die Grammatikübersicht für die Sprache, die du lernst. Erklärungen, Muster, Tabellen und Beispiele zu Wortformen, Satzbau, Zeitformen und den Regeln, die für diese Sprache besonders sind.',
       allTopics:'Alle Themen',
       nothingHere:'Zu diesem Thema gibt es noch nichts.',
       cwTitle:'Wörter fangen',
@@ -1739,6 +1818,11 @@ GH.i18n = (function(){
       lgName_it:'Italienisch',
       upNew:'Es gibt eine neue Version der App.',
       upReload:'Neu laden',
+      btGiftDone:'Du hast diese Tour schon gemacht und deine kostenlosen Kristalle bekommen! Hier findest du deinen Kristallstand.',
+      /* German has no gendered past here, so the F key is the same line.
+         Present rather than absent, so butler.js can ask for it in any
+         language without checking which one it is in. */
+      btGiftDoneF:'Du hast diese Tour schon gemacht und deine kostenlosen Kristalle bekommen! Hier findest du deinen Kristallstand.',
       stSendHead:'Was dieses Gerät verlässt',
       stSendNote:'Einmal am Tag schickt die App an Steven, was und wann du geübt hast: welche Übungen, wie viele Antworten, was du geöffnet hast. Kein Wort aus deinen Antworten, keine Namen. Nur so kann er sehen, was besser werden muss.',
       stSendOn:'Senden',
@@ -1952,6 +2036,7 @@ GH.i18n = (function(){
       lgSoon:'not yet',
       lgSwitchNote:'Your German stays exactly where it is. Switching back brings it all straight back.',
       secShowAll:'Show all {n}',
+      secShowLess:'Weniger anzeigen',
       /* The voice picker in Settings. English placeholders in all three
          blocks — Steven's German and Russian to write. */
       stVoiceHead:'Voices',
@@ -2073,7 +2158,8 @@ GH.i18n = (function(){
       stAllPets:'alle Tiere aus dem Laden',
       stAllSlots:'alle Plätze',
       stNeedMature:'{n} gefestigte Wörter',
-      stNeedDays:'{n} Tage geübt',
+      stNeedDays:'5 Aktivitäten am Tag: {at} / {n} Tage',
+      stSeeAwards:'Erfolge ansehen',
       stLegendaryNote:'Diese sind unverkäuflich. Man muss sie sich verdienen.',
       ptCommon:'Gewöhnlich',
       ptRare:'Selten',
@@ -2113,7 +2199,7 @@ GH.i18n = (function(){
       mzEnd_er:'-er dazu',
       mzEnd_s:'-s dazu',
       mzEnd_same:'kommt nichts dazu —',
-      stNeedRun:'{at} / {n} Tage in Folge',
+      stNeedRun:'5 Aktivitäten am Tag: {at} / {n} Tage in Folge',
       stNeedNow:'aktuelle Serie: {at} von {n} Tagen in Folge',
       skRule:'Die Serie fällt langsam: die ersten drei Tage je 1, danach je 2, ab dem zwölften Tag je 3. Mehr als 3 pro Tag nie.',
       skPassRule:'Alle 10 Tage in Folge bekommst du einen Freitag. Er wird von selbst eingesetzt, wenn du einen Tag auslässt — bevor die Serie überhaupt fällt.',
@@ -2132,13 +2218,15 @@ GH.i18n = (function(){
       stNeedAwards2:'{at} / {n} Erfolge',
       stNeedLegend:'{at} / {n} legendäre',
       stLegendaryLede:'Unverkäuflich. Jedes verlangt Monate an aufeinanderfolgenden Tagen — und darüber hinaus etwas Eigenes. Deine längste Serie zählt dauerhaft: ein verpasster Tag nimmt sie nicht weg.',
-      stGateOpen:'Monat geschafft',
+      stGateOpen:'Haustier freigeschaltet — jetzt zum Kauf verfügbar.',
       stEpicNote:'Kaufen genügt nicht. Es braucht zusätzlich einen Monat an aufeinanderfolgenden Tagen — in drei guten Wochen ist das nicht zu holen.',
       stNote_common:'Drei Tage hintereinander, dann ist das Regal offen.',
       stNote_rare:'Eine Woche hintereinander.',
       stNote_epic:'Ein Monat hintereinander. Mit Kristallen allein geht das nicht.',
-      stNote_legendary:'Unverkäuflich. Drei Monate hintereinander für jedes, fünf für den Phönix — und dazu etwas Eigenes. Es zählt deine längste Serie überhaupt: ein verpasster Tag nimmt sie nicht weg.',
+      stNote_legendary:'Erst verdient, dann gekauft. Für jeden brauchst du drei Monate in Folge, für den Phönix fünf, und dazu kommt noch eine eigene Bedingung. Es zählt deine längste Serie überhaupt, und ein verpasster Tag kann sie dir nicht mehr nehmen.',
       coExercise:'für die Übung',
+      coSameLangIntro:'Du verwendest dieselbe Sprache für L1 und L2. Du kannst bis zu 20 Kristalle pro Tag verdienen, aber diese Aktivitäten zählen nicht für tägliche Aufgaben, Bonuskristalle, das Freischalten von Haustieren oder Erfolge.',
+      coSameLangFull:'Du hast das heutige Limit von 20 Kristallen für das Lernen in derselben Sprache erreicht. Du kannst weiterüben, aber heute keine weiteren Kristalle verdienen.',
       coPart:'fürs Zuhören',
       coDailyBonus:'fünf am Tag — Bonus!',
       /* Steven's German to write. */
@@ -2603,6 +2691,16 @@ GH.i18n = (function(){
       gnRule5:'Auf Zeit: je länger die Serie, desto mehr zählt jede Antwort. Ein Fehler setzt sie zurück.',
       howtoPlay:'Spielregeln',
       gdOpen:'Was sind das für Spiele?',
+      rgOpen:'Was gibt es hier?',
+      rgTitle:'Nachschlagen',
+      rgProgress:'Sieh, woran du gearbeitet hast und wie gut es schon sitzt. Finde heraus, was wiederholt werden sollte, was noch in Arbeit ist, und springe direkt zu passenden Übungen.',
+      rgWords:'Durchsuche den deutschen Wortschatz der gesamten Seite. Sieh dir Bilder, Übersetzungen und Beispielsätze an, höre die Wörter oder filtere die Liste nach bestimmten Wortarten und Themen.',
+      rgAwards:'Sieh dir deine erreichten Erfolge an und was du dafür geschafft hast. Entdecke, welche noch vor dir liegen und für welche du zusätzliche Kristalle bekommst.',
+      rgStore:'Gib deine Kristalle für Lernbegleiter aus. Vergleiche Haustiere, ihre Persönlichkeiten, Seltenheitsstufen und Preise sowie die Lernserien, die du zum Freischalten brauchst.',
+      rgSettings:'Stelle ein, wie die Seite für dich funktioniert. Verwalte deine Lernoptionen, aktiven Wortschätze, freigeschalteten Wörter, Stimmen und weitere Einstellungen.',
+      rgCrystals:'Sieh, wie viele Kristalle du hast und wo du sie verdient hast. Prüfe deine letzten Ergebnisse, deine besten Kristall-Tage und die täglichen Kristall-Quests für zusätzliche Belohnungen.',
+      rgGrammar:'Schlage deutsche Grammatik mit Erklärungen, Beispielen, Mustern und Tabellen nach. Viele Themen führen auch direkt zu Lektionen, in denen du sie üben kannst.',
+      rgMulti:'Entdecke deutsche Wörter, die je nach Situation unterschiedliche Bedeutungen haben können. Jede Bedeutung wird einzeln gezeigt, damit du siehst, wie das Wort tatsächlich verwendet wird.',
       gdTitle:'Was sind das für Spiele',
       gdSub:'Kurz zu jedem. Antippen für mehr.',
       gdLesson:'Lektionen',
@@ -2611,7 +2709,7 @@ GH.i18n = (function(){
       gdRef:'Nachschlagen',
       gdPlay:'Spielen',
       /* Steven's German to write. */
-      gdGo:'Go there',
+      gdGo:'Dorthin',
       gdEmpty:'Noch nichts da.',
       howtoGot:'Verstanden',
       close:'Schließen',
@@ -2711,8 +2809,19 @@ GH.i18n = (function(){
       back:'Zurück',
       listen:'Anhören',
       listenAgain:'Noch einmal anhören',
-      choose:'Auswählen',
-      type:'Schreiben',
+      choose:'Wählen',
+      type:'Tippen',
+      fbmCopy:'Abschreiben',
+      fbmOptions:'Auswahl',
+      fbmPeek:'Kurz ansehen',
+      fbhChoose:'Vier Möglichkeiten – tippe auf eine.',
+      fbhCopy:'Das Wort wird angezeigt – tippe es ab, während du es siehst.',
+      fbhOptions:'Die vier Möglichkeiten bleiben sichtbar – tippe das Wort ein.',
+      fbhPeek:'Schau dir das Wort an, dann verschwindet es – tippe es aus dem Gedächtnis.',
+      fbhType:'Nur das Audio, sonst keine Hilfe.',
+      fbReady:'Fertig',
+      fbLegendTitle:'Die fünf Stufen',
+      recOn:'Aufnehmen',
       typeHere:'Wort schreiben…',
       check:'Prüfen',
       next:'Weiter',
@@ -2937,11 +3046,43 @@ GH.i18n = (function(){
       refNoRussian:'Not yet comparable',
       refNoRussianNote:'{n} words still need their Russian',
       jumpTo:'Jump to section',
+      jumpTop:'Back to top',
       filterBy:'Filter by topic',
       filterHint:'Pick one or more topics.',
       tocButton:'Table of Contents',
+      /* THE COMPACT LABEL for the Table of Contents pill in the jumpbar.
+         Shown under 560px; `tocButton` shows above it. The row is sticky
+         and already ten pills wide, so seventeen characters of
+         'Table of Contents' is the difference between three rows pinned
+         to the top of a phone and two.
+
+         Steven's set, for every language he plans to add, so a new
+         language does not have to re-decide it:
+
+           English     TOC        Spanish     IND
+           German      IV         Italian     IND
+           Russian     OGL        French      TDM
+           Ukrainian   ZMIST      Tagalog     TN
+
+         (Written in the Latin alphabet here only so this comment stays
+         readable in any editor; the live values are in Cyrillic where
+         they should be.)
+
+         Ukrainian is the odd one: Zmist is the whole word rather than an
+         abbreviation, and short enough not to need one. */
+      tocShort:'TOC',
       tocTitle:'Table of Contents',
       tocSub:'Everything on the site, and where to find it.',
+      tocNoteLessons:'Word Lab and seventeen grammar lessons, each explained then practised.',
+      tocNoteRead:'Reading and listening, nothing scored: stories, songs, comics and dialogues.',
+      tocNoteGames:'Eleven scored games — vocabulary, gender, case, word order and conjugation.',
+      tocNoteRef:'Progress, vocabulary, grammar, rewards, settings, and the Store.',
+      descProgress:'See what is due, in progress, settled, or stubborn; review recent activity and performance by area; and jump back into material that is worth revisiting.',
+      descWords:'Search and browse the German vocabulary on the site. Filter by topic, gender, type, plurals, compounds, alphabetical order, and more; hear words and see pictures and example sentences where available.',
+      descAwards:'See the achievements you have earned, what each one required, what is still ahead, and the Crystal rewards attached to them.',
+      descStore:'Spend Crystals on learning companions. Browse pets by rarity, compare their personalities, vocabulary, prices, and unlock requirements, and choose which companions come along with you.',
+      descSettings:'Manage who is practising, how the site chooses review material, which vocabulary sets are active, voice choices, and other learner preferences.',
+      descGrammar:'Open the grammar reference for the language you are learning. Explanations, patterns, tables and examples covering word forms, sentence structure, tenses, and the rules particular to that language.',
       allTopics:'All topics',
       nothingHere:'Nothing for this topic yet.',
       cwTitle:'Catch the word',
@@ -3100,6 +3241,8 @@ GH.i18n = (function(){
       lgName_it:'Italian',
       upNew:'There is a newer version of the app.',
       upReload:'Reload',
+      btGiftDone:'You’ve already taken this tour and got your free crystals! Here’s where your crystal balance is.',
+      btGiftDoneF:'You’ve already taken this tour and got your free crystals! Here’s where your crystal balance is.',
       stSendHead:'What leaves this device',
       stSendNote:'Once a day the app sends Steven what you practised and when: which exercises, how many answers, what you opened. None of your answers, no names. It is the only way he can tell what needs to be better.',
       stSendOn:'Send',
@@ -3310,6 +3453,7 @@ GH.i18n = (function(){
       lgSoon:'not yet',
       lgSwitchNote:'Your German stays exactly where it is. Switching back brings it all straight back.',
       secShowAll:'Show all {n}',
+      secShowLess:'Show less',
       /* The voice picker in Settings. English placeholders in all three
          blocks — Steven's German and Russian to write. */
       stVoiceHead:'Voices',
@@ -3429,7 +3573,8 @@ GH.i18n = (function(){
       stAllPets:'every animal in the store',
       stAllSlots:'every place',
       stNeedMature:'{n} settled words',
-      stNeedDays:'{n} days of practice',
+      stNeedDays:'5 activities a day: {at} / {n} days',
+      stSeeAwards:'See achievements',
       stLegendaryNote:'These are not for sale. They have to be earned.',
       ptCommon:'Common',
       ptRare:'Rare',
@@ -3469,7 +3614,7 @@ GH.i18n = (function(){
       mzEnd_er:'-er is added',
       mzEnd_s:'-s is added',
       mzEnd_same:'nothing is added',
-      stNeedRun:'{at} / {n} days in a row',
+      stNeedRun:'5 activities a day: {at} / {n} days in a row',
       stNeedNow:'run right now: {at} of {n} days in a row',
       skRule:'The streak falls slowly: 1 a day for the first three days, then 2 a day, then 3 a day from day twelve. Never more than 3 in a day.',
       skPassRule:'Every 10 days in a row earns you one free day. It is spent for you when you miss — before the streak falls at all.',
@@ -3488,13 +3633,15 @@ GH.i18n = (function(){
       stNeedAwards2:'{at} / {n} achievements',
       stNeedLegend:'{at} / {n} legendary',
       stLegendaryLede:'Not for sale. Each asks for months of practice on consecutive days, and then something of its own. Your longest run ever is what counts, and it counts permanently — one missed day cannot take it away.',
-      stGateOpen:'the month is behind you',
+      stGateOpen:'Pet unlocked — now available to buy.',
       stEpicNote:'Buying is not enough. These also want a month of practice on consecutive days, which no amount of saving up will shortcut.',
       stNote_common:'Three days in a row opens the shelf.',
       stNote_rare:'A week in a row.',
       stNote_epic:'A month in a row. Crystals alone will not do it.',
-      stNote_legendary:'Not for sale. Three months in a row for each, five for the Phoenix, and then something of its own. Your longest run ever is what counts, and one missed day cannot take it away.',
+      stNote_legendary:'Earned first, then bought. Three months in a row for each, five for the Phoenix, and one more condition of its own besides. Your longest run ever is what counts, and one missed day can no longer take it away.',
       coExercise:'for the exercise',
+      coSameLangIntro:'You\u2019re using the same language for L1 and L2. You can earn up to 20 crystals per day, but these activities don\u2019t count toward Daily Tasks, bonus crystals, pet unlocks, or achievements.',
+      coSameLangFull:'You\u2019ve reached today\u2019s 20-crystal limit for same-language learning. You can keep practicing, but you won\u2019t earn any more crystals today.',
       coPart:'for listening',
       coDailyBonus:'five in a day — bonus!',
       coQuest:'Daily quest',
@@ -3960,6 +4107,16 @@ GH.i18n = (function(){
       gnRule5:'Speed run: the longer your streak, the more each answer is worth. A mistake resets it.',
       howtoPlay:'How to play',
       gdOpen:'What are these games?',
+      rgOpen:'What’s here?',
+      rgTitle:'Reference',
+      rgProgress:'See what you’ve been working on and how well it’s sticking. Find what’s due for review, what’s still in progress, and jump directly into suggested practice.',
+      rgWords:'Browse the German vocabulary used throughout the site. See pictures, translations, example sentences, and audio, or filter the list to find particular kinds of words.',
+      rgAwards:'See the achievements you’ve earned and what you did to unlock them. Check what’s still ahead and which achievements reward extra Crystals.',
+      rgStore:'Spend your Crystals on learning companions. Compare pets, personalities, rarity levels, prices, and the learning streaks needed to unlock them.',
+      rgSettings:'Choose how the site works for you. Manage learning preferences, active vocabulary sets, unlocked words, voices, and other options.',
+      rgCrystals:'See how many Crystals you have and where you’ve earned them. Check recent totals, your best Crystal days, and daily Crystal Quests for bonus rewards.',
+      rgGrammar:'Look up German grammar with explanations, examples, patterns, and tables. Many topics also link directly to lessons where you can practise them.',
+      rgMulti:'Explore German words that can mean different things in different situations. Each meaning is kept separate so you can see how the word is actually being used.',
       gdTitle:'What these games are',
       gdSub:'A line on each. Tap one for more.',
       gdLesson:'Lessons',
@@ -4069,6 +4226,17 @@ GH.i18n = (function(){
       listenAgain:'Listen again',
       choose:'Choose',
       type:'Type',
+      fbmCopy:'Copy',
+      fbmOptions:'Options',
+      fbmPeek:'Peek',
+      fbhChoose:'Four options, tap one.',
+      fbhCopy:'The word is shown; type it while looking.',
+      fbhOptions:'The four options stay on screen; type it.',
+      fbhPeek:'Look at the word, then it goes; type from memory.',
+      fbhType:'Nothing but the audio.',
+      fbReady:'Got it',
+      fbLegendTitle:'The five levels',
+      recOn:'Record',
       typeHere:'Type the word…',
       check:'Check',
       next:'Next',

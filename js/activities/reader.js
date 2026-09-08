@@ -341,9 +341,7 @@ GH.reader = (function(){
     host.textContent = '';
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('rdTitle')));
@@ -456,9 +454,7 @@ GH.reader = (function(){
     var p = state.piece, sec = state.sec;
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ GH.speech.stop(); paintIndex(); });
+    var back = GH.back.button(function(){ GH.speech.stop(); paintIndex(); });
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, pick(p.title)));
@@ -507,7 +503,10 @@ GH.reader = (function(){
 
     var acts = el('div', 'done-actions');
 
-    var hear = el('button', 'btn btn-ghost', '\ud83d\udd0a ' + t('rdHearAll'));
+    /* `rd-hear` so the Full Tour can point at this one button. It was
+       `btn btn-ghost` and nothing else, which three other controls on the
+       same screen also are, so a tour step could not name it. */
+    var hear = el('button', 'btn btn-ghost rd-hear', '\ud83d\udd0a ' + t('rdHearAll'));
     hear.type = 'button';
     hear.addEventListener('click', function(){
       GH.speech.say((p.sentences || []).map(function(s){ return s.de; }).join(' '));
@@ -568,7 +567,9 @@ GH.reader = (function(){
     if (hasQs && !left){
       /* Dimmed rather than hidden while the warning is up, so she can see
          what she is about to give up. */
-      var go = el('button', 'btn btn-primary' +
+      /* `rd-startqs` on both the live and the spent version, so the tour
+         can point at it whichever state she arrives in. */
+      var go = el('button', 'btn btn-primary rd-startqs' +
         (state.confirmTr ? ' is-spent' : ' js-advance'), t('rdStartQs', { n:ASK }));
       go.type = 'button';
       if (!state.confirmTr) go.addEventListener('click', beginQuestions);
@@ -577,7 +578,7 @@ GH.reader = (function(){
       /* The button stays on the screen, dimmed and dead, rather than
          vanishing. A control that disappears reads as a bug; a control
          that is visibly spent reads as a rule. */
-      var dim = el('button', 'btn btn-primary is-spent', t('rdStartQs', { n:ASK }));
+      var dim = el('button', 'btn btn-primary rd-startqs is-spent', t('rdStartQs', { n:ASK }));
       dim.type = 'button';
       dim.disabled = true;
       acts.appendChild(dim);
@@ -692,9 +693,7 @@ GH.reader = (function(){
     var p = state.piece;
 
     var headBar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ GH.speech.stop(); paintIndex(); });
+    var back = GH.back.button(function(){ GH.speech.stop(); paintIndex(); });
     headBar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, pick(p.title)));

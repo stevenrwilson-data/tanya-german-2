@@ -70,8 +70,27 @@ GH.jukebox = (function(){
     return (GH.player ? GH.player.id() + ':' + GH.player.target() : 'solo');
   }
 
+  /* Same belt as the songbook, same storage key, same resolver
+     (`window.GH_SONG_LANG` in data/songs.js). German is never hidden;
+     every other language appears only when switched on in the songbook's
+     belt, and defaults to off.
+
+     Split on the comma rather than `indexOf` on the raw string —
+     `indexOf('ru')` would also match `rus`. */
+  var LANG_KEY = 'gh-song-langs';
+  function langsOn(){
+    var raw = '';
+    try { raw = window.localStorage.getItem(LANG_KEY) || ''; } catch (e){}
+    var on = { de:true };
+    raw.split(',').forEach(function(c){ if (c) on[c] = true; });
+    return on;
+  }
+
   function songs(){
-    return (window.GH_SONGS || []).filter(function(s){ return !!s.audio; });
+    var on = langsOn();
+    return (window.GH_SONGS || []).filter(function(s){
+      return !!s.audio && on[window.GH_SONG_LANG(s)];
+    });
   }
 
   function byStem(stem){
@@ -320,11 +339,9 @@ GH.jukebox = (function(){
     host.textContent = '';
 
     var bar = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
     /* The music does NOT stop on the way out. That is the whole feature:
        she queues it up, leaves the screen, locks the phone and walks. */
-    back.addEventListener('click', function(){ state.onExit(); });
+    var back = GH.back.button(function(){ state.onExit(); });
     bar.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('jbTitle')));

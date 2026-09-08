@@ -5,3 +5,4 @@ _local-only/
 node_modules/
 functions/
 js/concepts.js
+audit.sh

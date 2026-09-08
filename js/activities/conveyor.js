@@ -322,9 +322,7 @@ GH.conveyor = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ stop(); GH.speech.stop(); state.onExit(); });
+    var back = GH.back.button(function(){ stop(); GH.speech.stop(); state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('cvTitle')));

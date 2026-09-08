@@ -242,6 +242,73 @@ GH.songs = (function(){
     });
   }
 
+  /* ---------- RECORDING, OFF BY DEFAULT ----------
+
+     Steven: "For comic and songs, add a button at top to turn that
+     feature on but have it hidden by default... If there's more than 1
+     line then add a mic next to every line (like do that for songs) but
+     it is off by default so they only appear if you toggle it on up at
+     the top."
+
+     A song is thirty lines; thirty mics nobody asked for is a wall. So
+     the switch lives in the head row and the mics appear only when it is
+     on — and the switch is remembered per player, because someone
+     practising pronunciation wants it on for every song rather than once.
+
+     The state machine, the takes and the one-recorder-at-a-time rule all
+     live in GH.record.deck(). This file only says where the button goes
+     and how a line is spoken. */
+  var rec = null;
+
+  function deck(){
+    if (!rec && GH.record && GH.record.deck) rec = GH.record.deck(paintSong);
+    return rec;
+  }
+
+  /* ---------- LANGUAGES ----------
+
+     `window.GH_SONG_LANG` in data/songs.js is the one resolver: it reads
+     the language off the end of the audio filename and covers every
+     language the app supports, not just English and Russian. This is a
+     multilingual site — Steven, 07 Sep — so nothing here may hardcode a
+     pair of languages. */
+  function songLang(song){ return window.GH_SONG_LANG(song); }
+
+  /* The line UNDER the lyric: her own language, and NOTHING when the song
+     is already in it.
+
+     Steven, 07 Sep, explicitly: an English song shown to an English
+     speaker gets NO translation line — not a German one. A first draft
+     fell back to German and that was wrong. Her language or nothing. */
+  function subLang(song){
+    var her = GH.i18n.lang();
+    return (her === songLang(song)) ? null : her;
+  }
+
+  /* Which languages the lists are showing. German is never hidden — it is
+     the course. Everything else is off until she asks for it, so adding a
+     set of songs in a new language cannot change what she sees.
+
+     Stored as a comma list of codes, so a fourth and fifth language need
+     no change here. Split on the comma rather than using `indexOf` on the
+     raw string: `indexOf('ru')` would also match `rus` or a future `ru-…`
+     and switch on the wrong set. */
+  var LANG_KEY = 'gh-song-langs';
+  function langsOn(){
+    var raw = '';
+    try { raw = window.localStorage.getItem(LANG_KEY) || ''; } catch (e){}
+    var on = { de:true };
+    raw.split(',').forEach(function(c){ if (c) on[c] = true; });
+    return on;
+  }
+  function setLang(code, val){
+    var on = langsOn();
+    on[code] = !!val;
+    var out = [];
+    Object.keys(on).forEach(function(c){ if (c !== 'de' && on[c]) out.push(c); });
+    try { window.localStorage.setItem(LANG_KEY, out.join(',')); } catch (e){}
+  }
+
   function lineRow(song, id, n){
     var L = song.lines[id];
     if (!L) return el('p', 'sg-line', '?');
@@ -249,10 +316,31 @@ GH.songs = (function(){
     row.type = 'button';
     if (n) row.appendChild(el('span', 'sg-num', n));
     var body = el('span', 'sg-line-body');
-    body.appendChild(el('span', 'sg-de', L.de));
-    var lang = GH.i18n.lang();
-    if (lang !== 'de' && L[lang]) body.appendChild(el('span', 'sg-tr', L[lang]));
+
+    /* THE SONG'S OWN LANGUAGE IS THE LYRIC. Steven, 07 Sep: an English
+       song shows English lyrics with German or Russian underneath, a
+       Russian song shows Russian with English or German underneath.
+       Before this, `L.de` was hardcoded as the lyric, which on an English
+       song would have shown an empty main line with the English tucked
+       beneath it as though it were the translation. */
+    var main = songLang(song);
+    var sub = subLang(song);
+    body.appendChild(el('span', 'sg-de', L[main] || L.de || ''));
+    if (sub && L[sub]) body.appendChild(el('span', 'sg-tr', L[sub]));
     row.appendChild(body);
+
+    /* TAP-TO-SPEAK ONLY ON GERMAN. `GH.speech.say()` always uses the
+       course voice and locale — `LOCALE[target()]` in speech.js — so an
+       English lyric would be read aloud by the German voice. The songbook
+       already refuses to speak non-German lines in its `L.only` branch;
+       this keeps the two consistent rather than teaching her a German
+       pronunciation of an English line. The audio track still plays the
+       whole song, which is the point of these songs. */
+    if (main !== 'de'){
+      row.disabled = true;
+      return row;
+    }
+
     row.addEventListener('click', function(){
       GH.speech.say(L.de);
       var first = !toldYet();
@@ -263,6 +351,19 @@ GH.songs = (function(){
          rows to speak one line. */
       if (first || done) paintSong();
     });
+
+    /* The mic goes BESIDE the line, never inside it: `row` is a <button>,
+       and a button inside a button is invalid HTML whose clicks fight
+       each other. So when recording is on, the line and its mic share a
+       wrapper instead. */
+    var d = deck();
+    var mic = d && d.row(id, function(){ GH.speech.say(L.de); });
+    if (mic){
+      var wrap = el('div', 'sg-line-wrap');
+      wrap.appendChild(row);
+      wrap.appendChild(mic);
+      return wrap;
+    }
     return row;
   }
 
@@ -423,15 +524,56 @@ GH.songs = (function(){
   function paintList(){
     host.textContent = '';
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ stopAudio(); state.onExit(); });
+    var back = GH.back.button(function(){ stopAudio(); state.onExit(); });
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('sgTitle')));
     titles.appendChild(el('p', null, t('sgSub')));
     head.appendChild(titles);
     host.appendChild(head);
+
+    /* ---------- THE LANGUAGE BELT ----------
+
+       One switch per language that actually has songs. German has none:
+       it is the course and is never hidden. All default to off, so adding
+       a set of songs in a new language cannot change what she sees until
+       she asks for it.
+
+       `.chips` / `.chip` / `.chip.on` are the hub's own topic-filter
+       classes — NOT `is-on`, which is the convention elsewhere in the app
+       and would have rendered these permanently unselected. Reusing the
+       real classes means no new CSS.
+
+       A switch appears only when at least one song in that language
+       exists, so the belt is absent today rather than showing two
+       controls that filter nothing. */
+    (function(){
+      var have = {};
+      (window.GH_SONGS || []).forEach(function(sg){ have[songLang(sg)] = true; });
+      /* Built from what is actually on disk, in a fixed order so the belt
+         does not reshuffle as songs are added. German is excluded: it is
+         the course and has no switch. Any language the resolver knows can
+         appear here without another edit. */
+      var codes = ['en', 'ru', 'es', 'fr', 'it', 'uk', 'tl', 'ga'].filter(function(c){
+        return have[c];
+      });
+      if (!codes.length) return;
+
+      var belt = el('div', 'chips');
+      var now = langsOn();
+      codes.forEach(function(code){
+        var b = el('button', 'chip' + (now[code] ? ' on' : ''));
+        b.type = 'button';
+        b.textContent = t('langName_' + code);
+        b.setAttribute('aria-pressed', now[code] ? 'true' : 'false');
+        b.addEventListener('click', function(){
+          setLang(code, !langsOn()[code]);
+          paintList();
+        });
+        belt.appendChild(b);
+      });
+      host.appendChild(belt);
+    })();
 
     /* ---------- PAIRED SONGS SIT TOGETHER ----------
 
@@ -451,15 +593,24 @@ GH.songs = (function(){
        ONE HALF ALONE IS NOT A PAIR. While only her version exists it
        renders as an ordinary tile, so a half-finished pair never shows a
        box with a gap in it. */
-    var all = (window.GH_SONGS || []).slice();
+    /* FILTERED BY THE BELT. German is always shown; English and Russian
+       songs appear only when switched on, and default to off so that
+       adding them cannot change what Tanya sees until she asks for it. */
+    var on = langsOn();
+    var all = (window.GH_SONGS || []).filter(function(sg){
+      return on[songLang(sg)];
+    });
 
     function tileFor(song){
       var b = el('button', 'tile');
       b.type = 'button';
       b.appendChild(el('span', 'tile-glyph', '🎵'));
-      b.appendChild(el('span', 'tile-name', song.title.de));
-      var lang = GH.i18n.lang();
-      if (lang !== 'de') b.appendChild(el('span', 'tile-sub', song.title[lang]));
+      /* Same rule as the lyrics: the song's own language is the title,
+         her language is the subtitle. */
+      var mainL = songLang(song);
+      var subL = subLang(song);
+      b.appendChild(el('span', 'tile-name', song.title[mainL] || song.title.de));
+      if (subL && song.title[subL]) b.appendChild(el('span', 'tile-sub', song.title[subL]));
       /* A section whose languages break differently has no shared line
          list — it has one per language — so it is counted in the German,
          which is the song being learned. Reading `.lines` on it returns
@@ -625,10 +776,23 @@ GH.songs = (function(){
     host.textContent = '';
 
     var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '‹ ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ stopAudio(); state.song = null; paintList(); });
+    var back = GH.back.button(function(){
+      stopAudio();
+      /* Leaving the song frees every take. A blob URL that outlives the
+         screen holding it is a leak nothing will ever revoke. */
+      if (rec) rec.clear();
+      state.song = null;
+      paintList();
+    });
     head.appendChild(back);
+
+    /* The recording switch, scoped to `song` so turning it on here does
+       not turn it on in the comic. Returns null where recording is
+       impossible — an http:// origin has no getUserMedia at all, and a
+       toggle that cannot do anything is worse than no toggle. */
+    var d = deck();
+    var recBtn = d && d.button('song');
+    if (recBtn) head.appendChild(recBtn);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, song.title.de));
     /* Marked so the block below can be inserted after the header without
@@ -667,7 +831,16 @@ GH.songs = (function(){
       }
     }
     if (GH.fillBlank && GH.fillBlank.mount && GH.text && GH.text.shuffle){
-      var fb = el('button', 'btn btn-quiet sg-fill', t('sgFill', { n:FILL_LINES }));
+      /* `btn-ghost`, NOT `btn-quiet`. Quiet is a bare underlined text link
+         — no background, no border — and this is one of the day's five
+         activities, so it was the least visible thing on the screen while
+         being one of the most important. Steven: "Fill in 10 lines is an
+         activity for the day, but it looks almost invisible. It needs to
+         at least be a button."
+
+         Ghost is the outlined pill the Word list button below already
+         uses, so the two read as the same kind of thing. */
+      var fb = el('button', 'btn btn-ghost sg-fill', t('sgFill', { n:FILL_LINES }));
       fb.type = 'button';
       fb.addEventListener('click', function(){ openFill(song); });
       row.appendChild(fb);

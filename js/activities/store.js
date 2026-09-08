@@ -177,9 +177,23 @@ GH.store = (function(){
       var s = GH.tutor ? GH.tutor.stats() : { mature:0 };
       if (s.mature < n.mature) return false;
     }
+    /* DAYS FIVE ACTIVITIES WERE FINISHED. Not days the app was opened.
+
+       This read `GH.coach.stats().days` — the coach's counter, which
+       increments on any visit. So a gate meant to say "complete five
+       activities on ninety days" was satisfied by opening the app ninety
+       times and doing nothing.
+
+       `GH.coins.fullDays()` is the counter for the real thing: it goes up
+       only when `p.done` reaches `DAILY_TARGET`, which is five. It was
+       built, exported, and never read by anything. The comment on the
+       `run` gate below has always drawn exactly this distinction — the
+       code just did not follow it.
+
+       Total days, deliberately not consecutive: `run` and `now` are the
+       streak gates and this is the one that is not. */
     if (n.days){
-      var c = GH.coach ? GH.coach.stats() : { days:0 };
-      if (c.days < n.days) return false;
+      if (!GH.coins || GH.coins.fullDays() < n.days) return false;
     }
     /* Consecutive days, counted from the ledger rather than from the
        coach. The coach counts days the app was opened; this counts days
@@ -250,7 +264,13 @@ GH.store = (function(){
       bits.push(t('stNeedNow', {
         at:(GH.coins && GH.coins.runToday) ? GH.coins.runToday() : 0, n:n.now }));
     }
-    if (n.days) bits.push(t('stNeedDays', { n:n.days }));
+    /* `at` as well as `n`: the string shows progress now, and it reads
+       from the same counter `earned()` checks — days five activities were
+       finished, not days the app was opened. */
+    if (n.days){
+      bits.push(t('stNeedDays', {
+        at:(GH.coins && GH.coins.fullDays) ? GH.coins.fullDays() : 0, n:n.days }));
+    }
     if (n.allPets){
       var ord = ordinary();
       bits.push(t('stNeedAllPets', {
@@ -511,6 +531,37 @@ GH.store = (function(){
     if (lang !== 'de') body.appendChild(el('span', 'pt-tr', p[lang] || p.en));
     body.appendChild(el('span', 'pt-tier', t('pt' +
       p.tier.charAt(0).toUpperCase() + p.tier.slice(1))));
+
+    /* ---------- WHO THIS ONE IS ----------
+
+       Steven, looking at the store: "it gives her almost no reason to
+       want Flippy specifically. She can't tell that Flippy is the
+       impulsive, cheerful little frog who jumps into everything."
+
+       Right, and the card had everything except that. Name, German word,
+       translation, rarity and price told her WHAT it is and what it costs
+       — nothing told her why she would pick this one over the next one at
+       the same price. So a short personality line sits between the rarity
+       chip and the unlock line, which is where he put it.
+
+       AFTER the tier and BEFORE the cost on purpose: rarity and price are
+       the two facts she compares cards on, and a paragraph between them
+       would break the comparison. This way the numbers stay adjacent and
+       the character sits above them.
+
+       OPTIONAL, PER PET. `about` is absent on a pet that has not been
+       written yet, and an absent one renders nothing at all rather than a
+       gap or a placeholder — sixteen of these are a lot of prose and they
+       can land a few at a time.
+
+       Two or three sentences is the ceiling. His point: the cards are
+       already tall on a phone, and a wall of text per card is worse than
+       no text. */
+    if (p.about){
+      var about = GH.i18n.pick(p.about);
+      if (about) body.appendChild(el('p', 'pt-about', about));
+    }
+
     box.appendChild(body);
 
     if (have){
@@ -568,6 +619,30 @@ GH.store = (function(){
 
     if (gated && !gateOpen){
       box.appendChild(el('span', 'pt-need', needText(p)));
+
+      /* A WAY TO GO AND LOOK. Steven: "if there's an achievement
+         required, there should be a link from that pet to the
+         achievements tab."
+
+         Only when the gate actually mentions achievements, so it does not
+         appear on the sixteen pets that just want days.
+
+         It cannot go to a SPECIFIC achievement, and that is a data limit
+         rather than an omission: the only achievement gate in
+         data/pets.js is `awards:12`, a COUNT. No pet names an
+         achievement, so there is no id to jump to. Naming one would need
+         a new field on the pet plus focus support in
+         js/activities/awards-view.js, whose `open(container, onExit)`
+         takes no focus argument today. */
+      if (p.need.awards && GH.awardsView && GH.app && GH.app.play){
+        var toAw = el('button', 'pt-gate-link', t('stSeeAwards'));
+        toAw.type = 'button';
+        toAw.addEventListener('click', function(){
+          GH.app.play({ id:'awards-view', open:GH.awardsView.open });
+        });
+        box.appendChild(toAw);
+      }
+
       if (p.cost){
         var lc2 = el('span', 'pt-locked-cost');
         lc2.appendChild(GH.coins.markWith(p.cost));
@@ -606,10 +681,8 @@ GH.store = (function(){
     if (GH.petStrip) GH.petStrip.refresh();
     if (GH.purse) GH.purse.refresh();
 
-    var head = el('div', 'practice-head');
-    var back = el('button', 'backlink', '\u2039 ' + t('back'));
-    back.type = 'button';
-    back.addEventListener('click', function(){ state.onExit(); });
+    var head = el('div', 'practice-head st-head');
+    var back = GH.back.button(leave);
     head.appendChild(back);
     var titles = el('div', 'practice-title');
     titles.appendChild(el('h1', null, t('stStore')));
@@ -629,7 +702,11 @@ GH.store = (function(){
         }).join(' \u00b7 ')));
     }
 
-    var card = el('div', 'card');
+    /* `st-card` as well as `card`, so the store can drop the theme
+       entirely — see the note in css/style.css. Steven: "Absolutely lose
+       with prejudice all colors and identity of the themes in the store...
+       Look how much fucking wasted space that is lost to theme cruft." */
+    var card = el('div', 'card st-card');
 
     if (state.justGrew){
       var gp = find(state.justGrew);
@@ -670,20 +747,170 @@ GH.store = (function(){
       card.appendChild(sb);
     }
 
+    /* ---------- TIERS COLLAPSE, ONE OPENS ----------
+
+       Steven: "Right now when you open the store, you see a large card
+       with the common pets at the beginning and you have to scroll past
+       them to see the rare pets and scroll past them to see the epic
+       pets. Instead, I want them all squished down and show the different
+       tiers. You click on a tier and then that section expands... But
+       without expanding, you see a small squished version of them so you
+       could see all the pets at the same time."
+
+       Sixteen full cards is a very long page, and the shape of it hid the
+       thing she is actually shopping for: she could not see that a
+       legendary pet exists without scrolling past eleven others. Now
+       every tier shows a row of thumbnails, so all sixteen are on one
+       screen, and tapping a tier opens that one at full size.
+
+       ONE OPEN AT A TIME. Opening a second closes the first, which is
+       what keeps the whole shelf glanceable — two expanded tiers is
+       already most of the old problem back.
+
+       NOT REMEMBERED between visits. This is a browsing state, not a
+       preference: she comes to the store to look at a particular pet, and
+       reopening on whatever she last expanded is as likely to be wrong as
+       right. The `focus` path below already handles arriving with a pet
+       in mind, and it now opens that pet's tier for her.
+
+       The thumbnails are the same art at a smaller size, and a pet she
+       owns is marked there too — so the row reads as a collection, not
+       just a menu. */
     var TIERS = (window.GH_PETS.tiers || []);
     TIERS.forEach(function(tier){
       var group = petsOf().filter(function(x){ return x.tier === tier.id; });
       if (!group.length) return;
-      var h = el('h2', 'gr-group', t(tier.key));
-      h.appendChild(el('span', 'gr-count',
-        group.filter(function(x){ return owns(x.id); }).length + '/' + group.length));
-      card.appendChild(h);
-      /* every tier has a run behind it now, so every tier says so */
-      var note = 'stNote_' + tier.id;
-      card.appendChild(el('p', 'gr-note', t(note)));
-      var grid = el('div', 'pt-grid');
-      group.forEach(function(x){ grid.appendChild(petCard(x)); });
-      card.appendChild(grid);
+
+      var mine = group.filter(function(x){ return owns(x.id); }).length;
+      var open = state.tier === tier.id;
+
+      /* The heading is the switch. A button and not an <h2> with a
+         handler: it is the only way into the tier, so it has to be
+         reachable by keyboard and announce that it expands. */
+      /* `gr-<tier>` so each heading takes its own colour — Steven wants
+         rare blue, epic purple, legendary its own, so that arriving at a
+         section tells you which one it is before you read the word. The
+         four colours are in css/style.css, keyed on these ids. */
+      var h = el('button', 'gr-group gr-' + tier.id + (open ? ' is-open' : ''));
+      h.type = 'button';
+      h.setAttribute('aria-expanded', open ? 'true' : 'false');
+      /* THE PILL, INSIDE THE BAND. Two elements, because they do two
+         different jobs: the band is a solid stripe of the tier's colour
+         and the pill is a readable ground for the text sitting on it.
+         Steven: "The pill behind the text is totally fine. That has to be
+         set so the text is readable. But the rest of that stripe should be
+         the color for their tier."
+
+         The three spans go inside one wrapper so the pill hugs them
+         rather than spanning the whole width. */
+      var pill = el('span', 'gr-pill');
+      pill.appendChild(el('span', 'gr-group-t', t(tier.key)));
+      pill.appendChild(el('span', 'gr-count', mine + '/' + group.length));
+      /* One triangle that turns, not a + swapped for a -. Steven: "Maybe
+         it has a little arrow that turns when it opens up and then you
+         click it again and it turns back to the side." A rotation is one
+         element and one transition; two characters is two states that can
+         disagree with the panel. */
+      /* U+203A, chevron — not the filled triangle. See `.gr-caret`. */
+      pill.appendChild(el('span', 'gr-caret', '\u203a'));
+      h.appendChild(pill);
+      h.addEventListener('click', function(){
+        state.tier = open ? null : tier.id;
+        paint();
+      });
+
+      /* The band wraps the heading AND the note, so the whole stripe is
+         one solid block of the tier's colour with no gap between them. */
+      var band = el('div', 'gr-band gr-' + tier.id);
+      band.appendChild(h);
+
+      /* THE RUN NOTE GOES ABOVE THE SECTION, not on it. Steven: "The
+         background colors for each tier don't need to have any text
+         visible on top of it. It's simply a background color." So the
+         velvet carries pictures and nothing else — the note sits on the
+         page between the heading and the panel, where it needs no plate
+         of its own to stay readable. Only when the tier is open: a
+         collapsed tier is a glance, not a place to read. */
+      /* `gr-<tier>` on the note as well as the heading, so the two form
+         ONE continuous band of the tier's colour. Without it the note
+         renders on the store page background and puts back the pale
+         stripe the band exists to remove — Steven: "there is this ugly
+         and pointless white or off white stripe behind that." */
+      if (open) band.appendChild(el('p', 'gr-note', t('stNote_' + tier.id)));
+      card.appendChild(band);
+
+      /* ONE ROUNDED RECTANGLE, EITHER WAY. Collapsed it holds the pets in
+         miniature; open it holds them full size. Same panel, same
+         background, same corners — so opening a tier looks like the panel
+         growing rather than one thing being replaced by another.
+
+         The background is set inline because the filename lives in
+         data/pets.js. CSS cannot read it, and four hardcoded rules in the
+         stylesheet would be four things to change when a tier is
+         renamed. */
+      var sect = el('div', 'gr-sect gr-sect-' + tier.id +
+                            (open ? ' is-open' : ' is-mini'));
+      if (tier.bg){
+        var url = GH.build ? GH.build.url('images/pets/' + tier.bg + '.webp')
+                           : 'images/pets/' + tier.bg + '.webp';
+        sect.style.backgroundImage = 'url("' + url + '")';
+        sect.className += ' has-bg';
+      }
+
+      /* The rounded rectangle the pets sit on, inside the velvet. Two
+         layers rather than one, per Steven: "The background is behind the
+         rounded rectangle containing all of the pets. The rounded
+         rectangle doesn't fill the entire page/screen. There's a little
+         bit of the background visible behind it." */
+      var plate = el('div', 'gr-plate');
+
+      if (open){
+        var grid = el('div', 'pt-grid');
+        group.forEach(function(x){ grid.appendChild(petCard(x)); });
+        plate.appendChild(grid);
+      } else {
+        /* Every pet in the tier at thumbnail size. Tapping one opens the
+           tier AND focuses that pet, so a tap on the thing she wants does
+           not just expand a list she then has to search. */
+        var strip = el('div', 'pt-strip-row');
+        group.forEach(function(x){
+          var b = el('button', 'pt-thumb' + (owns(x.id) ? ' is-own' : ''));
+          b.type = 'button';
+          b.setAttribute('aria-label', x.name || x.de);
+          b.setAttribute('title', x.name || x.de);
+          var pic = art(x, 'shop');
+          if (pic) b.appendChild(pic);
+          else b.appendChild(el('span', 'pt-thumb-t', (x.name || x.de || '?').charAt(0)));
+          b.addEventListener('click', function(e){
+            /* Stop it reaching the section handler below, which would
+               open the tier without the focus and undo the point of
+               tapping a specific pet. */
+            e.stopPropagation();
+            state.tier = tier.id;
+            state.focus = x.id;
+            paint();
+          });
+          strip.appendChild(b);
+        });
+        plate.appendChild(strip);
+
+        /* THE WHOLE FIELD OPENS THE TIER, not just the heading. Steven:
+           "you should be able to click *anywhere* in the field of a tier
+           to get it to open not just the title."
+
+           A collapsed tier is a wide band of velvet with a few small
+           thumbnails at the left, so most of what she is looking at was
+           dead. Only when collapsed: once the tier is open the section
+           is full of pet cards with their own buttons, and a catch-all
+           click there would fire whenever she missed one. */
+        sect.classList.add('is-tap');
+        sect.addEventListener('click', function(){
+          state.tier = tier.id;
+          paint();
+        });
+      }
+      sect.appendChild(plate);
+      card.appendChild(sect);
     });
 
     host.appendChild(card);
@@ -692,9 +919,46 @@ GH.store = (function(){
   /* `focus` is a pet id to scroll to and mark — the grid on the hub sends
      her here when she taps one she does not own, and landing at the top of
      a shelf of sixteen would make her hunt for it again. */
+  /* ---------- THE WHOLE SCREEN IS THE STORE ----------
+
+     Steven: "ALL THEME JUNK CAN DIE in the store at least. The ONLY bit
+     that lives is 3 dark themes get the dark store and light themes get
+     the light store."
+
+     The card alone was not enough. `main` pads the page by
+     clamp(16px,4vw,40px) and `body` paints the theme's own gradient, so
+     even a full-bleed card left theme colour above it, below it and
+     behind the header. A class on <html> lets the stylesheet repaint the
+     page itself for as long as the store is open.
+
+     CLEARED ON EVERY WAY OUT, which is the part that matters: a class
+     left behind would repaint the hub too. Both the back button and
+     `onExit` go through leave(). */
+  function storeMode(on){
+    var d = document.documentElement;
+    if (!d || !d.classList) return;
+    if (on) d.classList.add('st-mode');
+    else d.classList.remove('st-mode');
+  }
+
+  function leave(){
+    storeMode(false);
+    state.onExit();
+  }
+
   function open(container, onExit, focus){
     host = container;
-    state = { onExit:onExit, justBought:null, justGrew:null, focus:focus || null };
+    storeMode(true);
+    state = { onExit:onExit, justBought:null, justGrew:null, focus:focus || null,
+              /* Which tier is expanded. Null means all collapsed — see the
+                 note in paint(). Arriving with a `focus` pet opens that
+                 pet's tier, or the hub would send her here and she would
+                 land on a collapsed shelf with nothing to scroll to. */
+              tier:null };
+    if (state.focus){
+      var f = find(state.focus);
+      if (f) state.tier = f.tier;
+    }
     /* Repaint in place on a language change rather than letting app.js
        reopen the shelf — every pet's word and every tier name changes,
        which is much of the reason to switch language here at all. */
