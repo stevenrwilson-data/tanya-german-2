@@ -6,6 +6,28 @@ window.GH = window.GH || {};
 GH.speech = (function(){
 
   var voice = null;
+  /* Language code to the BCP-47 tag a browser voice reports.
+
+     AT THE TOP ON PURPOSE, AND IT MUST STAY HERE. `voicesIn()` reads it
+     and runs during init — and `var` hoists the DECLARATION but not the
+     ASSIGNMENT, so with this further down the file `LOCALE` was still
+     `undefined` when `voicesIn()` first ran. That threw, which killed
+     this whole module, which meant `GH.speech` never existed, which
+     killed `hub()` on its first `GH.speech.stop()` and left the site
+     blank below the header. Found on the live site 08 Sep.
+
+     Italian and Ukrainian added with Steven's eight target languages. A
+     target with no entry here falls back to German, which is how a
+     Spanish course would have been read in a German accent.
+
+     TAGALOG IS THE ODD ONE AND IT WAS BROKEN. Its code is `tl` but every
+     real voice reports `fil-PH`, so matching the CODE against a voice's
+     language never matched — `'fil-ph'.indexOf('tl')` is 1, not 0.
+     `voicesIn()` matches this map's VALUE instead. */
+  var LOCALE = { de:'de-DE', ru:'ru-RU', en:'en-GB',
+                 es:'es-ES', fr:'fr-FR', it:'it-IT', uk:'uk-UA',
+                 tl:'fil-PH', ga:'ga-IE' };
+
   var supported = typeof window.speechSynthesis !== 'undefined';
 
   /* Higher is better. Taking the first de-DE voice is wrong: on macOS the
@@ -443,19 +465,6 @@ GH.speech = (function(){
      interface is written in. A target with no locale here would fall back
      to German, which is how a Spanish course would have been read aloud in
      a German accent. */
-  /* Language code to the BCP-47 tag a browser voice reports. Italian and
-     Ukrainian added 08 Sep with Steven's eight target languages.
-
-     TAGALOG IS THE ODD ONE AND IT WAS BROKEN. Its code here is `tl` but
-     every real voice reports `fil-PH`, and `voicesIn()` used to match the
-     CODE against the voice's language — so `'fil-ph'.indexOf('tl')` was 1
-     rather than 0 and Tagalog matched no voice at all, on any device.
-     `voicesIn()` now matches against this map's value instead, which is
-     the string the voice actually carries. */
-  var LOCALE = { de:'de-DE', ru:'ru-RU', en:'en-GB',
-                 es:'es-ES', fr:'fr-FR', it:'it-IT', uk:'uk-UA',
-                 tl:'fil-PH', ga:'ga-IE' };
-
   /* Same tiers as score(), with two corrections that matter away from
      German: a novelty voice is worse than anything, and an unrecognised
      voice is no longer assumed to be better than a compact one. */
