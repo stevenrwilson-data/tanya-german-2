@@ -471,6 +471,25 @@ GH.conveyor = (function(){
   var entry = {
     id:'conveyor',
     glyph:'\ud83c\udfad',
+    /* GERMAN ONLY, and it was missing this flag until 09 Sep. The cards
+       are painted from `GH_TENSES`, which is German — so on an English or
+       Russian course this game handed her German sentences to sort. It is
+       not one of the five games that obviously had to be gated (gender,
+       plurals, wo-wohin, conjugation, wrong-form), which is exactly why
+       it was missed.
+
+       AND THE DESIGN IS GERMAN, not just the data. The whole level ladder
+       exists because German's everyday future IS the present tense plus a
+       time word — see the header of data/tenses.js. That is why the time
+       marker is stored apart from the sentence, why `hide` can remove it,
+       why `alt` can swap it, and why the `tricky` level can put a future
+       marker on a present sentence and make it unsortable by the verb.
+
+       English has none of that problem: will and going to mark the future
+       on the verb itself. So an English tense sort is a simpler game with
+       three bins and no marker machinery, not this one with a different
+       bank. */
+    onlyDe:true,
     name:{ ru:'Вчера, сегодня, завтра', de:'Gestern, heute, morgen', en:'Yesterday, today, tomorrow' },
     sub:{ ru:'Сортируй предложения по времени, пока идут часы',
           de:'Sätze nach Zeit sortieren, gegen die Uhr',

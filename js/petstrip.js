@@ -53,7 +53,11 @@ GH.petStrip = (function(){
   var bar = null;
   var overlay = null;
 
-  function t(k){ return GH.i18n ? GH.i18n.t(k) : k; }
+  /* `v` was missing, so `t('ptSlotsFull', { n:3 })` handed i18n the key
+     alone and the placeholder came through to the screen as literal
+     "{n}". Every other file's helper takes the second argument —
+     lessons.js and store.js both do — and this one silently did not. */
+  function t(k, v){ return GH.i18n ? GH.i18n.t(k, v) : k; }
 
   function el(tag, cls, text){
     var n = document.createElement(tag);
@@ -122,7 +126,38 @@ GH.petStrip = (function(){
     head.appendChild(x);
     box.appendChild(head);
 
+    /* WHAT A TAP IN HERE DOES, said once at the top.
+
+       Steven, 09 Sep: "when you click the pets it shows all the pets but
+       you can't choose them." The cells were always meant to be
+       tappable — `tapped()` has handled 'own' and 'can' since it was
+       written — but nothing on the screen said so, and until store.js
+       grew `pickById` the taps did nothing anyway. With the taps working,
+       the grid still needs to admit what it is for. */
+    box.appendChild(el('p', 'ptg-how', t('ptGridHow')));
+
     box.appendChild(el('div', 'ptg-grid'));
+    /* A quiet line under the grid, used only to say "every carrier is
+       full" when a tap is refused. Empty the rest of the time, and
+       cleared on every fill(). */
+    box.appendChild(el('p', 'ptg-note'));
+
+    /* TO THE STORE. `go(id)` has existed since this file was written and
+       NOTHING EVER CALLED IT — so the grid showed sixteen pets, half of
+       them locked, with no way to reach the place that sells them.
+       Passing no id opens the store at the top rather than at a pet. */
+    /* `btn-primary`, not `btn-quiet`. Steven, 09 Sep: "make the store a
+       BUTTON not a tiny underlined link." `btn-quiet` is literally the
+       link style — no background, no border, underlined text — so it read
+       as a footnote under a grid of sixteen pictures. This is the only
+       route from here to the place that sells the locked half of them,
+       which makes it the most important thing on the panel after the
+       cells themselves. */
+    var shop = el('button', 'btn btn-primary ptg-shop', t('stStore'));
+    shop.type = 'button';
+    shop.addEventListener('click', function(){ go(null); });
+    box.appendChild(shop);
+
     overlay.appendChild(box);
 
     /* the backdrop, but only the backdrop */
@@ -140,6 +175,10 @@ GH.petStrip = (function(){
   function fill(){
     var grid = overlay.querySelector('.ptg-grid');
     grid.textContent = '';
+    /* Cleared whenever the grid repaints, so a "carriers are full"
+       message cannot outlive the state that caused it. */
+    var note0 = overlay.querySelector('.ptg-note');
+    if (note0) note0.textContent = '';
     if (!GH.store || !GH.store.shelf) return;
 
     GH.store.shelf().forEach(function(p){
@@ -148,6 +187,8 @@ GH.petStrip = (function(){
         (p.picked ? ' is-picked' : ''));
       cell.type = 'button';
       cell.setAttribute('aria-label', p.full);
+      /* So `tapped()` can find this cell again to flash it. */
+      cell.setAttribute('data-pet', p.id);
       if (p.pic){
         p.pic.classList.add('ptg-img');
         cell.appendChild(p.pic);
@@ -157,6 +198,20 @@ GH.petStrip = (function(){
          grid is the one place all sixteen are visible at once. Only for
          the ones she owns — the word arrives with the animal. */
       if (p.own) cell.appendChild(el('span', 'ptg-de', p.de));
+
+      /* WHY THIS ONE CANNOT BE HAD, ON THE CELL ITSELF.
+
+         Steven, 10 Sep: "it needs to have a message on every single pet."
+         Not on tap, not on another screen — on the pet.
+
+         A greyed picture says something is wrong; it does not say what.
+         `needFor` comes from store.js, which owns the gate and its
+         wording, so the grid and the shelf can never give different
+         reasons for the same lock. */
+      if (!p.own && GH.store.needFor){
+        var why = GH.store.needFor(p.id);
+        if (why) cell.appendChild(el('span', 'ptg-need', why));
+      }
       cell.addEventListener('click', function(){ tapped(p.id); });
       grid.appendChild(cell);
     });
@@ -204,12 +259,76 @@ GH.petStrip = (function(){
     var st = S.buyState(id);
 
     if (st === 'own'){
-      S.pickById(id);
+      /* A REFUSAL HAS TO LOOK DIFFERENT FROM A NO-OP.
+
+         `pickById` returns 'on', 'off' or 'full'. 'full' means every
+         carrier is occupied, so nothing changed — and a tap that changes
+         nothing and says nothing is exactly the dead-feeling grid this
+         whole fix exists to replace. So the cell is marked for a moment
+         and the count is said out loud. */
+      var got = S.pickById(id);
+      if (got === 'full'){
+        /* `overlay` is module-scoped; the `grid` variable is local to
+           fill(). And there is no toast anywhere in this file, so the
+           message goes in a line the grid already owns rather than in a
+           mechanism invented for one case. */
+        var cell = overlay && overlay.querySelector('[data-pet="' + id + '"]');
+        if (cell){
+          cell.className += ' is-full';
+          window.setTimeout(function(){
+            cell.className = cell.className.replace(/\s*is-full\b/, '');
+          }, 900);
+        }
+        var note = overlay && overlay.querySelector('.ptg-note');
+        if (note) note.textContent = t('ptSlotsFull', { n:S.slots() });
+        return;
+      }
     } else if (st === 'can'){
       if (!S.buyById(id)) return;
       if (GH.purse) GH.purse.refresh();
     } else {
-      /* locked, too dear, or earned-only. Nothing. */
+      /* LOCKED, TOO DEAR, OR EARNED-ONLY — AND IT HAS TO SAY WHICH.
+
+         This did nothing at all. Steven, 10 Sep: "Bun Bun needs 3 days
+         activity to unlock, but no reference to it, just can't buy."
+
+         Exactly the dead grid the 'full' branch above was written to
+         replace, left in place three lines below it. The store shelf has
+         always shown the requirement; the grid greyed the cell and kept
+         the reason to itself.
+
+         `needFor` comes from store.js, which owns the gate and the
+         wording — this only displays it, so the two can never disagree
+         about why something is locked. */
+      /* AN ACHIEVEMENT GATE SENDS HER TO THE ACHIEVEMENTS.
+
+         Steven, 10 Sep: "if a pet requires an achievement then make that
+         achievement a link that takes you to the achievement section."
+
+         The shelf has had that button for a while; the grid had nothing.
+         A grid cell is already a <button>, so a link INSIDE it would be a
+         button in a button — invalid, and the clicks fight. The tap
+         itself goes there instead, which is the same destination with no
+         nesting.
+
+         Only when the gate actually mentions achievements. Every other
+         locked pet still just says why. */
+      if (S.needsAward && S.needsAward(id) && GH.awardsView && GH.app && GH.app.play){
+        close();
+        GH.app.play({ id:'awards-view', open:GH.awardsView.open });
+        return;
+      }
+
+      var why = (S.needFor ? S.needFor(id) : '') || t('ptLocked');
+      var lcell = overlay && overlay.querySelector('[data-pet="' + id + '"]');
+      if (lcell){
+        lcell.className += ' is-full';
+        window.setTimeout(function(){
+          lcell.className = lcell.className.replace(/\s*is-full\b/, '');
+        }, 900);
+      }
+      var ln = overlay && overlay.querySelector('.ptg-note');
+      if (ln) ln.textContent = why;
       return;
     }
 
@@ -226,7 +345,10 @@ GH.petStrip = (function(){
        `focus` rides along so the shelf scrolls to the pet she tapped
        instead of dumping her at the top of sixteen. */
     GH.app.play({ id:'store', open:function(view, back){
-      GH.store.open(view, back, id);
+      /* `id` may be null — the Store button at the foot of the grid
+         passes nothing, which opens the shelf at the top instead of
+         scrolled to one pet. */
+      GH.store.open(view, back, id || null);
     }});
   }
 

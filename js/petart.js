@@ -85,7 +85,22 @@ GH.petArt = (function(){
      art of its own shows the first, so growing looks like nothing happened
      — which is honest, and better than a hole. */
   function pathFor(p, form, mood){
-    var moods = mood === 'cheer' ? ['cheer', 'shop', 'kind']
+    /* `greet` is the big picture on the just-bought card. It falls back
+       through the friendly moods before the shop one, because a shop pose
+       is a product shot and this is the animal saying hello.
+
+       Steven is drawing custom art per pet for it, 09 Sep. Until a file
+       lands the chain resolves to whatever that pet already has, so the
+       card works today and improves as art arrives — the same arrangement
+       the comic editions use.
+
+       THIS BLOCK EXISTS TWICE, in pathFor() and in chain(). Both are
+       patched together on purpose: a mood added to one and not the other
+       resolves differently depending on which path ran, which is the kind
+       of split that only shows up on the one pet whose art is half
+       finished. Worth merging one day; not worth it mid-feature. */
+    var moods = mood === 'greet' ? ['greet', 'kind', 'cheer', 'shop']
+              : mood === 'cheer' ? ['cheer', 'shop', 'kind']
               : mood === 'kind'  ? ['kind', 'cheer', 'shop']
               : ['shop', 'cheer', 'kind'];
     for (var f = form; f >= 1; f--){
@@ -104,10 +119,55 @@ GH.petArt = (function(){
     /* A pet with nothing declared has only its plain file, so go straight
        there. Walking the full chain first would 404 three times per pet —
        forty-five wasted requests on the store page for a set that is all
-       plain names today. The data says when the suffixed art exists. */
-    if (!p.art || !p.art.length) return [plain(p)];
+       plain names today. The data says when the suffixed art exists.
 
-    var moods = mood === 'cheer' ? ['cheer', 'shop', 'kind']
+       TWO EXCEPTIONS, AND THE REASON IS FREQUENCY, NOT PRINCIPLE.
+
+       The cost above is real because the store shelf paints sixteen pets
+       at once. Neither of these does:
+
+         `greet`   one pet, on the just-bought window. She buys one every
+                   three or four days at best — a common is 500 crystals
+                   and a good day earns 150.
+
+         form > 1  one pet, and only one she has PAID to grow. Epic is 450
+                   crystals for form 2. Charging for a change she cannot
+                   see is worse than one speculative request.
+
+       So both try their file, and `tile()`'s error handler walks down to
+       the plain name if it is not there. One failed request in a rare
+       moment, against art that appears the day the file lands with no
+       data change at all.
+
+       The declaration in `pets.js` is still the right long-term answer —
+       it is what makes the SHELF show mood art. This just stops the two
+       cases that matter from waiting on it. Steven, 10 Sep. */
+    var speculative = (mood === 'greet') || (form > 1);
+    if (!p.art || !p.art.length){
+      if (!speculative) return [plain(p)];
+      /* ONE SPECULATIVE REQUEST, NOT THE WHOLE CHAIN. Undeclared, the
+         mood ladder would try greet, kind, cheer and shop before the
+         plain name — four misses to find out what one tells us. Ask for
+         the exact file; if it is not there, fall straight back. */
+      return [file(p, form, mood), plain(p)];
+    }
+
+    /* `greet` is the big picture on the just-bought card. It falls back
+       through the friendly moods before the shop one, because a shop pose
+       is a product shot and this is the animal saying hello.
+
+       Steven is drawing custom art per pet for it, 09 Sep. Until a file
+       lands the chain resolves to whatever that pet already has, so the
+       card works today and improves as art arrives — the same arrangement
+       the comic editions use.
+
+       THIS BLOCK EXISTS TWICE, in pathFor() and in chain(). Both are
+       patched together on purpose: a mood added to one and not the other
+       resolves differently depending on which path ran, which is the kind
+       of split that only shows up on the one pet whose art is half
+       finished. Worth merging one day; not worth it mid-feature. */
+    var moods = mood === 'greet' ? ['greet', 'kind', 'cheer', 'shop']
+              : mood === 'cheer' ? ['cheer', 'shop', 'kind']
               : mood === 'kind'  ? ['kind', 'cheer', 'shop']
               : ['shop', 'cheer', 'kind'];
     var out = [];

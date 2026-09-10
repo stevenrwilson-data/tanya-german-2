@@ -153,15 +153,13 @@ GH.jukebox = (function(){
     return audio;
   }
 
+  /* OGG ONLY. NO SECOND FORMAT, EVER. Steven, 09 Sep — see the note in
+     songbook.js. Vorbis is tested on the Mac, the iPad and an iPhone
+     older than Tanya's; anything that cannot decode it gets no music,
+     and that is the accepted trade. This returns one URL, not a pair. */
   function srcFor(s){
     var base = 'audio/' + s.audio;
-    /* .ogg first, .m4a second, the same two the audit checks for. The
-       element picks whichever it can decode; Safari has Vorbis now and
-       both were tested on her phone. */
-    return {
-      ogg: GH.build ? GH.build.url(base + '.ogg') : base + '.ogg',
-      m4a: GH.build ? GH.build.url(base + '.m4a') : base + '.m4a'
-    };
+    return GH.build ? GH.build.url(base + '.ogg') : base + '.ogg';
   }
 
   function nowPlaying(){
@@ -171,12 +169,12 @@ GH.jukebox = (function(){
 
   function load(s, thenPlay){
     var a = ensureAudio();
-    var urls = srcFor(s);
-    /* `canPlayType` rather than <source> children: the element is reused
+    /* One src set directly, not <source> children: the element is reused
        for the whole queue, and swapping children on a live element is how
-       a track change loses its audio session. One src, chosen here. */
-    var useOgg = a.canPlayType && a.canPlayType('audio/ogg; codecs="vorbis"');
-    a.src = useOgg ? urls.ogg : urls.m4a;
+       a track change loses its audio session. The `canPlayType` check
+       that used to choose between formats is gone with the second
+       format — there is nothing to choose between. */
+    a.src = srcFor(s);
     a.load();
     if (thenPlay){
       var p = a.play();

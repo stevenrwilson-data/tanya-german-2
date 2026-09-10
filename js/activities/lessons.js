@@ -83,8 +83,12 @@ GH.lessons = (function(){
       var per = p[st.kind] || DEFAULT_PACE[st.kind] || 10000;
       if (p[st.kind] && (p[st.kind + '_n'] || 0) >= 4) seen++;
       want++;
+      /* A pooled step is as long as what it SERVES, not as long as its
+         pool. Counting the pool would advertise twenty minutes for a
+         five-minute lesson. */
       var n = st.kind === 'read' ? 1
             : st.kind === 'sort' ? st.cards.length
+            : st.pool ? poolServes(st)
             : st.rounds.length;
       ms += per * n;
     });
@@ -122,17 +126,67 @@ GH.lessons = (function(){
 
   /* a {ru,de,en} bundle in her interface language, falling back to English
      rather than showing a key */
+  /* RUSSIAN PAST TENSE IS GENDERED, AND SO ARE THE LESSONS NOW.
+
+     Почему ты устал? against Почему ты устала? — an English lesson that
+     addresses her directly in Russian has to pick one, and picking wrong
+     is a small insult repeated every round.
+
+     Same convention butler.js already uses (see its own `say()`): `ru`
+     holds the FEMININE form and `ruM` the masculine. Unset `ruM` behaves
+     exactly as before, so none of the seventeen German lessons or the
+     existing English ones change.
+
+     Feminine is the default because the site is Deutsch für TANYA — an
+     unset gender is far more likely to be her than not.
+
+     ONLY for Russian addressed to the learner. A line gendered because
+     of the person being TALKED ABOUT — Назар сегодня устал, Она ушла
+     рано — is already correct and must not carry a `ruM` twin. */
   function say(bundle){
     if (!bundle) return '';
     if (typeof bundle === 'string') return bundle;
+    if (lang() === 'ru' && bundle.ruM
+        && GH.player && GH.player.gender && GH.player.gender() === 'm'){
+      return bundle.ruM;
+    }
     return bundle[lang()] || bundle.en || bundle.de || '';
   }
 
-  function all(){ return window.GH_LESSONS || []; }
+  /* ---------- THE LESSONS FOR THE LANGUAGE SHE IS LEARNING ----------
+
+     A lesson names its language with `target`. Absent means German, so
+     none of the seventeen German lessons in data/curriculum.js needed
+     touching — and a lesson file that forgets the field lands in German
+     rather than nowhere, which is the safer of the two failures.
+
+     THE CHECK BELONGS HERE, NOT AT THE CALLERS. It used to be
+     `learningTarget() === 'de' && GH.lessons.all()` written out three
+     times — twice in app.js (hub, lessons overview) and once in toc.js.
+     Three copies of one rule is three places to forget it, and toc.js's
+     own comment already said so. A fourth reader now gets the right list
+     for free.
+
+     Two globals, concatenated rather than appended to one, so the order
+     the data files load in does not matter. If curriculum-en.js appended
+     to GH_LESSONS and happened to load first, curriculum.js's own
+     assignment would wipe it. */
+  function all(){
+    var ls = (window.GH_LESSONS || []).concat(window.GH_LESSONS_EN || []);
+    var learning = (GH.player && GH.player.target) ? GH.player.target() : 'de';
+    return ls.filter(function(l){ return (l.target || 'de') === learning; });
+  }
+
+  /* Every lesson regardless of language. `find()` uses this: a lesson she
+     opened before switching target must still resolve by id, or her
+     progress rows point at nothing. */
+  function allLangs(){
+    return (window.GH_LESSONS || []).concat(window.GH_LESSONS_EN || []);
+  }
 
   function find(id){
     var out = null;
-    all().forEach(function(l){ if (l.id === id) out = l; });
+    allLangs().forEach(function(l){ if (l.id === id) out = l; });
     return out;
   }
 
@@ -166,6 +220,106 @@ GH.lessons = (function(){
 
   function step(){ return state.lesson.steps[state.at]; }
 
+  /* How many ROUNDS a pooled step will actually serve. When the pool is
+     grouped, `serve` counts groups, so the round count is the group size
+     times the number of groups. Used by the length estimate and by the
+     draw, so the two can never disagree. */
+  function poolServes(st){
+    if (!st.pool || !st.pool.length) return 0;
+    var grouped = st.pool.some(function(r){ return r.group; });
+    if (!grouped) return Math.min(st.serve || 6, st.pool.length);
+    var seen = {}, n = 0, per = {};
+    st.pool.forEach(function(r){
+      var g = r.group || r.id;
+      if (!seen[g]){ seen[g] = 1; n++; per[g] = 0; }
+      per[g]++;
+    });
+    var wantG = Math.min(st.serve || 2, n);
+    var total = 0, i = 0;
+    Object.keys(per).forEach(function(g){ if (i++ < wantG) total += per[g]; });
+    return total;
+  }
+
+  /* ---------- A POOL, DRAWN FRESH EACH VISIT ----------
+
+     Steven, 09 Sep: "Create random picker for lessons from a pool. The
+     whole point is to have people come back to practice. Spaced
+     repetition is best learning hack."
+
+     A step can carry `pool` and `serve` instead of a fixed `rounds`:
+
+         { kind:'mark', pool:[ …20 rounds… ], serve:6 }
+
+     `GH.tutor.pick(pool, n, keyOf)` does the choosing, and it already
+     existed — it is spaced-repetition aware, scoring each round by how
+     much she needs it, taking about two thirds by need and the rest at
+     random, with noise so the same round is not served twice running. So
+     this is wiring, not a new scheduler.
+
+     THE DRAW HAPPENS ONCE PER RUN, in `start()`, and is held in
+     `state.served`. Drawing inside the paint would reshuffle on every
+     re-render — she would answer a round and be shown a different one.
+
+     `s.rounds` is never mutated. It is module-level data shared by every
+     run, and writing a draw back into it would leak one session's
+     selection into the next.
+
+     A step with a plain `rounds` array is untouched, which is all 340
+     steps written before today. */
+  function roundsOf(at){
+    if (state.served && state.served[at]) return state.served[at];
+    var s = state.lesson.steps[at];
+    return s.rounds || [];
+  }
+
+  /* Per-ROUND scheduler keys, so the picker can tell which rounds she
+     struggles with. A pooled round carries its own `id`; without one the
+     key stays what it has always been, the step index. */
+  function roundKey(lessonId, at, r){
+    return 'lesson:' + lessonId + ':' + (r && r.id ? r.id : at);
+  }
+
+  function drawPools(){
+    state.served = {};
+    (state.lesson.steps || []).forEach(function(s, at){
+      if (!s.pool || !s.pool.length) return;
+      var lid = state.lesson.id;
+      var grouped = s.pool.some(function(r){ return r.group; });
+
+      /* WHEN THE POOL IS GROUPED, `serve` COUNTS GROUPS, NOT ROUNDS.
+
+         A sentence asked three ways is one unit — she should never get
+         the middle question of a sentence on its own. So the draw picks
+         GROUPS and then takes every round in each.
+
+         Measured the other way first: picking six individual rounds
+         touched up to six groups, each of which then filled to three, and
+         `serve:6` produced nine to twelve rounds. Unpredictable length is
+         worse than a slightly odd-looking field name. */
+      if (grouped){
+        var byGroup = {}, reps = [];
+        s.pool.forEach(function(r){
+          var g = r.group || r.id;
+          if (!byGroup[g]){ byGroup[g] = []; reps.push({ group:g, first:r }); }
+          byGroup[g].push(r);
+        });
+        var wantG = s.serve || Math.min(2, reps.length);
+        var chosen = (GH.tutor && GH.tutor.pick)
+          ? GH.tutor.pick(reps, wantG, function(x){ return roundKey(lid, at, x.first); })
+          : GH.text.shuffle(reps.slice()).slice(0, wantG);
+        var out = [];
+        chosen.forEach(function(x){ out = out.concat(byGroup[x.group]); });
+        state.served[at] = out;
+        return;
+      }
+
+      var want = s.serve || Math.min(6, s.pool.length);
+      state.served[at] = (GH.tutor && GH.tutor.pick)
+        ? GH.tutor.pick(s.pool, want, function(r){ return roundKey(lid, at, r); })
+        : GH.text.shuffle(s.pool.slice()).slice(0, want);
+    });
+  }
+
   function total(){ return state.lesson.steps.length; }
 
   /* Every step type ends by calling this. `ok` is null for a read step,
@@ -185,7 +339,10 @@ GH.lessons = (function(){
        than a bank word, because a lesson step is not a vocabulary item —
        `lesson:wo-wohin:2` is a thing she can be good or bad at. */
     if (ok !== null && state.lesson && GH.tutor && GH.tutor.grade){
-      GH.tutor.grade('lesson:' + state.lesson.id + ':' + state.at, ok,
+      /* Per round where the round has an id, per step otherwise — see
+         `roundKey`. The picker scores on these same keys, so a round she
+         keeps missing comes back sooner. */
+      GH.tutor.grade(roundKey(state.lesson.id, state.at, current()), ok,
                      'lessons');
     }
     if (ok === false) state.wrong.push(current());
@@ -195,13 +352,13 @@ GH.lessons = (function(){
   function current(){
     var s = step();
     if (s.kind === 'sort') return s.cards[state.round];
-    if (s.kind === 'pick' || s.kind === 'type') return s.rounds[state.round];
+    if (s.kind === 'pick' || s.kind === 'type' || s.kind === 'mark') return roundsOf(state.at)[state.round];
     return null;
   }
 
   function roundsIn(s){
     if (s.kind === 'sort') return s.cards.length;
-    if (s.kind === 'pick' || s.kind === 'type') return s.rounds.length;
+    if (s.kind === 'pick' || s.kind === 'type' || s.kind === 'mark') return roundsOf(state.at).length;
     return 1;
   }
 
@@ -273,6 +430,146 @@ GH.lessons = (function(){
     return row;
   }
 
+  /* ---------- MARK: SHE TAPS THE SENTENCE ITSELF ----------
+
+     The fifth step kind, added 09 Sep, and the reason it exists is that
+     nothing else can do this. Steven: "I want you literally clicking on
+     the sentence for each part. Scaffold with color. Then without color."
+
+     A drafted version of this lesson asked "which part is the subject?"
+     with the three parts as buttons underneath. That is a different and
+     much easier exercise — three options, one of which is obviously a
+     verb. Tapping the words where they stand is the skill.
+
+     THE SENTENCE IS STORED AS PARTS, NOT AS A STRING WITH OFFSETS.
+
+         parts:[ { role:'subj', text:'The dog' },
+                 { role:'verb', text:'sees'    },
+                 { role:'obj',  text:'the cat' } ]
+
+     Offsets were the obvious shape and they are a trap: every sentence
+     needs a per-language count that is silently wrong by one and nobody
+     notices until it highlights half a word. Parts in sentence order
+     cannot drift, and German reordering is free — move the array
+     elements and the roles travel with them, which IS the lesson at
+     level three. A chunk with no `role` renders plainly and is not
+     tappable, so "from the store" can sit in a sentence without being
+     an answer.
+
+     `colour:true` is the scaffold: the parts arrive already coloured and
+     she is matching a colour to a name. `colour:false` removes it and
+     she has to find the role herself. Same data, two difficulties —
+     which is what Steven asked for, and it means level 1 and level 2
+     share their content instead of duplicating it.
+
+     Blue subject, orange verb, green object, permanently. Steven's
+     scheme. `--role-verb` is a deep amber rather than `--flame`, because
+     flame is the app accent in 132 places and a flame-coloured verb
+     would read as a button. */
+  function markSentence(r){
+    return (r.parts || []).map(function(p){ return p.text; }).join(' ');
+  }
+
+  function paintMark(s, card){
+    var r = roundsOf(state.at)[state.round];
+    card.appendChild(el('p', 'ls-ask', say(s.ask)));
+
+    var line = el('div', 'ls-mark' + (s.colour ? ' is-scaffold' : ''));
+    var answered_ = !!state.shown;
+
+    /* THE SPEAKER SITS IN THE TOP LEFT OF THE STRIP.
+
+       Steven, 09 Sep: "The play speaker should be top left of the
+       rectangle — for lesson it is overlapping the target sentence."
+
+       It used to be appended to the card AFTER the strip, as a full pill,
+       and the strip's own padding put it over the words. Now it is a
+       child of the strip, absolutely placed in the corner, and the strip
+       carries extra top padding so no line can run under it.
+
+       Shown from the start, not only after she answers: hearing the
+       sentence read aloud tells her nothing about which word is the
+       subject, so there is no reason to withhold it. */
+    var say = speakBtn(markSentence(r));
+    say.className = 'speak is-mark-say';
+    line.appendChild(say);
+
+    (r.parts || []).forEach(function(p){
+      /* An unroled chunk is scenery: rendered, never tappable. */
+      if (!p.role){
+        line.appendChild(el('span', 'ls-part is-plain', p.text));
+        return;
+      }
+      var cls = 'ls-part is-role';
+      /* Coloured when the step scaffolds, and always once she has
+         answered — the payoff is seeing all three at once. */
+      if (s.colour || answered_) cls += ' is-' + p.role;
+
+      /* THE SCAFFOLD POINTS AT THE ANSWER, ON PURPOSE.
+
+         Steven, 09 Sep: "box + color on all parts, then GLOW the part
+         that is being asked." So on a scaffolded step every part is
+         boxed and coloured, and the one she is being asked for glows
+         harder than the rest.
+
+         That makes level one a DEMONSTRATION rather than a weak test —
+         she is not guessing, she is being shown that this box, this
+         colour and this name are the same thing. The test is level two,
+         where the colours and the glow are gone. */
+      if (s.colour && !answered_ && p.role === r.find) cls += ' is-asked';
+
+      if (answered_ && state.shown.part === p) cls += ' is-chosen';
+
+      var b = el('button', cls, p.text);
+      b.type = 'button';
+      /* THE SCAFFOLD NAMES THE ROLE, NOT ONLY COLOURS IT.
+
+         On a `colour:true` step the roles are already given away — that
+         is what makes it a scaffold — so printing the name under the box
+         costs nothing and makes the scaffold work without colour
+         perception at all. Steven, 09 Sep: the box and glow are visible
+         to colour-blind learners even when the hue is not, and "at worst
+         they lose part of a scaffold". This closes even that: they lose
+         nothing, because the label carries what the colour carries.
+
+         On an unscaffolded step the label still waits for her answer. */
+      if (s.colour) b.appendChild(el('span', 'ls-part-tag', t('lsRole_' + p.role)));
+
+      if (!answered_){
+        b.addEventListener('click', function(){
+          /* `chose` and `right` are ROLE IDS so `verdict()` can compare
+             them — it does `shown.chose === right`, and a part object
+             against a role string would grade every answer wrong.
+             `part` is kept separately so the tapped word can be marked. */
+          state.shown = { chose:p.role, right:r.find, part:p };
+          answered(p.role === r.find);
+        });
+      } else {
+        if (!s.colour) b.appendChild(el('span', 'ls-part-tag', t('lsRole_' + p.role)));
+        b.disabled = true;
+      }
+      line.appendChild(b);
+    });
+    card.appendChild(line);
+
+    /* Which role she is looking for, in her own language. */
+    if (!answered_) card.appendChild(el('p', 'ls-mark-find',
+      t('lsFindRole', { role:t('lsRole_' + r.find) })));
+
+    var g = say(r.gloss);
+    if (g) card.appendChild(el('p', 'ls-gloss', g));
+
+    if (answered_){
+      /* Translated names on both sides, so the verdict line reads
+         "the right one is the object" rather than showing an id. */
+      card.appendChild(verdict(
+        { chose: t('lsRole_' + state.shown.chose) },
+        t('lsRole_' + r.find)));
+      /* No second speak button here — it lives in the strip now. */
+      onward();
+    }
+  }
+
   function paintRead(s, card){
     if (s.head) card.appendChild(el('h2', 'ls-head', say(s.head)));
     if (s.body) card.appendChild(el('p', 'ls-body', say(s.body)));
@@ -328,7 +625,7 @@ GH.lessons = (function(){
   }
 
   function paintPick(s, card){
-    var r = s.rounds[state.round];
+    var r = roundsOf(state.at)[state.round];
     card.appendChild(el('p', 'ls-ask', say(s.ask)));
 
     var line = el('div', 'ls-sentence');
@@ -358,7 +655,7 @@ GH.lessons = (function(){
   }
 
   function paintType(s, card){
-    var r = s.rounds[state.round];
+    var r = roundsOf(state.at)[state.round];
     card.appendChild(el('p', 'ls-ask', say(s.ask)));
 
     var line = el('div', 'ls-sentence');
@@ -386,10 +683,58 @@ GH.lessons = (function(){
     function submit(){
       var v = (input.value || '').trim();
       if (!v) return;
-      /* spelling near enough counts, as it does everywhere else */
+      /* EXACT, WHEN THE PAIR IS THE POINT.
+
+         `GH.text.compare()` accepts an answer within one edit when the
+         target is four characters or shorter, and within two above that.
+         That is right nearly everywhere: a lesson about meaning should
+         not fail her on a typo.
+
+         It is exactly wrong when the whole exercise is choosing between
+         two forms one letter apart. Measured 09 Sep: `den` typed for
+         `dem` grades as CLOSE and is counted correct, and so does `Der`
+         for `Die`, and `an` for `a`. The two-way and gender-clash
+         lessons — the ones whose entire point is der/die/das/dem/den —
+         therefore mark the wrong choice right on their hardest rung.
+
+         `exact:true` on the round (or on the step, for all its rounds)
+         turns the fuzz off. Opt-in, so nothing that does not set it
+         changes behaviour at all.
+
+         NOTE FOR ANYONE ADDING AN ARTICLE OR CASE LESSON: a zero answer
+         is impossible in a type step. `if (!v) return` above means an
+         empty box does nothing, and `compare()` returns 'no' for empty
+         either way — so the step would simply never advance. Ask for a
+         zero article in a `pick` with an explicit dash option instead. */
+      /* STRICT REJECTS A GUESS, NOT A SPELLING.
+
+         `compare()` returns 'close' for two different things, and strict
+         must kill only the second:
+
+             exact                 raw match
+             normalised-equal      wrong case, umlaut written out    OK
+             within 1-2 edits      a different word entirely         NOT OK
+             wrong
+
+         Straße spelt Strasse, or `the` typed where the answer is written
+         `The` at the start of a sentence, is alternate orthography — not
+         a mistake, and strict keeps accepting it. `den` for `dem` is a
+         different grammatical form, and that is the thing strict exists
+         to reject.
+
+         `GH.text.normalize()` is the same folding `compare()` itself
+         uses, so the two agree on what counts as the same spelling.
+         Long term this belongs inside the comparator as
+         `compare(v, target, { strict:true })`; doing it here keeps the
+         change to one function until someone wants that. */
+      var strict = r.exact || s.exact;
       var how = GH.text.compare(v, r.answer);
-      state.shown = { chose:v, right:r.answer, close:how === 'close' };
-      answered(how === 'exact' || how === 'close');
+      if (strict && how === 'close'){
+        var sameWord = GH.text.normalize(v) === GH.text.normalize(r.answer);
+        how = sameWord ? 'exact' : 'no';
+      }
+      state.shown = { chose:v, right:r.answer, close:!strict && how === 'close' };
+      answered(how === 'exact');
     }
     go.addEventListener('click', submit);
     input.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
@@ -505,7 +850,27 @@ GH.lessons = (function(){
 
     var card = el('div', 'card');
     var s = step();
+
+    /* DIFFICULTY, LABELLED RATHER THAN WITHHELD.
+
+       Steven, 09 Sep: "Nothing should be withheld, just labeled. Let
+       learners pick how they want to learn. We can just sort easier
+       first and label it."
+
+       So a step can carry `level:'harder'` and gets a chip saying so.
+       Absent means ordinary and nothing is drawn, which is every step
+       written before today. The ordering is the data's job — put the
+       easy steps first — and this only names what she is looking at, so
+       a harder rung reads as optional rather than as a wall.
+
+       Two values only: 'harder' and 'hardest'. More gradations than that
+       would be a scale she has to interpret instead of a warning she can
+       act on. */
+    if (s.level) card.appendChild(el('p', 'ls-level is-' + s.level,
+      t(s.level === 'hardest' ? 'lsHardest' : 'lsHarder')));
+
     if (s.kind === 'read') paintRead(s, card);
+    else if (s.kind === 'mark') paintMark(s, card);
     else if (s.kind === 'sort') paintSort(s, card);
     else if (s.kind === 'pick') paintPick(s, card);
     else if (s.kind === 'type') paintType(s, card);
@@ -616,6 +981,10 @@ GH.lessons = (function(){
     state.wrong = [];
     state.stepAt = 0;
     state.run = GH.run.create();
+    /* ONE DRAW PER RUN. Anything later would reshuffle mid-lesson; see
+       the note on `drawPools`. A lesson with no pooled step gets an empty
+       `served` and behaves exactly as before. */
+    drawPools();
     state.phase = skipIntro ? 'run' : 'intro';
     paint();
   }

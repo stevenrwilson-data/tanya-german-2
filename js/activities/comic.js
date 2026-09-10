@@ -675,16 +675,27 @@ GH.comic = (function(){
     var img = document.createElement('img');
     img.alt = '';
     img.src = pic(c, state.edition);
-    /* A German page that has not been drawn yet falls back to the English
-       one ONCE, rather than showing an error. The German edition arrives
-       comic by comic over weeks; a gap in it is a normal state, and an
-       English page is far more use to her than a message saying there is
-       no picture. */
+    /* A PAGE MISSING FROM ONE EDITION FALLS BACK TO THE OTHER, ONCE.
+
+       It used to fall back in one direction only — German to English —
+       on the assumption that German was the edition arriving slowly. That
+       stopped being true: English is drawn through unit 6 and German
+       through unit 8, so each edition now has pages the other lacks, and
+       a reader in English hit "no picture" on units 7 and 8 while the
+       German pages sat right there on disk. Steven, 09 Sep.
+
+       `otherEdition()` already exists — it is what the lettering toggle
+       uses — so the fallback simply asks for the other one rather than
+       always for the default.
+
+       Still ONCE. `fellBack` guards it, so a page genuinely absent from
+       both editions shows the message instead of ping-ponging between
+       two missing files. */
     var fellBack = false;
     img.addEventListener('error', function(){
-      if (!fellBack && state.edition !== DEFAULT_EDITION){
+      if (!fellBack){
         fellBack = true;
-        img.src = pic(c, DEFAULT_EDITION);
+        img.src = pic(c, otherEdition(state.edition));
         return;
       }
       frame.className = 'cm-page is-gone';
@@ -692,6 +703,33 @@ GH.comic = (function(){
       frame.appendChild(el('p', 'cm-gone', t('cmNoImage')));
     });
     frame.appendChild(img);
+
+    /* ---------- TAP THE PAGE TO SEE IT FULL SIZE ----------
+
+       Steven, 09 Sep: "the comic has no lightbox to zoom into the comic,
+       you can only see it on the tiny size."
+
+       A comic page carries lettering as well as drawing, and lettering
+       at page-tile size is not readable on a phone. `GH.lightbox` was
+       already here and already doing this job for the word list and the
+       end screen, so this is a wire-up.
+
+       `openPic(url, caption)` rather than `open(sheet, word)` — that
+       second one is the sheet-crop entry point and expects a gallery
+       cell, not a whole image.
+
+       The tap is on the FRAME rather than the <img>, so the hint badge
+       in the corner is inside the target instead of blocking part of it.
+       And it is skipped when the picture failed to load: a zoom button
+       over the "no picture" message would open an empty viewer. */
+    frame.addEventListener('click', function(){
+      if (frame.className.indexOf('is-gone') >= 0) return;
+      if (!GH.lightbox || !GH.lightbox.openPic) return;
+      stopAll();
+      GH.lightbox.openPic(img.src,
+        t('cmUnitN', { n:c.unit }) + ' \u00b7 ' + t('cmComicN', { n:c.comic }));
+    });
+    frame.appendChild(el('span', 'cm-zoom-hint', t('cmZoom')));
     host.appendChild(frame);
 
     host.appendChild(tools());

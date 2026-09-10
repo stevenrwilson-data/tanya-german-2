@@ -153,8 +153,10 @@ GH.toc = (function(){
        lessons the Lessons Overview, built inside app.js off
                GH_LESSON_GUIDE, reached through `GH.app.lessonsOverview`
 
-     `read` has no guide and returns null, so its heading gets no button.
-     A missing module also returns null rather than a button that throws. */
+     read    `GH.readguide.open(host, exit)`     — readguide.js
+
+     A missing module returns null rather than a button that throws, so a
+     guide that has not loaded simply means no `?` on that heading. */
   function guideFor(id){
     if (id === 'games' && GH.guide && GH.guide.open){
       return function(){
@@ -170,6 +172,15 @@ GH.toc = (function(){
     }
     if (id === 'lessons' && GH.app && GH.app.lessonsOverview){
       return function(){ GH.app.lessonsOverview(backHere()); };
+    }
+    /* `read` had no guide, so its heading was the only one of the four
+       without a `?`. Steven, 09 Sep: "Read and Listen needs a description
+       hub like Lessons, Games, and Reference." Added the same day —
+       js/activities/readguide.js, `open(host, exit)` like refguide. */
+    if (id === 'read' && GH.readguide && GH.readguide.open){
+      return function(){
+        GH.app.play({ id:'readguide', open:GH.readguide.open }, backHere());
+      };
     }
     return null;
   }
@@ -268,10 +279,11 @@ GH.toc = (function(){
        counterpart, so on another course this list is empty rather than
        offering lessons the target cannot use.
 
-       Third place this list is read. If a fourth appears, the check
-       belongs in `GH.lessons.all()` itself rather than at every caller. */
-    var learningDe = !GH.player || !GH.player.target || GH.player.target() === 'de';
-    ((learningDe && GH.lessons && GH.lessons.all()) || []).forEach(function(l){
+       Third place this list was read, and the fourth reader is what the
+       old note here predicted. The check MOVED into `GH.lessons.all()`,
+       which now returns the lessons for the target she is learning — so
+       this caller, and any future one, just asks for the list. */
+    ((GH.lessons && GH.lessons.all()) || []).forEach(function(l){
       lessonRows.push({ id:l.id,
                         label:pick(l.name) || l.id,
                         note:lessonNote(l.id),

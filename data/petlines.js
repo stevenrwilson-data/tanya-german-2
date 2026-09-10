@@ -67,16 +67,23 @@ window.GH_PETLINES = {
           en:'Six wrong. This pad is slick. We check it at the end. Keep jumping.' }
       ],
       buy: [
-        { de:'Du hast den Frosch gewählt, {name}! Ich gehöre dir! Spring mit mir!',
-          ru:'Ты выбрала лягушонка, {name}! Я твой! Прыгай со мной!',
-          ruM:'Ты выбрал лягушонка, {name}! Я твой! Прыгай со мной!',
-          en:'You picked the frog, {name}! I\'m yours! Jump with me!' }
-      ],
+      { de:'Du hast den Frosch gewählt, {name}! Ich gehöre dir! Spring mit mir!',
+        en:'You picked the frog, {name}! I’m yours! Jump with me!',
+        ru:'Ты выбрала лягушку, {name}! Я твоя! Прыгай со мной!',
+        ruM:'Ты выбрал лягушку, {name}! Я твоя! Прыгай со мной!' }
+    ],
       shop: [
         { de:'Flippy. Ich springe zuerst. Kauf mich, wenn du einen Partner auf dem Seerosenblatt willst.',
           ru:'Флиппи. Я прыгаю первым. Купи меня, если хочешь напарника на кувшинке.',
           en:'Flippy. I jump first. Buy me if you want a pad partner.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Sauber gelandet, {name}!',
+        ru:'Отлично приземлилась, {name}!',
+        ruM:'Отлично приземлился, {name}!',
+        en:'Landed it, {name}!' }
+    ],
     perfect: [
       { de:'Du hast den Sprung gelandet, {name}. Perfekt!!',
         ru:'Ты приземлилась после прыжка, {name}. Идеально!!',
@@ -141,16 +148,22 @@ window.GH_PETLINES = {
           en:'Six wrong. This cave is confusing. We map it at the end. Don\'t fly off.' }
       ],
       buy: [
-        { de:'Du hast die Fledermaus gewählt, {name}. Ich höre für dich hin.',
-          ru:'Ты выбрала летучую мышь, {name}. Я буду слушать за тебя.',
-          ruM:'Ты выбрал летучую мышь, {name}. Я буду слушать за тебя.',
-          en:'You chose the bat, {name}. I\'ll listen for you.' }
-      ],
+      { de:'Du hast die Fledermaus gewählt, {name}. Ich werde für dich lauschen.',
+        en:'You chose the bat, {name}. I’ll listen for you.',
+        ru:'Ты выбрала летучую мышь, {name}. Я буду слушать за тебя.',
+        ruM:'Ты выбрал летучую мышь, {name}. Я буду слушать за тебя.' }
+    ],
       shop: [
         { de:'Squeaky. Ich höre, was sich versteckt. Kauf mich, wenn du ein Echo in der Dunkelheit willst.',
           ru:'Сквики. Я слышу то, что прячется. Купи меня, если хочешь эхо в темноте.',
           en:'Squeaky. I hear what hides. Buy me if you want an echo in the dark.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Den Sieg hab ich gehört, {name}!',
+        ru:'Я слышал эту победу, {name}!',
+        en:'I heard that win, {name}!' }
+    ],
     perfect: [
       { de:'Perfekt. Perfekt. Perfekt, {name}. Als könntest du im Dunkeln sehen!',
         ru:'Идеально. Идеально. Идеально, {name}. Как будто ты видишь в темноте!',
@@ -203,16 +216,22 @@ window.GH_PETLINES = {
           en:'Six misses. This strike is hard. We study it at the end. Keep hunting.' }
       ],
       buy: [
-        { de:'Du hast den Stachel gekauft, {name}. Ich gehöre dir. Erst kneifen.',
-          ru:'Ты купила жало, {name}. Я твой. Сначала щипай.',
-          ruM:'Ты купил жало, {name}. Я твой. Сначала щипай.',
-          en:'You bought the sting, {name}. I\'m yours. Pinch first.' }
-      ],
+      { de:'Du hast den Stachel gekauft, {name}. Ich gehöre dir. Erst kneifen.',
+        en:'You bought the sting, {name}. I’m yours. Pinch first.',
+        ru:'Ты купила жало, {name}. Я твой. Сначала щипай.',
+        ruM:'Ты купил жало, {name}. Я твой. Сначала щипай.' }
+    ],
       shop: [
         { de:'Max. Skorpion. Ich beschönige nichts. Kauf mich, wenn du einen direkten Partner willst.',
           ru:'Макс. Скорпион. Я ничего не приукрашиваю. Купи меня, если хочешь прямолинейного напарника.',
           en:'Max. Scorpion. I don\'t fluff it. Buy me if you want a blunt partner.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Guter Stich, {name}.',
+        ru:'Хороший укол, {name}.',
+        en:'Good sting, {name}.' }
+    ],
     perfect: [
       { de:'Schweben… Kriechen wie ein Skorpion… Stechen wie ein Skorpion, {name}.',
         ru:'Пари… Ползи как скорпион… Жаль как скорпион, {name}.',
@@ -272,15 +291,21 @@ window.GH_PETLINES = {
           en:'Quack. Six wrong. Hard bit. Official review at the end. Keep going.' }
       ],
       buy: [
-        { de:'Quak! Verkauft! Offizielle Begleitente, {name}! Folge mir!',
-          ru:'Кря! Продано! Официальная утка-компаньон, {name}! За мной!',
-          en:'Quack! Sold! Official companion duck, {name}! Follow me!' }
-      ],
+      { de:'Quak! Verkauft! Offizielle Begleiter-Ente, {name}! Folge mir!',
+        en:'Quack! Sold! Official companion duck, {name}! Follow me!',
+        ru:'Кря! Продано! Официальная утка-компаньон, {name}! За мной!' }
+    ],
       shop: [
         { de:'Quack Quack. Ansager. Reiseführer. Kauf die Ente. Offizielle Empfehlung: die Ente.',
           ru:'Кря-Кря. Диктор. Экскурсовод. Купи утку. Официальная рекомендация: утка.',
           en:'Quack Quack. Announcer. Tour guide. Buy the duck. Official recommendation: the duck.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Quak! Offizieller Star, {name}!',
+        ru:'Кря! Официальная звезда, {name}!',
+        en:'Quack! Official star, {name}!' }
+    ],
     perfect: [
       { de:'Quak! Quak!! Perfekt! Perfekt!! Quak, {name}!!',
         ru:'Кря! Кря!! Идеально! Идеально!! Кря, {name}!!',
@@ -346,16 +371,21 @@ window.GH_PETLINES = {
           en:'Six wrong. This hole is tricky. We\'ll check it at the end. Hop on.' }
       ],
       buy: [
-        { de:'Du hast das Häschen, {name}. Ich gehöre dir. Hoppel mit mir.',
-          ru:'Ты взяла кролика, {name}. Я твой. Скачи со мной.',
-          ruM:'Ты взял кролика, {name}. Я твой. Скачи со мной.',
-          en:'You got the bunny, {name}. I\'m yours. Hop with me.' }
-      ],
+      { de:'Du hast das Häschen, {name}. Ich gehöre dir. Hüpf mit mir.',
+        en:'You got the bunny, {name}. I’m yours. Hop with me.',
+        ru:'У тебя теперь кролик, {name}. Я твой. Прыгай со мной.' }
+    ],
       shop: [
         { de:'Bun Bun. Karotten und Hüpfen. Kauf mich, wenn du einen kleinen Coach mit Snacks willst.',
           ru:'Бан Бан. Морковка и прыжки. Купи меня, если хочешь маленького тренера с перекусом.',
           en:'Bun Bun. Carrots and hops. Buy me if you want a small coach with snacks.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Dafür gibt’s eine Karotte, {name}!',
+        ru:'За это — морковка, {name}!',
+        en:'Carrot for that, {name}!' }
+    ],
     perfect: [
       { de:'Hüpf-perfekt, {name}! Möhrenzeit!',
         ru:'Прыг-идеально, {name}! Время морковки!',
@@ -417,16 +447,22 @@ window.GH_PETLINES = {
           en:'Six misses. This lock is hard. We crack it after the round. Keep moving.' }
       ],
       buy: [
-        { de:'Du hast den Waschbären angeheuert, {name}. Jetzt sind wir Partner. Kapuze hoch.',
-          ru:'Ты наняла енота, {name}. Теперь мы напарники. Капюшон вверх.',
-          ruM:'Ты нанял енота, {name}. Теперь мы напарники. Капюшон вверх.',
-          en:'You hired the raccoon, {name}. Partners now. Hood up.' }
-      ],
+      { de:'Du hast den Waschbären angeheuert, {name}. Jetzt sind wir Partner. Kapuze hoch.',
+        en:'You hired the raccoon, {name}. Partners now. Hood up.',
+        ru:'Ты наняла енота, {name}. Теперь мы напарники. Капюшон вверх.',
+        ruM:'Ты нанял енота, {name}. Теперь мы напарники. Капюшон вверх.' }
+    ],
       shop: [
         { de:'Bandito. Ich nehme Juwelen und gebe sie den Würdigen zurück. Kauf mich. Der Tresor mag Gesellschaft.',
           ru:'Бандито. Я забираю драгоценности и возвращаю их достойным. Купи меня. Сейф любит компанию.',
           en:'Bandito. I take jewels and give them back to the worthy. Buy me. The vault likes company.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Sauber gemacht, {name}.',
+        ru:'Чисто взято, {name}.',
+        en:'Clean take, {name}.' }
+    ],
     perfect: [
       { de:'Saubere Arbeit, {name}. Die Juwelen waren immer für dich bestimmt.',
         ru:'Чистая работа, {name}. Самоцветы с самого начала предназначались тебе.',
@@ -484,16 +520,21 @@ window.GH_PETLINES = {
           en:'Six wrong. Tough flock. We sort the strays at the end. Keep running.' }
       ],
       buy: [
-        { de:'Du hast den Corgi, {name}! Jetzt bin ich dein Hütehund!',
-          ru:'Ты взяла корги, {name}! Теперь я твой пастух!',
-          ruM:'Ты взял корги, {name}! Теперь я твой пастух!',
-          en:'You got the corgi, {name}! I\'m your herder now!' }
-      ],
+      { de:'Du hast den Corgi, {name}! Jetzt bin ich dein Hütehund!',
+        en:'You got the corgi, {name}! I’m your herder now!',
+        ru:'У тебя теперь корги, {name}! Теперь я твой пастух!' }
+    ],
       shop: [
         { de:'Cooper! Ich hüte Antworten. Ich flitze. Kauf mich, und im Gehege wird es laut – auf die gute Art.',
           ru:'Купер! Я пасу ответы. Я ношусь как сумасшедший. Купи меня, и в загоне станет шумно — в хорошем смысле.',
           en:'Cooper! I herd answers. I zoom. Buy me and the pen gets loud in a good way.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Ja! Sieg für die Herde, {name}!',
+        ru:'Да! Победа стаи, {name}!',
+        en:'Yes! Herd win, {name}!' }
+    ],
     perfect: [
       { de:'{name}! Alle Schafe sind drin! Zoom! Nochmal!',
         ru:'{name}! Все овцы в загоне! Зум! Давай ещё раз!',
@@ -551,16 +592,22 @@ window.GH_PETLINES = {
           en:'Six wrong. This part is hard. We\'ll look together when it ends. I\'m not curling up.' }
       ],
       buy: [
-        { de:'Du hast mich gekauft, {name}. Ich bin dein Igel. Das habe ich geübt. Hi.',
-          ru:'Ты купила меня, {name}. Я твой ёжик. Я репетировал эту фразу. Привет.',
-          ruM:'Ты купил меня, {name}. Я твой ёжик. Я репетировал эту фразу. Привет.',
-          en:'You bought me, {name}. I\'m your hedgehog. I practiced that. Hi.' }
-      ],
+      { de:'Du hast mich gekauft, {name}. Ich bin dein Igel. Das habe ich geübt. Hallo.',
+        en:'You bought me, {name}. I’m your hedgehog. I practiced that. Hi.',
+        ru:'Ты купила меня, {name}. Я твой ёжик. Я это репетировал. Привет.',
+        ruM:'Ты купил меня, {name}. Я твой ёжик. Я это репетировал. Привет.' }
+    ],
       shop: [
         { de:'Ich bin Henry. Ich bin schüchtern. Ich komme trotzdem. Kauf mich, wenn du jemanden willst, der bleibt.',
           ru:'Я Генри. Я стесняюсь. Но всё равно прихожу. Купи меня, если хочешь кого-то, кто остаётся.',
           en:'I\'m Henry. I get shy. I still show up. Buy me if you want someone who stays.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Oh! Du hast es geschafft, {name}!',
+        ru:'О! У тебя получилось, {name}!',
+        en:'Oh! You did it, {name}!' }
+    ],
     perfect: [
       { de:'Oh! Oh, {name}, du hast es geschafft. Ich kann mich ganz ausrollen.',
         ru:'Ой! Ой, {name}, ты смогла. Я могу развернуться полностью.',
@@ -621,15 +668,21 @@ window.GH_PETLINES = {
           en:'Six wrong. This nest is tangled. We\'ll sort it at the end. Keep looking.' }
       ],
       buy: [
-        { de:'Ich gehöre dir, {name}. Ich halte Nachtwache. Ich bleibe ganz in deiner Nähe.',
-          ru:'Я твоя, {name}. Я буду хранить ночь. И сидеть рядом.',
-          en:'I\'m yours, {name}. I\'ll keep the night. I\'ll sit close.' }
-      ],
+      { de:'Ich gehöre dir, {name}. Ich wache über die Nacht. Ich bleibe bei dir.',
+        en:'I’m yours, {name}. I’ll keep the night. I’ll sit close.',
+        ru:'Я твоя, {name}. Я буду охранять ночь. Я буду рядом.' }
+    ],
       shop: [
         { de:'Olivia. Kleine Eule. Ich sehe im Dunkeln. Kauf mich, wenn du ein stilles Paar Augen willst.',
           ru:'Оливия. Маленькая сова. Я вижу в темноте. Купи меня, если хочешь тихую пару глаз рядом.',
           en:'Olivia. Baby owl. I watch in the dark. Buy me if you want a quiet pair of eyes.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Ich hab das gesehen, {name}.',
+        ru:'Я это видела, {name}.',
+        en:'I saw that, {name}.' }
+    ],
     perfect: [
       { de:'Du hast gesehen, was andere im Dunkeln übersehen, {name}. Das ist echte Weisheit.',
         ru:'Ты увидела то, что другие пропускают в темноте, {name}. Это настоящая мудрость.',
@@ -691,16 +744,22 @@ window.GH_PETLINES = {
           en:'Six misses. This step is steep. We return to it at the end. Walk on.' }
       ],
       buy: [
-        { de:'Du hast den Panda gewählt, {name}. Jetzt gehe ich neben dir.',
-          ru:'Ты выбрала панду, {name}. Теперь я иду рядом с тобой.',
-          ruM:'Ты выбрал панду, {name}. Теперь я иду рядом с тобой.',
-          en:'You chose the panda, {name}. I walk beside you now.' }
-      ],
+      { de:'Du hast den Panda gewählt, {name}. Jetzt gehe ich an deiner Seite.',
+        en:'You chose the panda, {name}. I walk beside you now.',
+        ru:'Ты выбрала панду, {name}. Теперь я иду рядом с тобой.',
+        ruM:'Ты выбрал панду, {name}. Теперь я иду рядом с тобой.' }
+    ],
       shop: [
         { de:'Ich bin Wing Chung. Langsame Schritte. Kurze Weisheiten. Kauf mich, wenn du einen stillen Begleiter willst.',
           ru:'Я Винг Чунг. Медленные шаги. Короткая мудрость. Купи меня, если хочешь тихого спутника.',
           en:'I am Wing Chung. Slow steps. Short wisdom. Buy me if you want a quiet partner.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Eine kleine Verbeugung, {name}.',
+        ru:'Небольшой поклон, {name}.',
+        en:'A small bow, {name}.' }
+    ],
     perfect: [
       { de:'Wenn der Geist still ist, {name}, verbeugt sich jede Antwort.',
         ru:'Когда ум спокоен, {name}, каждый ответ кланяется.',
@@ -759,15 +818,21 @@ window.GH_PETLINES = {
           en:'Six errors. This passage is difficult. The court reviews it at the end. Proceed.' }
       ],
       buy: [
-        { de:'Erworben. Der Hof gehört nun auch dir, {name}. Ich bin deine Gefährtin.',
-          ru:'Приобретено. Теперь ты разделяешь мой двор, {name}. Я твоя спутница.',
-          en:'Purchased. The court is yours to share, {name}. I am your companion.' }
-      ],
+      { de:'Gekauft. Der Hof steht dir bei, {name}. Ich bin deine Begleiterin.',
+        en:'Purchased. The court sits with you, {name}. I am your companion.',
+        ru:'Куплено. Двор теперь с тобой, {name}. Я твоя спутница.' }
+    ],
       shop: [
         { de:'Luna. Prinzessin. Blaue Perserkatze. Kauf mich, wenn du den Hof direkt neben dir haben willst.',
           ru:'Луна. Принцесса. Голубая персидская кошка. Купи меня, если хочешь, чтобы двор восседал рядом с тобой.',
           en:'Luna. Princess. Blue Persian. Buy me if you want the court seated beside you.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Der Hof billigt es, {name}.',
+        ru:'Двор одобряет, {name}.',
+        en:'The court approves, {name}.' }
+    ],
     perfect: [
       { de:'Du darfst näher kommen, {name}. Das war meines Hofes würdig.',
         ru:'Можешь подойти, {name}. Это было достойно моего двора.',
@@ -826,16 +891,23 @@ window.GH_PETLINES = {
           en:'Six wrong. This part is a mess. We fix it at the end. Don\'t leave the building.' }
       ],
       buy: [
-        { de:'Gekauft. Gut. Jetzt bin ich der Look, {name}. Also lauf auch so.',
-          ru:'Куплено. Хорошо. Теперь я — твой образ, {name}. Так и иди.',
-          en:'Bought. Good. I\'m the look now, {name}. Walk like it.' }
-      ],
+      { de:'Gekauft. Gut. Jetzt bin ich der Look, Liebling {name}. Geh auch so.',
+        en:'Bought. Good. I’m the look now, darling {name}. Walk like it.',
+        ru:'Куплено. Отлично. Теперь стиль — это я, дорогая {name}. Иди соответственно.',
+        ruM:'Куплено. Отлично. Теперь стиль — это я, дорогой {name}. Иди соответственно.' }
+    ],
       shop: [
         { de:'Alisa. Fuchs. Fashion. Bei mir sieht selbst Arbeit teuer aus. Kauf mich, wenn du bereit bist.',
           ru:'Алиса. Лиса. Мода. Со мной даже работа выглядит дорого. Купи меня, когда будешь готова.',
           ruM:'Алиса. Лиса. Мода. Со мной даже работа выглядит дорого. Купи меня, когда будешь готов.',
           en:'Alisa. Fox. Fashion. I make the work look expensive. Buy me when you\'re ready.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Teure Arbeit, mein Schatz {name}.',
+        ru:'Дорогая работа, дорогуша {name}.',
+        en:'Expensive work, darling {name}.' }
+    ],
     perfect: [
       { de:'Liebling, {name}. Das war kein Lernen. Das war ein Laufsteg.',
         ru:'Дорогая, {name}. Это была не учёба. Это был подиум.',
@@ -898,15 +970,21 @@ window.GH_PETLINES = {
           en:'Six wrong. This piece is hard. We\'ll pick it apart at the end. Keep moving.' }
       ],
       buy: [
-        { de:'Jetzt bin ich dein Einhorn, {name}. Versuch, dir das Horn zu verdienen.',
-          ru:'Теперь я твой единорог, {name}. Постарайся заслужить этот рог.',
-          en:'I\'m your unicorn now, {name}. Try to deserve the horn.' }
-      ],
+      { de:'Jetzt bin ich dein Einhorn, {name}. Versuch, dir das Horn zu verdienen.',
+        en:'I’m your unicorn now, {name}. Try to deserve the horn.',
+        ru:'Теперь я твой единорог, {name}. Постарайся заслужить мой рог.' }
+    ],
       shop: [
         { de:'Ich bin Mimi. Baby-Einhorn. Trockener Humor, spitzes Horn. Kauf mich, wenn du Glitzer mit eigener Meinung verträgst.',
           ru:'Я Мими. Маленький единорог. Сухой юмор, острый рог. Купи меня, если выдержишь блёстки с собственным мнением.',
           en:'I\'m Mimi. Baby unicorn. Dry horn. Buy me if you can handle sparkle with opinions.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Na gut. Beeindruckend, {name}.',
+        ru:'Ладно. Впечатляет, {name}.',
+        en:'Fine. Impressive, {name}.' }
+    ],
     perfect: [
       { de:'Oh. Du warst perfekt, {name}. Dann kann mein Horn heute Pause machen.',
         ru:'О. Ты была идеальна, {name}. Похоже, мой рог может взять выходной.',
@@ -967,15 +1045,21 @@ window.GH_PETLINES = {
           en:'Six wrong. This bit is tough. We\'ll look together when the round ends. Don\'t drop it.' }
       ],
       buy: [
-        { de:'Ich gehöre dir, {name}! Offizieller Glücksdrache. Verlier mich nicht.',
-          ru:'Я твоя, {name}! Официальный дракон удачи. Не потеряй меня.',
-          en:'I\'m yours, {name}! Official lucky dragon. Don\'t lose me.' }
-      ],
+      { de:'Ich gehöre dir, {name}! Dein offizieller Glücksdrache. Verlier mich nicht. Ich verliere dich nicht.',
+        en:'I’m yours, {name}! Official lucky dragon. Don’t lose me. I don’t lose you.',
+        ru:'Я твоя, {name}! Официальный дракон удачи. Не потеряй меня. Я тебя не потеряю.' }
+    ],
       shop: [
         { de:'Ich bin Daisy. Ein kleiner Glücksdrache. Kauf mich, und das Glück sitzt direkt neben dir.',
           ru:'Я Дейзи. Маленький дракон удачи. Купи меня, и удача будет сидеть рядом с тобой.',
           en:'I\'m Daisy. Baby lucky dragon. Buy me and the luck sits next to you.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Glück gehabt, {name}!',
+        ru:'Повезло тебе, {name}!',
+        en:'Lucky you, {name}!' }
+    ],
     perfect: [
       { de:'Du warst perfekt, {name}! War das Glück oder Magie? Oder beides?',
         ru:'Ты была идеальна, {name}! Это удача или магия? Или и то и другое?',
@@ -1066,16 +1150,22 @@ window.GH_PETLINES = {
           en:'Six misses. This part is hard. We review it at the end. Keep moving.' }
       ],
       buy: [
-        { de:'Du hast mich gewählt, {name}. Jetzt bin ich dein Schatten. Ich lasse dich leben. Vorerst.',
-          ru:'Ты выбрала меня, {name}. Теперь я твоя тень. Я позволю тебе жить. Пока что.',
-          ruM:'Ты выбрал меня, {name}. Теперь я твоя тень. Я позволю тебе жить. Пока что.',
-          en:'You chose me, {name}. I am your shadow now. I will let you live. For now.' }
-      ],
+      { de:'Du hast mich gewählt, {name}. Jetzt bin ich dein Schatten. Ich lasse dich leben. Vorerst.',
+        en:'You chose me, {name}. I am your shadow now. I will let you live. For now.',
+        ru:'Ты выбрала меня, {name}. Теперь я твоя тень. Я позволю тебе жить. Пока.',
+        ruM:'Ты выбрал меня, {name}. Теперь я твоя тень. Я позволю тебе жить. Пока.' }
+    ],
       shop: [
         { de:'Ich bin Noir. Ein Ninja. Kauf mich, wenn du einen Schatten willst, der niemals wegschaut.',
           ru:'Я Нуар. Ниндзя. Купи меня, если хочешь тень, которая никогда не отводит взгляд.',
           en:'I am Noir. A ninja. Buy me if you want a shadow that does not look away.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Zur Kenntnis genommen, {name}. Weiter so.',
+        ru:'Принято, {name}. Так держать.',
+        en:'Noted, {name}. Keep it.' }
+    ],
     perfect: [
       { de:'Perfekt, {name}. Gut gemacht. Ich lasse dich leben… vorerst.',
         ru:'Идеально, {name}. Молодец. Пока что я позволю тебе жить.',
@@ -1155,16 +1245,22 @@ window.GH_PETLINES = {
           en:'Six wrong. This stretch is hot in the wrong way. We study it at the end. Keep walking.' }
       ],
       buy: [
-        { de:'Du hast den Phönix gewählt, {name}. Ich gehöre dir. Wir steigen wieder auf.',
-          ru:'Ты выбрала феникса, {name}. Я твоя. Мы поднимемся снова.',
-          ruM:'Ты выбрал феникса, {name}. Я твоя. Мы поднимемся снова.',
-          en:'You picked the phoenix, {name}. I\'m yours. We rise.' }
-      ],
+      { de:'Du hast den Phönix gewählt, {name}. Ich gehöre dir. Wir erheben uns.',
+        en:'You picked the phoenix, {name}. I’m yours. We rise.',
+        ru:'Ты выбрала феникса, {name}. Я твой. Мы восстанем.',
+        ruM:'Ты выбрал феникса, {name}. Я твой. Мы восстанем.' }
+    ],
       shop: [
         { de:'Ich bin Ember. Ich brenne, ich falle, ich stehe wieder auf. Kauf mich, wenn du genau das willst.',
           ru:'Я Эмбер. Я горю, падаю и снова поднимаюсь. Купи меня, если тебе это по душе.',
           en:'I\'m Ember. I burn, I fall, I get back up. Buy me if you want that.' }
       ],
+    /* award — earned an achievement (10 Sep). */
+    award: [
+      { de:'Funkel, {name}!',
+        ru:'Сверкай, {name}!',
+        en:'Spark, {name}!' }
+    ],
     perfect: [
       { de:'{name}! Das war Feuer. Ich hab mich erhoben, nur weil ich zugesehen habe.',
         ru:'{name}! Это был огонь. Я сама взлетела, просто глядя на тебя.',

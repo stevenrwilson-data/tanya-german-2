@@ -546,6 +546,11 @@ GH.app = (function(){
      clears them, and a var used forty lines above its declaration reads as
      a bug even though hoisting makes it work. */
   var sawPet = null;          /* the pet's greeting, once per arrival */
+  /* Everything the pet says and offers, handed to its card. Nothing is
+     drawn below the card any more — see the note in hub(). Both cleared
+     on every paint. */
+  var petSays = [];
+  var petGo = null;
 
   function leaving(){
     hubScroll = window.pageYOffset ||
@@ -617,6 +622,34 @@ GH.app = (function(){
     GH.app.redraw = function(){ view.textContent = ''; fn(); };
     view.textContent = '';
     fn();
+
+    /* TELL THE TOUR A NEW SCREEN EXISTS — ONCE, HERE.
+
+       `nav.ready()` is what `butler.js`'s `resume()` hangs off, so a tour
+       step landing on a screen can find and arm what it points at. Every
+       activity is SUPPOSED to call it after painting, and ten of them
+       never did: awards-view, progress-view, store, songbook, reference,
+       settings, refguide, catch-word, conveyor, wrong-form.
+
+       On those the tour fell through to `waitForPaint`'s 700ms deadline
+       instead, which is a race. Lose it and the step draws before the
+       screen's `.backlink` exists, fails to arm, and then asks her to
+       press a back button it never attached to — tapping it navigates
+       away without advancing. Steven hit exactly that on the Quick Tour's
+       Achievements step, 09 Sep.
+
+       Here rather than in ten files: `launch()` is the single door every
+       activity is opened through, the same reason the event log is
+       written here and not at forty-five call sites.
+
+       SAFE TO CALL TWICE, checked before adding: `armHistory()` returns
+       early on `pushed`, and `resume()` redraws the current step without
+       moving the index. So the screens that already call it are
+       unaffected.
+
+       Not a substitute for an activity calling it after ITS OWN later
+       repaints — reader.js and comic.js still do that, and must. */
+    if (GH.nav && GH.nav.ready) GH.nav.ready();
   }
 
   /* What she was in, and how many answers the log held when she went in.
@@ -715,10 +748,29 @@ GH.app = (function(){
      entry, and the hub is the entry. */
   function petStrip(){
     var pets = GH.store.strip();
-    if (!pets.length) return;
 
-    var line = petSpeak(pets);
-    if (!line) return;
+    /* NO PET? WADDLES STANDS IN.
+
+       Steven, 09 Sep: "I don't ever want to see ANY suggestions without
+       being in the pet window. If no pet? Have Waddles fill in."
+
+       Before her first pet there was nobody to carry the card, so the
+       suggestions had nowhere to live — which is why they used to be
+       drawn below it. The butler already has a portrait and a name in
+       data/butler-script.js, so he takes the card until a pet does.
+
+       Only the face and the name are borrowed. The greeting stays a pet's
+       to give; a stand-in card carries the suggestions alone. */
+    var standIn = null;
+    if (!pets.length){
+      var sc = window.GH_BUTLER;
+      if (!sc || !petSays.length) return;
+      standIn = { name:sc.name || 'Waddles', src:sc.perchFace || sc.portrait || '' };
+    }
+
+    /* A stand-in has no line of its own — see the note above. */
+    var line = standIn ? null : petSpeak(pets);
+    if (!line && !standIn && !petSays.length) return;
 
     var wrap = el('div', 'pt-strip');
     var say = el('button', 'pt-strip-say');
@@ -739,20 +791,111 @@ GH.app = (function(){
     if (pets[0] && pets[0].pic){
       pets[0].pic.classList.add('pt-strip-face');
       say.appendChild(pets[0].pic);
+    } else if (standIn && standIn.src){
+      var si = document.createElement('img');
+      si.className = 'pt-strip-face';
+      si.src = GH.build ? GH.build.url(standIn.src) : standIn.src;
+      si.alt = '';
+      say.appendChild(si);
     }
 
     var words = el('span', 'pt-strip-words');
     /* Whose voice it is. With three pets on the shelf the portrait alone
        is not always enough, and the name is the reason she chose it. */
-    words.appendChild(el('span', 'pt-strip-who', pets[0] ? pets[0].name : ''));
+    words.appendChild(el('span', 'pt-strip-who',
+      pets[0] ? pets[0].name : (standIn ? standIn.name : '')));
     /* German first, her language under it, and the German is what is
        spoken — the same rule as every other surface. */
-    words.appendChild(el('span', 'pt-strip-de', line.de));
-    if (line.tr) words.appendChild(el('span', 'pt-strip-tr', line.tr));
+    if (line){
+      words.appendChild(el('span', 'pt-strip-de', line.de));
+      if (line.tr) words.appendChild(el('span', 'pt-strip-tr', line.tr));
+    }
+
+    /* WHAT IS DUE, SAID BY THE PET.
+
+       Steven, 09 Sep: "that message has to be moved into the pet thing —
+       pet has to say this."
+
+       It used to be its own `.nx-card` under the greeting: a second box
+       saying a second thing, in a column that already had the pet
+       talking. The pet is the one voice on this screen, so the count
+       belongs in its mouth rather than in a panel beside it.
+
+       Set by the block further down that asks the scheduler what is
+       waiting; empty when nothing is. The Start button stays in its own
+       card because it is an action, not something said. */
+    /* Each on its own line: the quest count, the named quest, then what
+       is due. Order matters — the quests pay and expire at midnight, the
+       review is there tomorrow. */
+    petSays.forEach(function(txt){
+      words.appendChild(el('span', 'pt-strip-due', txt));
+    });
+
     say.appendChild(words);
 
-    say.addEventListener('click', function(){ GH.speech.say(line.say); });
+    if (line) say.addEventListener('click', function(){ GH.speech.say(line.say); });
     wrap.appendChild(say);
+
+    /* THE BUTTONS LIVE IN THE PET'S CARD, and outside `say`.
+
+       Inside the card because Steven wants one window rather than a
+       greeting with panels stacked under it. Outside `say` because that
+       element owns its own tap — it speaks the line — and a button nested
+       in it would make one tap mean two things depending on where it
+       landed.
+
+       Crystals only while quests remain: when the day is finished the pet
+       still says so, but there is nowhere left to send her. */
+    var acts = el('div', 'pt-strip-acts');
+
+    if (GH.questDay && GH.questDay.todays && GH.questDay.todays().length
+        && !GH.questDay.allDone()){
+      var qAct = GH.app.find && GH.app.find('crystals');
+      if (qAct){
+        var qGo = el('button', 'btn btn-primary pt-strip-go', t('petToCrystals'));
+        qGo.type = 'button';
+        qGo.addEventListener('click', function(ev){
+          if (ev && ev.stopPropagation) ev.stopPropagation();
+          GH.speech.stop();
+          leaving();
+          view.textContent = '';
+          launch(function(){ qAct.open(view, hub); }, 'crystals');
+        });
+        acts.appendChild(qGo);
+      }
+    }
+
+    if (petGo){
+      var go = el('button', 'btn btn-ghost pt-strip-go',
+        /* No longer names the game — Steven, 10 Sep: it is "Daily pet
+           task", a standing label rather than a description of whichever
+           activity the scheduler picked. */
+        t('petToActivity'));
+      go.type = 'button';
+      go.addEventListener('click', function(ev){
+        if (ev && ev.stopPropagation) ev.stopPropagation();
+        GH.speech.stop();
+        leaving();
+        view.textContent = '';
+        launch(function(){ petGo.act.open(view, hub); }, petGo.id);
+      });
+      acts.appendChild(go);
+    }
+
+    /* INTO `say`, WHICH IS THE VISIBLE CARD.
+
+       `.pt-strip-say` is what has the background, the padding and the left
+       rule — `wrap` is just the element around it. Appending the buttons
+       to `wrap` put them OUTSIDE the box, unstyled, sitting on the page
+       background: exactly the "suggestion below the pet window" Steven
+       has now asked to be rid of repeatedly, reintroduced by me while
+       claiming to have removed it.
+
+       `say` owns a click that speaks the line, so each button stops the
+       event rather than letting it reach that handler — see the
+       stopPropagation on both. */
+    if (acts.childNodes.length) say.appendChild(acts);
+
     view.appendChild(wrap);
 
     /* The header's faces can be stale: she may have bought or swapped a
@@ -797,7 +940,28 @@ GH.app = (function(){
     document.body.appendChild(bar);
   }
 
+  /* NOTHING MODAL SURVIVES A TRIP TO THE HUB.
+
+     The pet-purchase window locks body scrolling while it is open and
+     unlocks it when dismissed. If it is ever left behind — a repaint
+     under it, a route change, a crash mid-animation — the lock stays and
+     the page will not scroll. Steven's iPhone, 10 Sep: "can't see below
+     lessons."
+
+     The hub is the one screen everything returns to, so it is the right
+     place to guarantee the page is scrollable. */
+  function clearModals(){
+    var stray = document.querySelectorAll('.pt-got-wrap');
+    for (var i = 0; i < stray.length; i++){
+      if (stray[i].parentNode) stray[i].parentNode.removeChild(stray[i]);
+    }
+    if (document.body.style.overflow === 'hidden'){
+      document.body.style.overflow = '';
+    }
+  }
+
   function hub(){
+    clearModals();
     GH.speech.stop();
     GH.app.redraw = hub;
     view.textContent = '';
@@ -884,6 +1048,113 @@ GH.app = (function(){
        Mimi bought a thing that showed up after a round and was absent from
        the screen she opens. The lines existed for months; nothing greeted
        her. */
+    /* WORK OUT WHAT IS DUE BEFORE THE PET SPEAKS.
+
+       `petStrip()` paints the pet's card, and the due sentence now lives
+       inside it — so the count has to exist by the time that runs. The
+       block further down still owns the Start button; this only asks the
+       scheduler the question early and holds the answer in `nxLine`.
+
+       Measured the wrong way round first: setting `nxLine` down there left
+       it empty on every paint, because the pet card had already been
+       built and appended. */
+    /* EVERYTHING THE PET SAYS, WORKED OUT BEFORE IT SPEAKS.
+
+       Steven, 09 Sep: "the pets should offer 3 things: crystal quests
+       (links you to crystals section), 1 unique pet quest, and show how
+       many of your daily activities you have done. No links to quests
+       should exist below the pet window."
+
+       So the hub no longer draws anything under the pet. The count, the
+       named quest, the review line and both buttons all live in the one
+       card, which is what makes it the pet's window rather than a
+       greeting with panels stacked beneath it.
+
+       THE NAMED QUEST IS DRAWN FROM TODAY'S UNDONE LIST, not from a
+       per-pet pool — there isn't one. `data/quests-data.js` is a single
+       shared set with no pet association, so "Ember's own quest" does not
+       exist as a concept yet. Naming one of the five she has not finished
+       reads as the pet picking something for her, and uses only data that
+       is already there. A genuinely per-pet quest needs a field on each
+       pet and a tag on each quest.
+
+       `questday.todays()` supplies the draw and its `done` flags, and
+       `rules().perDay` owns the number five. Nothing here invents either,
+       so changing the draw size changes what the pet says. */
+    petSays = [];
+    petGo = null;
+    var nxEarly = null;
+
+    /* IT GREETS HER BEFORE IT ASKS ANYTHING.
+
+       Steven, 10 Sep: "that should be below a greeting — like hello and
+       welcome, not 'hey, you walk in the front door, here is a list of
+       chores'."
+
+       A pet already opens with its own line, in character. A stand-in
+       has none, so it went straight to the count — which is exactly the
+       clipboard-at-the-door feeling. This is the stand-in's hello. */
+    var hasPet = !!(GH.store && GH.store.strip && GH.store.strip().length);
+    if (!hasPet) petSays.push(t('petHello'));
+
+    /* THE FIVE A DAY, NOT THE THREE QUESTS.
+
+       Steven: "he says I have completed 0 of my 3 daily activities, it
+       should say 5." They were two different things. `questDay.todays()`
+       is the daily QUEST draw, which is three. The five she counts toward
+       is `coins.rates.target` — five finished activities, worth the
+       100-crystal bonus, and the number every gate in the app is built
+       around. The pet was reporting the wrong one.
+
+       Read from coins, so if the target ever moves the sentence moves
+       with it.
+
+       GENDERED RUSSIAN. "You have completed" is a past tense and Russian
+       marks the doer — выполнил against выполнила. `t()` returns the key
+       itself when a string is missing, so an unmatched lookup must never
+       reach the screen. */
+    /* `rates` is an OBJECT, not a function — coins.js exports it as a
+       literal. Calling it throws, which would take the whole hub paint
+       down with it. */
+    var rates  = (GH.coins && GH.coins.rates) ? GH.coins.rates : null;
+    var target = (rates && rates.target) ? rates.target : 5;
+    var didDay = (GH.coins && GH.coins.dayCount) ? GH.coins.dayCount() : 0;
+
+    if (didDay >= target){
+      petSays.push(t('petQuestAllDone', { n:target }));
+    } else {
+      var line = null;
+      if (GH.i18n.lang() === 'ru'
+          && GH.player && GH.player.gender && GH.player.gender() === 'm'){
+        var mk = t('petQuestCountM', { a:didDay, n:target });
+        if (mk && mk !== 'petQuestCountM') line = mk;
+      }
+      petSays.push(line || t('petQuestCount', { a:didDay, n:target }));
+    }
+
+    /* One quest by name, if any are unfinished. The COUNT of quests is
+       deliberately not said — the line above already answers "how am I
+       doing today", and two counts in one breath is a status report
+       rather than a greeting. */
+    var qs = (GH.questDay && GH.questDay.todays) ? GH.questDay.todays() : [];
+    var open_ = qs.filter(function(q){ return !q.done; });
+    if (open_.length){
+      petSays.push(t('petQuestPick', { q:GH.i18n.pick(open_[0].label) }));
+    }
+
+    if (GH.tutor && GH.tutor.whatNext && GH.coach && !GH.coach.muted()){
+      nxEarly = GH.tutor.whatNext();
+      if (nxEarly && nxEarly.due) petSays.push(t('petReview', { n:nxEarly.due }));
+      if (nxEarly && nxEarly.game){
+        var act0 = GH.app.find && GH.app.find(nxEarly.game);
+        if (act0) petGo = { act:act0, id:nxEarly.game };
+      }
+    }
+
+    /* Never an empty mouth: a pet that greets her and then says nothing
+       reads as broken rather than as a quiet day. */
+    if (!petSays.length) petSays.push(t('petNothing'));
+
     if (GH.store && GH.store.strip) petStrip();
 
     /* The purse used to be printed here. It is in the HEADER now — visible
@@ -915,45 +1186,33 @@ GH.app = (function(){
        fixed. */
     if (GH.coach && !GH.coach.muted()) GH.coach.greeting();
 
-    /* What is waiting, and one tap to it.
+    /* NOTHING IS DRAWN UNDER THE PET ANY MORE.
 
-       The scheduler has always known how many items are due and which
-       area is weakest; until now it kept that to itself and she had to
-       open the progress screen to find out. Somebody deciding whether to
-       open the app at all does not first go looking for a report. */
-    if (GH.tutor && GH.coach && !GH.coach.muted()){
-      var nx = GH.tutor.whatNext();
-      if (nx && (nx.due || nx.game)){
-        var box = document.createElement('div');
-        box.className = 'nx-card';
+       Two cards used to sit here: one for the scheduler's suggestion and
+       one for the quests. Steven, 09 Sep: "No links to quests should
+       exist below the pet window at the top of the main page."
 
-        var line = document.createElement('p');
-        line.className = 'nx-line';
-        line.textContent = nx.due ? t('nxDue', { n:nx.due })
-          : (nx.name ? t('nxWeak', { a:nx.name }) : t('nxJustPlay'));
-        box.appendChild(line);
+       Both moved INTO the pet's card — the lines it speaks and the two
+       buttons beside them. See the block above that fills `petSays` and
+       `petGo`, and the note by `.pt-strip-acts` where they are drawn.
 
-        var act = GH.app.find && nx.game ? GH.app.find(nx.game) : null;
-        if (act){
-          var go = document.createElement('button');
-          go.type = 'button';
-          go.className = 'btn btn-primary nx-go';
-          go.textContent = t('nxStart', { game:GH.i18n.pick(act.name) });
-          go.addEventListener('click', function(){
-            GH.speech.stop();
-            leaving();
-            view.textContent = '';
-            launch(function(){ act.open(view, hub); }, nx.game);
-          });
-          box.appendChild(go);
-        }
-        view.appendChild(box);
-      }
-    }
+       `nxEarly` is still computed up there, because the pet's review line
+       and its Start button both come from it. It just no longer paints
+       anything of its own down here. */
+
     jumps = [];
 
-    view.appendChild(el('p', 'eyebrow', 'Deutsch · Русский · English'));
-    view.appendChild(el('h1', null, t('hubTitle')));
+    /* THE HUB HEADING IS GONE. Steven, 09 Sep: "lose this waste of space
+       too — What do you want to practice?"
+
+       It asked a question the page below already answers, and it did it
+       between the pet's card and the sections themselves, pushing the
+       thing she came for further down the screen. The eyebrow above it
+       went with it: a language list over a heading that no longer exists
+       is a label for nothing.
+
+       `hubTitle` is left in i18n.js unused rather than deleted, in case
+       the heading is wanted back somewhere else. */
     /* `hubLede` USED TO SIT HERE AND DESCRIBED THE WRONG THING.
 
        "Hear the sentence, fill in the missing word, hear it again" is
@@ -1081,7 +1340,9 @@ GH.app = (function(){
        Word Lab and Tanya's own course lessons come through `extras` as
        `kind:'lesson'` and are NOT filtered here: those are vocabulary
        sets, and packs.js hands them the language being learned. */
-    var grammarLessons = (learningTarget() === 'de' && GH.lessons && GH.lessons.all()) || [];
+    /* The language check now lives inside `GH.lessons.all()` — it returns
+       the lessons for the target she is learning and nothing else. */
+    var grammarLessons = (GH.lessons && GH.lessons.all()) || [];
 
     /* Named rather than inline, so the overview list below can open the
        exact same lesson the same way a tile does \u2014 one place that
@@ -1152,10 +1413,8 @@ GH.app = (function(){
          one-word name does not say which one she wants. Steven, 08 Sep —
          Reference is the site's control centre, so it earns a guide.
 
-         Before the tiles, not after: `section()` has already appended the
-         grid by now, so appendChild would bury the button under eight
-         tiles where she would never see it. Same reason gameguide's
-         button uses insertBefore. */
+         In the header row next to the title, Lessons-style — Steven,
+         10 Sep: "fix ALL of the hub descriptions to look like Lessons." */
       if (GH.refguide){
         var rb = el('button', 'btn btn-quiet rg-open', t('rgOpen'));
         rb.type = 'button';
@@ -1167,7 +1426,8 @@ GH.app = (function(){
             GH.refguide.open(view, hub);
           }, 'refguide');
         });
-        secR.insertBefore(rb, secR._tiles);
+        var rHead = secR.querySelector('.hub-head');
+        if (rHead) rHead.appendChild(rb);
       }
 
       /* how she is doing comes first — it is the thing she opens */
@@ -1221,7 +1481,15 @@ GH.app = (function(){
          belongs and this file does not carry a list of ids. The
          dictionary is the first, and it appears only when GH_DICT
          exists — an empty dictionary should show no tile at all. */
+      /* A REFERENCE TILE CAN BE FOR ONE LANGUAGE ONLY.
+         The games filter below has honoured `onlyDe` all along; this loop
+         did not, so a reference page written for one course showed up on
+         every course. `onlyEn` is the mirror, carried by the English
+         grammar reference (js/activities/eng-grammar.js). Read off the
+         entry, so neither this file nor the activity keeps a list. */
       extras.filter(function(a){ return a.kind === 'ref'; }).forEach(function(a){
+        if (a.onlyDe && learningTarget() !== 'de') return;
+        if (a.onlyEn && learningTarget() !== 'en') return;
         if (a.id === 'dictionary' && !(window.GH_DICT && GH_DICT.length)) return;
         secR._tiles.appendChild(tile(a.glyph, GH.i18n.pick(a.name),
           GH.i18n.pick(a.sub), null, function(){
@@ -1275,6 +1543,27 @@ GH.app = (function(){
             launch(function(){ a.open(view, hub); }, a.id);
           }, a.id));
       });
+      /* WHAT'S HERE? The guide that was written and then never reachable
+         from the hub. Steven wrote readguide.js's text on 09 Sep and the
+         Table of Contents got its `?` — but this section, unlike Games
+         and Reference, never got a button, so from the hub the guide did
+         not exist. Found 10 Sep; placed in the header row next to the
+         title the same day, per "fix ALL of the hub descriptions to look
+         like Lessons." */
+      if (GH.readguide){
+        var rlb = el('button', 'btn btn-quiet rl-open', t('rlOpen'));
+        rlb.type = 'button';
+        rlb.addEventListener('click', function(){
+          GH.speech.stop();
+          leaving();
+          view.textContent = '';
+          launch(function(){
+            GH.readguide.open(view, hub);
+          }, 'readguide');
+        });
+        var rlHead = secRL.querySelector('.hub-head');
+        if (rlHead) rlHead.appendChild(rlb);
+      }
       /* NOT CAPPED. Steven: "Read and Listen section only has 7 sections,
          I don't want that collapsed.. It hides the comic!"
 
@@ -1315,13 +1604,34 @@ GH.app = (function(){
     var games = extras.filter(function(a){
       if (a.kind === 'read' || a.kind === 'ref' || a.kind === 'lesson') return false;
       if (a.onlyDe && learning !== 'de') return false;
+      /* A GAME CAN ANSWER FOR ITSELF INSTEAD OF CARRYING A FLAG.
+
+         `onlyDe` above is a hand-set boolean, and a hand-set boolean
+         drifts: conveyor was German-only for months without one, and
+         served German sentences to an English course until 09 Sep.
+
+         `available()` lets a game ask its own data whether it can run in
+         the current target — GH_QUESTION_CUES.hasLang(learning), say.
+         Then adding a language is a data change and a missing bank can
+         never mean showing the wrong language. Absent means yes, so no
+         existing game is affected. */
+      if (typeof a.available === 'function'){
+        try { if (!a.available(learning)) return false; }
+        catch (e){ return false; }
+      }
       return true;
     });
     if (games.length){
       var sec3 = section('gamesHead');
 
       /* What each one IS, before she has to open fifteen of them to find
-         out. A glyph and a name do not tell her whether she wants it. */
+         out. A glyph and a name do not tell her whether she wants it.
+
+         IN THE HEADER ROW, next to the title — Steven, 10 Sep: "fix ALL
+         of the hub descriptions to look like Lessons." The hub-head is
+         already flex space-between, so appending puts the link at the
+         title's far side, exactly where the Lesson Guide sits. The
+         `.gd-open` class stays: the Full Tour points at and taps it. */
       if (GH.guide){
         var gb = el('button', 'btn btn-quiet gd-open', t('gdOpen'));
         gb.type = 'button';
@@ -1333,10 +1643,8 @@ GH.app = (function(){
             GH.guide.open(view, hub, function(a){ play(a); });
           }, 'guide');
         });
-        /* Before the tiles, not after. section() has already appended the
-           grid by the time we get here, so appendChild would put the
-           button under fifteen tiles where she would never see it. */
-        sec3.insertBefore(gb, sec3._tiles);
+        var gHead = sec3.querySelector('.hub-head');
+        if (gHead) gHead.appendChild(gb);
       }
 
       games.forEach(function(a){
@@ -1676,26 +1984,38 @@ GH.app = (function(){
 
   var langBar = null;
 
+  /* THE BRAND MARK IS THE LANGUAGE SWITCH.
+
+     Steven, 09 Sep: "swap the DE button at the top to be the toggle for
+     language and get rid of Eng -> Germ pill."
+
+     It was a static `DE` tile in index.html — the site's logo, and
+     nothing else. Which made it the one thing in the corner that looked
+     pressable and was not, while a separate `Рус → Нем` pill in the
+     toolbar did the actual job. One control now, in the place the eye
+     already goes.
+
+     STACKED, NOT AN ARROW. The pill read left-to-right as
+     "from → to". Two lines put the language she is LEARNING on top,
+     which is the one she wants to see at a glance, and her own
+     underneath in a quieter size. */
   function paintLang(){
     if (!langBar) return;
     langBar.textContent = '';
-    var b = el('button', 'lg-pair');
-    b.type = 'button';
-    b.setAttribute('aria-haspopup', 'true');
-    b.appendChild(el('span', 'lg-l1', langShort(GH.i18n.lang())));
-    /* A real arrow, not `->`. Marked hidden because a screen reader saying
-       "rightwards arrow" between two language names is noise. */
-    var arrow = el('span', 'lg-arrow', '→');
-    arrow.setAttribute('aria-hidden', 'true');
-    b.appendChild(arrow);
-    b.appendChild(el('span', 'lg-l2', langShort(GH.player ? GH.player.target() : 'de')));
-    b.addEventListener('click', askNative);
-    langBar.appendChild(b);
+    langBar.setAttribute('aria-haspopup', 'true');
+    langBar.setAttribute('aria-label', t('lgNative'));
+    langBar.appendChild(el('span', 'bm-to',
+      langShort(GH.player ? GH.player.target() : 'de')));
+    langBar.appendChild(el('span', 'bm-from', langShort(GH.i18n.lang())));
   }
 
   function initLangSwitch(){
-    langBar = document.getElementById('langswitch');
+    /* The brand mark first; the old `#langswitch` nav is the fallback so
+       an older index.html still gets a working control rather than none. */
+    langBar = document.getElementById('brandmark')
+           || document.getElementById('langswitch');
     if (!langBar) return;
+    langBar.addEventListener('click', askNative);
     /* Repaint has to run on every change, not just at boot — the stored
        language is restored after this function runs, so without it the
        header would show Рус while the page rendered in German. */
@@ -1771,7 +2091,8 @@ GH.app = (function(){
        without the target check the overview would list all seventeen
        German grammar lessons on an English course while the hub showed
        none — two answers to one question. */
-    var grammarLessons = (learningTarget() === 'de' && GH.lessons && GH.lessons.all()) || [];
+    /* Same as the hub: `all()` is already filtered by target. */
+    var grammarLessons = (GH.lessons && GH.lessons.all()) || [];
     openLessonsOverview(taught, grammarLessons,
       openTaughtLesson, openGrammarLesson, exit);
   }

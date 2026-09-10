@@ -41,6 +41,35 @@ GH.awards = (function(){
      app and answering one question does not advance them, because an
      achievement for turning up is an achievement for nothing. */
   var LIST = [
+    /* ---- COLLECTING, added 10 Sep on Steven's spec ----
+
+       "Make every 3 pets an achievement: 3, 6, 9, 12, 15, then 16."
+       Sixteen is the last one and is only one past fifteen — deliberately,
+       because finishing the set should be its own moment rather than
+       arriving unmarked between two milestones.
+
+       The carrier and the quest run are the other two he named. The
+       carrier pays 500, which is his number and by far the largest here —
+       it is the one that unlocks a legendary. */
+    { id:'pets-3',   pay:60,  key:'awPets3',
+      is:function(f){ return f.pets >= 3; } },
+    { id:'pets-6',   pay:90,  key:'awPets6',
+      is:function(f){ return f.pets >= 6; } },
+    { id:'pets-9',   pay:120, key:'awPets9',
+      is:function(f){ return f.pets >= 9; } },
+    { id:'pets-12',  pay:160, key:'awPets12',
+      is:function(f){ return f.pets >= 12; } },
+    { id:'pets-15',  pay:200, key:'awPets15',
+      is:function(f){ return f.pets >= 15; } },
+    { id:'pets-all', pay:400, key:'awPetsAll',
+      is:function(f){ return f.pets >= 16; } },
+
+    { id:'carrier-2', pay:500, key:'awCarrier2',
+      is:function(f){ return f.slots >= 2; } },
+
+    { id:'quests-30', pay:250, key:'awQuests30',
+      is:function(f){ return f.quests >= 30; } },
+
     { id:'first-round',   pay:20,   key:'awFirstRound',
       is:function(f){ return f.rounds >= 1; } },
 
@@ -221,7 +250,18 @@ GH.awards = (function(){
       mature: t.mature,
       days: c.days,
       packs: packs,
-      tenses: tenses
+      tenses: tenses,
+
+      /* PETS, CARRIERS AND QUESTS. Added 10 Sep for the achievements
+         Steven asked for — every third pet, the second carrier, and
+         thirty crystal quests.
+
+         Read through the same guards as everything else here: a fact set
+         built while a module is still loading must yield a number, not
+         throw, or the whole achievement sweep dies with it. */
+      pets: (GH.store && GH.store.ownedCount) ? GH.store.ownedCount() : 0,
+      slots: (GH.store && GH.store.slotCount) ? GH.store.slotCount() : 1,
+      quests: (GH.questDay && GH.questDay.lifetime) ? GH.questDay.lifetime() : 0
     };
   }
 
@@ -277,6 +317,20 @@ GH.awards = (function(){
       if (GH.coins) GH.coins.earn ? GH.coins.earn(a.pay) : null;
     });
     if (won.length) write();
+    /* THE CELEBRATION WINDOW. Steven, 10 Sep: "that same window used for
+       achievements. When you get one."
+
+       Fired here rather than at each end screen because check() is the one
+       point every path runs through — a round finishing, a grammar page
+       read, a pet or carrier bought — so one call covers all of them and a
+       new award source cannot forget to celebrate. The end screen still
+       lists what was won (the ledger); this is the moment.
+
+       Guarded so a store-less or headless context (early boot, the audit
+       harness) still gets the returned list back without a throw. */
+    if (won.length && GH.store && GH.store.awardWindow){
+      try { GH.store.awardWindow(won); } catch (e){}
+    }
     return won;
   }
 

@@ -811,13 +811,40 @@ GH.coins = (function(){
   /* A flat payment, for anything that is not a finished round —
      achievements mostly. Kept separate from award() so the round formula
      stays the only thing that decides what a round is worth. */
-  function earn(n, why){
+  /* `counts` — does this earning also count toward the day's five?
+
+     Steven, 10 Sep: "quests need to be 5 on a day for credit. Lessons,
+     games, anything that credits counts." ANYTHING.
+
+     Rounds already counted, because they pay through the round path which
+     bumps `p.done`. Crystal quests did NOT: they call `earn()`, which
+     added crystals and touched nothing else — so finishing three quests
+     moved her balance and left the streak at zero. That is the opposite
+     of what the streak is for.
+
+     Not every call should count, though. An achievement payout is not an
+     activity; neither is a gift or a refund. So the caller says, and only
+     the ones that are genuinely a thing she DID pass `true`.
+
+     The bonus is checked here as well, or a day finished entirely on
+     quests would hit five and never be paid for it. */
+  function earn(n, why, counts){
     if (!n) return 0;
     var p = purse();
     rollDay(p);
     p.n += n;
     p.lifetime += n;
     p.dayCoins = (p.dayCoins || 0) + n;
+    if (counts){
+      p.done = (p.done || 0) + 1;
+      if (p.done >= DAILY_TARGET && !p.gotBonus){
+        p.gotBonus = true;
+        p.n += DAILY_BONUS;
+        p.lifetime += DAILY_BONUS;
+        p.dayCoins = (p.dayCoins || 0) + DAILY_BONUS;
+        note(p, { t:Date.now(), game:'day-bonus', n:DAILY_BONUS });
+      }
+    }
     note(p, { t:Date.now(), game:why || 'award', n:n });
     write();
     return n;

@@ -38,11 +38,21 @@ GH.songs = (function(){
     return n;
   }
 
+  /* SING IS THE DEFAULT. Steven, 09 Sep: "as sung does that, so have as
+     sung be default view."
+
+     `paintSing` writes the running order out in full — every repeat of
+     the chorus printed where it actually falls — so it matches what she
+     is hearing. `paintText` prints each block once and links later
+     repeats back, which is a good way to see the SHAPE of a song but a
+     confusing thing to open on while the audio plays. The remembered
+     choice still wins; this only changes what she gets before she has
+     ever chosen. */
   function view(){
     try {
       var v = window.localStorage.getItem(VIEW_KEY);
-      return VIEWS.indexOf(v) >= 0 ? v : 'text';
-    } catch (e){ return 'text'; }
+      return VIEWS.indexOf(v) >= 0 ? v : 'sing';
+    } catch (e){ return 'sing'; }
   }
   function setView(v){
     try { window.localStorage.setItem(VIEW_KEY, v); } catch (e){}
@@ -497,6 +507,12 @@ GH.songs = (function(){
        language rather than as an empty German row. */
     var ids = Object.keys(song.lines);
     var block = el('div', 'sg-block');
+    /* A HEADING, BECAUSE "LINES" ON ITS OWN IS AMBIGUOUS HERE. Steven,
+       09 Sep: the top should say Unique lines while the button stays
+       Lines — the button is a tab label and has to stay short, but the
+       page needs to say that this is each line ONCE rather than the
+       song. The note underneath already gives the count. */
+    block.appendChild(el('h3', 'sg-block-head', t('sgUniqueLines')));
     block.appendChild(el('p', 'sg-note', t('sgLinesNote', { n:ids.length })));
     ids.forEach(function(id, i){
       var L = song.lines[id];
@@ -564,7 +580,15 @@ GH.songs = (function(){
       codes.forEach(function(code){
         var b = el('button', 'chip' + (now[code] ? ' on' : ''));
         b.type = 'button';
-        b.textContent = t('langName_' + code);
+        /* "English Songs", not "English". Steven, 09 Sep: the bare
+           language name does not say what the button does — it reads like
+           a label rather than a switch. And a tick when it is on, because
+           `.chip.on` alone is a shade of background that does not
+           announce itself as a toggle.
+
+           `sgSongs_<code>` is the same key the group heading uses, so the
+           chip and the heading it reveals always say the same words. */
+        b.textContent = (now[code] ? '\u2713 ' : '') + t('sgSongs_' + code);
         b.setAttribute('aria-pressed', now[code] ? 'true' : 'false');
         b.addEventListener('click', function(){
           setLang(code, !langsOn()[code]);
@@ -631,40 +655,117 @@ GH.songs = (function(){
     var count = {};
     all.forEach(function(x){ if (x.pair) count[x.pair] = (count[x.pair] || 0) + 1; });
 
-    var grid = el('div', 'tiles');
-    host.appendChild(grid);
+    /* ONE WRAPPER AROUND THE WHOLE LIST.
 
-    var done = {};
-    all.forEach(function(song){
-      var id = song.pair;
-      if (!id || count[id] < 2){
-        grid.appendChild(tileFor(song));
-        return;
-      }
-      if (done[id]) return;
-      done[id] = true;
+       The list is not a single grid: a paired-song box goes outside the
+       grid (see the note below), and a fresh `.tiles` grid is started
+       after each one so later songs do not jump above it. So the view
+       ends up holding several `.tiles` elements in sequence.
 
-      /* The shaded box. It goes OUTSIDE the tile grid, because a box inside
-         a CSS grid becomes one grid cell and the two tiles in it would be
-         squeezed into the width of one. */
-      var half = all.filter(function(x){ return x.pair === id; });
-      var box = el('div', 'sg-pair');
-      var lbl = el('p', 'sg-pair-l', t('sgPairHead'));
-      box.appendChild(lbl);
-      var inner = el('div', 'sg-pair-two');
-      half.forEach(function(x){
-        var wrap = el('div', 'sg-pair-half');
-        if (x.voice) wrap.appendChild(el('span', 'sg-pair-voice', t(x.voice === 'm' ? 'sgVoiceM' : 'sgVoiceF')));
-        wrap.appendChild(tileFor(x));
-        inner.appendChild(wrap);
+       That broke a tour step. The Full Tour says "Pick a song to take a
+       closer look" pointing at `.tiles`, and `butler.js` highlights and
+       arms with `querySelector` — the FIRST match. Only the top group
+       lit up, and only a tile in that group would advance the tour, even
+       though there are songs further down. Steven, 09 Sep.
+
+       A wrapper fixes both at once: one selector covers every song, and
+       a tap on any tile bubbles up to it. It is a plain div, so each
+       `.tiles` keeps its own grid context and the layout is unchanged. */
+    var listWrap = el('div', 'sg-songlist');
+    host.appendChild(listWrap);
+
+    /* ---------- ONE GROUP PER LANGUAGE, EACH WITH A HEADING ----------
+
+       Steven, 09 Sep: "English song sections needs a title."
+
+       With one language on screen the list needs no heading and gets
+       none — a lone "German Songs" above every song says nothing. The
+       moment a second language is switched on, both groups get named, so
+       she is never looking at a mixed list wondering which is which.
+
+       German is always first. The rest follow `codes` order, which is
+       fixed rather than alphabetical so the list does not reshuffle as
+       languages are added.
+
+       The pair logic runs PER GROUP. A pair is two halves of one thing
+       and both halves are in the same language, so counting pairs across
+       the whole list would let a German half and an English half of the
+       same song try to box together — which is the bug the `-eng` pair
+       suffix in data/songs.js already guards against, guarded again here
+       structurally. */
+    var groups = {}, order = [];
+    all.forEach(function(sg){
+      var L = songLang(sg);
+      if (!groups[L]){ groups[L] = []; order.push(L); }
+      groups[L].push(sg);
+    });
+    /* German first, then the belt's own order. */
+    order.sort(function(a, b){
+      if (a === 'de') return -1;
+      if (b === 'de') return 1;
+      var A = ['en','ru','es','fr','it','uk','tl','ga'].indexOf(a);
+      var B = ['en','ru','es','fr','it','uk','tl','ga'].indexOf(b);
+      return (A < 0 ? 99 : A) - (B < 0 ? 99 : B);
+    });
+    var named = order.length > 1;
+
+    order.forEach(function(L){
+      var mine = groups[L];
+      if (named) listWrap.appendChild(el('h2', 'sg-lang-head', t('sgSongs_' + L)));
+
+      /* ---------- ONE GRID, AND THE PAIR BOX SPANS A WHOLE ROW ----------
+
+         Steven, 09 Sep: "right now it has one lone song above and a gap.
+         Waste of space!" Then: "the pair stays but don't leave an empty
+         spot."
+
+         Both, and the way to get both is `grid-column:1/-1` on the box.
+
+         The original code kept the box OUTSIDE the grid, because a box
+         dropped into a two-column grid takes one cell and the two tiles
+         inside it get squeezed to half width. To do that it closed the
+         grid at each box and opened a fresh one after — so a pair early
+         in the list left a part-filled row above it.
+
+         My first fix moved the boxes to the end of the group, which
+         killed the gap but also moved the pair. Wrong trade.
+
+         Spanning the full row solves it properly: the box lives IN the
+         grid, in its data position, occupying an entire row of its own.
+         Tiles before and after flow around it with no gap, the two halves
+         inside get the full width, and there is one grid per language.
+         Nothing has to be reordered. */
+      var grid = el('div', 'tiles');
+      listWrap.appendChild(grid);
+
+      /* pair counts within this language only */
+      var seen = {};
+      mine.forEach(function(x){ if (x.pair) seen[x.pair] = (seen[x.pair] || 0) + 1; });
+
+      var done = {};
+      mine.forEach(function(song){
+        var id = song.pair;
+        if (!id || seen[id] < 2){
+          grid.appendChild(tileFor(song));
+          return;
+        }
+        if (done[id]) return;
+        done[id] = true;
+
+        var half = mine.filter(function(x){ return x.pair === id; });
+        var box = el('div', 'sg-pair');
+        box.appendChild(el('p', 'sg-pair-l', t('sgPairHead')));
+        var inner = el('div', 'sg-pair-two');
+        half.forEach(function(x){
+          var wrap = el('div', 'sg-pair-half');
+          if (x.voice) wrap.appendChild(el('span', 'sg-pair-voice', t(x.voice === 'm' ? 'sgVoiceM' : 'sgVoiceF')));
+          wrap.appendChild(tileFor(x));
+          inner.appendChild(wrap);
+        });
+        box.appendChild(inner);
+        /* Into the grid, in position, spanning the row. */
+        grid.appendChild(box);
       });
-      box.appendChild(inner);
-      host.appendChild(box);
-
-      /* A fresh grid after the box, so any songs listed later do not jump
-         above it. */
-      grid = el('div', 'tiles');
-      host.appendChild(grid);
     });
   }
 
@@ -709,14 +810,18 @@ GH.songs = (function(){
                        : 'audio/' + song.audio + '.ogg';
     ogg.type = 'audio/ogg; codecs=vorbis';
     a.appendChild(ogg);
-    /* Safari plays Vorbis — tested on the Mac and the iPhone — so the ogg
-       above is enough. The m4a source stays as a fallback for anything
-       that does not, and costs nothing when it is absent. */
-    var m4a = document.createElement('source');
-    m4a.src = GH.build ? GH.build.url('audio/' + song.audio + '.m4a')
-                       : 'audio/' + song.audio + '.m4a';
-    m4a.type = 'audio/mp4';
-    a.appendChild(m4a);
+    /* OGG ONLY. NO SECOND FORMAT, EVER.
+
+       Steven, 09 Sep: "There will never be m4a. Only ogg. That is a never
+       going to happen deal ever."
+
+       An m4a fallback used to sit here for the browsers that refuse
+       Vorbis. It is gone, and this is not an oversight to correct:
+       Steven has tested Vorbis on the Mac, the iPad and an iPhone older
+       than Tanya's. The handful of devices that still cannot decode it
+       get no music, and that is the accepted trade rather than a bug.
+
+       So do not add a second <source>. Every track is one file. */
     a.addEventListener('error', function(){
       wrap.style.display = 'none';
       /* Not just hidden — released. A media element left attached in an

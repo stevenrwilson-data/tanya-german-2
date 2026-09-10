@@ -384,6 +384,20 @@ GH.reader = (function(){
     /* One tier is not a choice, so no row. */
     if (jumped > 1) host.appendChild(jumps);
 
+    /* ONE WRAPPER AROUND EVERY SECTION.
+
+       Each section gets its own `.tiles` grid, so the Reader ends up with
+       one grid per tier — short stories, medium, long, poems, articles.
+       The Full Tour's step 26 points at `.tiles` while describing the
+       whole collection, and `butler.js` highlights and arms the FIRST
+       match, so only the top tier lit up and only a tile in it advanced
+       the tour. Same fault the song list had; found by checking the other
+       `.tiles` steps after Steven reported that one, 09 Sep.
+
+       A plain div, so each `.rd-sec` and each grid keeps its own layout. */
+    var listWrap = el('div', 'rd-list');
+    host.appendChild(listWrap);
+
     SECTIONS.forEach(function(sec){
       var list = pieces(sec);
       if (!list.length) return;
@@ -418,7 +432,7 @@ GH.reader = (function(){
         grid.appendChild(b);
       });
       wrap.appendChild(grid);
-      host.appendChild(wrap);
+      listWrap.appendChild(wrap);
     });
 
     if (!any) host.appendChild(el('p', 'empty', t('nothingHere')));

@@ -261,6 +261,40 @@ GH.fillBlank = (function(){
     }));
   }
 
+  /* ---------- THE LEGEND EXPLAINS ITSELF, ONCE ----------
+
+     Steven, 09 Sep: "the first time you hit any of the icons at all the
+     window should pop up to explain them. Clicking Got It closes. Then
+     the ? glows indicating you can open that window again from the ?"
+
+     Five icons with no labels are not guessable, and the one control that
+     would say what they are is the smallest thing on the screen. So the
+     first tap on any rung opens the legend, unasked. After that it never
+     interrupts again, and the ? carries a glow until she uses it — which
+     is what tells her where the explanation went.
+
+     TWO FLAGS, not one. `fbLegend` records that she has seen it;
+     `fbLegendQ` records that she has since found the ?. The glow is the
+     window between them. One flag could not express "seen, but does not
+     yet know where it lives", which is exactly the state the glow is for.
+
+     Both live on GH.howto's own storage, so this behaves like every other
+     first-run explainer in the app and is forgotten if she resets. The
+     legend's Got-it button and its close already exist in howto.js —
+     nothing new was built here, only wired. */
+  function legendSeen(){
+    return !GH.howto || !GH.howto.seen || GH.howto.seen('fbLegend');
+  }
+  function markLegendSeen(){
+    if (GH.howto && GH.howto.markSeen) GH.howto.markSeen('fbLegend');
+  }
+  function qFound(){
+    return !GH.howto || !GH.howto.seen || GH.howto.seen('fbLegendQ');
+  }
+  function markQFound(){
+    if (GH.howto && GH.howto.markSeen) GH.howto.markSeen('fbLegendQ');
+  }
+
   function modeKey(){
     var k = 'gh-fb-mode';
     return (GH.player && GH.player.scope) ? GH.player.scope(k) : k;
@@ -404,11 +438,20 @@ GH.fillBlank = (function(){
       b.appendChild(icon(m));
       b.setAttribute('aria-pressed', state.mode === m ? 'true' : 'false');
       b.addEventListener('click', function(){
-        if (state.mode === m) return;
-        state.mode = m;
-        setMode(m);                 /* remembered — see the note above */
-        state.shown = false;        /* a new rung starts unpeeked */
-        paint();
+        /* FIRST TAP ON ANY RUNG EXPLAINS THEM ALL.
+
+           The mode change happens first and the legend opens over the
+           top of it, so her tap is never swallowed — she gets the rung
+           she asked for AND finds out what the other four are. */
+        var first = !legendSeen();
+        if (first) markLegendSeen();
+        if (state.mode !== m){
+          state.mode = m;
+          setMode(m);               /* remembered — see the note above */
+          state.shown = false;      /* a new rung starts unpeeked */
+          paint();
+        }
+        if (first) legend();
       });
       modes.appendChild(b);
     });
@@ -421,12 +464,36 @@ GH.fillBlank = (function(){
        carry. */
     var why = el('div', 'fb-mode-why');
     why.appendChild(el('span', 'fb-mode-name', t(MODE_LABEL[state.mode])));
-    var q = el('button', 'fb-mode-q', '?');
+    card.appendChild(why);
+
+    /* THE ? GOES IN THE CARD'S TOP RIGHT CORNER.
+
+       Steven, 09 Sep: "the ? to explain icons needs to be upper right."
+
+       It used to sit inside `.fb-mode-why`, the centred row that names the
+       current rung — so it rendered BELOW the Listen / AUTO / COPY
+       toolbar, reading as part of the mode label rather than as help for
+       the screen. A help affordance belongs in a corner where it is found
+       by habit, not in the middle of a row where it competes with the
+       thing it explains.
+
+       Appended to the card and absolutely placed, so it does not push the
+       toolbar around and does not care what order the rows are built in. */
+    /* Glowing while she has seen the legend but not yet found the ? —
+       see the note by `legendSeen`. The glow is a pointer, not an alert,
+       and it stops the first time she uses it. */
+    var glow = legendSeen() && !qFound();
+    var q = el('button', 'fb-mode-q' + (glow ? ' is-new' : ''), '?');
     q.type = 'button';
     q.setAttribute('aria-label', t('fbLegendTitle'));
-    q.addEventListener('click', legend);
-    why.appendChild(q);
-    card.appendChild(why);
+    q.addEventListener('click', function(){
+      if (!qFound()){
+        markQFound();
+        q.className = 'fb-mode-q';   /* stop glowing immediately */
+      }
+      legend();
+    });
+    card.appendChild(q);
     card.appendChild(el('p', 'fb-mode-help', t(MODE_HELP[state.mode])));
 
     /* `sheet`/`pos` addresses a cell in one of data/gallery.js's named

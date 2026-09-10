@@ -193,9 +193,16 @@ GH.butler = (function(){
 
        So the dim is its own element underneath:
 
-           .bt-scrim    70   paint only
-           .bt-lit      81   the thing he is pointing at
-           .bt-overlay  90   the bubble
+           .bt-scrim    700   paint only
+           .bt-lit      810   the thing he is pointing at
+           .bt-overlay  900   the bubble
+           .bt-gift     950   the crystal hand-over
+
+       Raised from 70/81/90 on 09 Sep. At 90 the bubble still sat under
+       the lightbox (200), the how-to overlay (200) and the language
+       picker (120), so "Waddles is behind" was reachable from several
+       steps. He is now above every z-index in the stylesheet.
+       Steven: "pull him to the top everywhere across the board." 
 
        The scrim is created first and appended first, so it is also below
        in document order. Both are toggled together in show(). */
@@ -213,9 +220,25 @@ GH.butler = (function(){
     if (!host) return;
     host.className = 'bt-overlay';
     host.textContent = '';
+    /* THE SCRIM IS ITS OWN ELEMENT NOW, SO IT HAS TO BE CLOSED TOO.
+
+       It used to be `.bt-overlay`'s own background, so clearing the
+       class above cleared the dim with it. Splitting it into a separate
+       layer (see the note by `ensure`) broke that and `close()` was never
+       updated — so declining the tour hid Waddles and left the page
+       under a full-screen dim with nothing on it.
+
+       Steven, 09 Sep: "Dark because it wanted to do a tour and I said let
+       me explore but stayed dark." Every exit runs through here — the
+       decline, the finish, stop(), and each armed tap — so this one line
+       covers all of them. */
+    if (scrim) scrim.className = 'bt-scrim';
     document.body.style.overflow = '';
     clearHighlight();
-    disarm();
+    /* Everything pending, in one call — see `cancelPending`. This used to
+       be a hand-written list here and each of the other exits kept its
+       own, slightly different, copy. */
+    cancelPending();
   }
 
   /* ---------- WAITING FOR HER TO PRESS THE REAL BUTTON ----------
@@ -229,29 +252,83 @@ GH.butler = (function(){
 
      The listener goes on the element itself and is removed when the step
      ends, so nothing is left behind if she abandons the tour. */
+  /* ONE DOCUMENT-LEVEL CAPTURE LISTENER, NOT A LISTENER ON THE NODE.
+
+     The per-node version had a fatal ordering hole, and it is why the
+     Full Tour could never get past its first "Open Read and listen" step
+     (found 10 Sep by walking the tour in a scripted DOM):
+
+       1. The target's OWN click handler was registered when its screen
+          painted, so it runs BEFORE the butler's — listeners on one node
+          fire in registration order.
+       2. If that handler repaints a screen that STILL CONTAINS the same
+          selector — every `[data-toc-group=…]` header, every `.backlink`
+          on a screen whose destination also has one — the repaint chain
+          runs nav.ready() → resume() → step() → arm() synchronously,
+          inside her tap.
+       3. arm() begins with disarm(), which removed the butler's
+          not-yet-fired handler from the old node MID-DISPATCH. A listener
+          removed mid-dispatch never fires (DOM spec), so `then()` — the
+          state.i++ — never ran. The step re-armed on the new node and the
+          tour looped on the same instruction forever.
+
+     The Quick Tour never tripped it because none of its tap targets exist
+     under the same selector on the screen the tap paints. The Full Tour
+     tripped it at every group-open and every two-back chain.
+
+     A capture listener on `document` fires before ANY handler on the
+     target, so the advance happens first and nothing that runs later in
+     the same tap can cancel it. Containment is checked so only a tap on
+     (or inside) the armed element advances — the lit target is sometimes
+     a wrapper like `.sg-songlist`, and the real tap lands on a tile
+     inside it. disarm() just clears the reference; the one listener stays
+     installed and idle. */
   var armedNode = null;
-  var armedFn = null;
+  var armedThen = null;
 
   function disarm(){
-    if (armedNode && armedFn) armedNode.removeEventListener('click', armedFn);
     armedNode = null;
-    armedFn = null;
+    armedThen = null;
   }
+
+  document.addEventListener('click', function(e){
+    if (!armedNode || !armedThen) return;
+    var t = e.target;
+    if (t !== armedNode && !(armedNode.contains && armedNode.contains(t))) return;
+    /* "OPEN X" MEANS ENSURE OPEN. A Table of Contents group header
+       TOGGLES, and the tour reaches several of them while they are
+       already open — `backHere()` restores the contents with the group
+       she came from still expanded. Letting the tap through would CLOSE
+       it, so the very next step's row ('Tap Songs', 'Tap Progress') is
+       gone from the DOM and the tour desyncs into plain-Next fallbacks
+       for the rest of the run. Found 10 Sep by walking the Full Tour.
+
+       So when the armed target is a group header that is already open,
+       the click advances the tour and goes no further: the group stays
+       open, and the 700ms paint deadline draws the next step. Only group
+       headers toggle among armed targets, so the check is exactly this
+       narrow. */
+    if (armedNode.hasAttribute && armedNode.hasAttribute('data-toc-group')
+        && /\bis-open\b/.test(String(armedNode.className))){
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    var go = armedThen;
+    disarm();
+    clearHighlight();
+    /* The app is about to repaint — she pressed a real button and it
+       does what it always does. The tour picks itself up on the other
+       side, in `resume()`. Advancing here, in capture, means the
+       target's own handler cannot cancel it however it repaints. */
+    go();
+  }, true);
 
   function arm(sel, then){
     disarm();
     var n = document.querySelector(sel);
     if (!n) return false;
     armedNode = n;
-    armedFn = function(){
-      disarm();
-      clearHighlight();
-      /* The app is about to repaint — she pressed a real button and it
-         does what it always does. The tour picks itself up on the other
-         side, in `resume()`. */
-      then();
-    };
-    n.addEventListener('click', armedFn);
+    armedThen = then;
     return true;
   }
 
@@ -267,12 +344,183 @@ GH.butler = (function(){
   var waitingForPaint = false;
   var paintTimer = null;
 
+  /* THE STEP FOLLOWS HER, EVEN WHEN SHE NAVIGATES HERSELF.
+
+     `nav.js` calls this on every screen paint. It used to return early
+     unless the tour was waiting for a paint — which it only ever is
+     after a TAP step she performed as instructed. Any navigation she did
+     on her own left the bubble showing the old step with its highlight
+     pointing at an element that had gone with the previous screen.
+
+     Reachable, and Steven hit it, 09 Sep: the Full Tour's step 6
+     highlights the Table of Contents jump pills. Those are not a tap
+     step, but they are ringed, and `toc.js`'s `jumpTo()` calls
+     `state.onExit()` — so tapping one throws her out to the hub. The
+     bubble stayed behind talking about the contents, and when she came
+     back in, `[data-toc-group="read"]` was never re-highlighted because
+     `step()` had never run again.
+
+     So a paint now redraws the CURRENT step wherever she is. `step()`
+     does not advance — the index only moves in the tap handler and the
+     Next button — so this is idempotent: same text, highlight re-applied
+     to the new screen, and the tap re-armed if the target is here. If it
+     is not here, the step falls back to a plain Next, which is the
+     existing behaviour for an off-screen target.
+
+     `state` is null once the tour is stopped or finished, so a dismissed
+     butler is not resurrected by navigating. */
+  /* RE-ENTRY GUARD. `show()` finishes by calling `GH.nav.ready()`, and
+     `ready()` calls this — so without the flag the chain is
+
+         show() -> nav.ready() -> resume() -> step() -> show() -> ...
+
+     which recurses until the stack overflows and the script dies. That is
+     what "Waddles shows the jumpbar and then he is gone" was: not a
+     misplaced bubble, a dead page.
+
+     It did not happen before 09 Sep because `resume()` used to return
+     early unless it was waiting for a paint, and that early return was
+     the only thing breaking the loop. Widening resume() so he survives
+     any repaint removed the brake without replacing it. */
+  /* ==========================================================
+     ONE PLACE THAT STOPS EVERYTHING.
+     ==========================================================
+
+     The tour keeps nine pieces of live state — the overlay, the current
+     step, the element it lit, the armed node and its handler, the
+     wait-for-paint flag and its deadline, the re-entry flag, and the
+     scroll-settle poll. Every one of them used to be cleared by whichever
+     function happened to remember it.
+
+     That is what made this brittle, and it is exactly how four separate
+     bugs arrived on 09 Sep: a settle poll that outlived its bubble, a
+     deadline racing `resume()`, a re-entry loop through `nav.ready()`,
+     and a stale measurement. None of them were the tour's LOGIC. All of
+     them were something left running.
+
+     So there is one canceller. Anything that ends or restarts a step
+     calls it, and a new feature only has to add its cleanup HERE rather
+     than remember to add it to close(), stop(), finish() and step().
+
+     If you add a timer, an observer or a listener to this file, clear it
+     in `cancelPending()`. That is the whole contract. */
+  /* TWO DIFFERENT KINDS OF "STOP".
+
+     `cancelPending()` tears down what belongs to the CURRENT BUBBLE — the
+     armed handler, the element it lit, the scroll-settle poll. `close()`
+     calls it, because the bubble is going away.
+
+     `abandon()` additionally throws away the WAIT FOR THE NEXT SCREEN.
+     Only `stop()` and `finish()` call it, because only they mean the tour
+     is over.
+
+     WHY THE SPLIT EXISTS. An armed tap runs
+
+         waitForPaint(); close();
+
+     — arm the wait, then take the bubble down while the app repaints. My
+     first version of `cancelPending()` cleared `waitingForPaint` and the
+     deadline as well, so `close()` wiped the wait the line above had just
+     set: the step never redrew and Waddles was gone for good. Steven hit
+     it on the Quick tour's Reference step, 10 Sep.
+
+     The wait must survive the close. That is the whole point of it. */
+  function cancelPending(){
+    if (settleTimer){ clearTimeout(settleTimer); settleTimer = null; }
+    pendingLit = null;
+    disarm();
+  }
+
+  function abandon(){
+    cancelPending();
+    if (paintTimer){ clearTimeout(paintTimer); paintTimer = null; }
+    waitingForPaint = false;
+  }
+
+  var drawing = false;
+
+  /* THE ONE WAY A STEP GETS DRAWN.
+
+     Everything that wants the current step on screen calls this: the
+     armed tap's repaint, the wait deadline, `nav.ready()` on any new
+     screen. It is the only function that calls `step()` from outside the
+     tour's own advance, which means the re-entry guard only has to exist
+     in one place.
+
+     `drawing` is that guard. `show()` ends by calling `nav.ready()`,
+     which calls back in here — without it the chain
+
+         show() -> nav.ready() -> resume() -> step() -> show() -> ...
+
+     recurses until the stack overflows and the page dies. That was the
+     "Waddles vanishes after the jumpbar" bug of 09 Sep, and it is the
+     reason this guard must never be removed to make some other case
+     work. If a new caller needs a redraw, it calls resume(); it does not
+     call step().
+
+     `try/finally` rather than clearing the flag at the end: a throw
+     inside step() would otherwise leave the tour permanently unable to
+     draw itself again, turning one bad step into a dead tour. */
+  /* EVERY DRAW GOES THROUGH HERE. `step()` is never called directly.
+
+     Before 09 Sep four places called `step()` themselves — the wait
+     deadline, `start()`, and the two Next-button advances — so the
+     re-entry guard in `resume()` protected exactly one of the five paths.
+     A guard that covers one caller is not a guard, it is a coincidence.
+
+     `try/finally` so a throw inside a step cannot leave `drawing` stuck
+     true, which would make the tour permanently unable to redraw itself:
+     one bad step would become a dead tour. */
+  /* ---------- WHERE SHE GOT TO ----------
+
+     Steven, 09 Sep: "tour should have a resume later feature, especially
+     full tour, it is huge." Ninety-three steps is more than one sitting,
+     and a tour that can only be restarted from step one is a tour that
+     gets abandoned at step forty.
+
+     Written on every draw, so it survives a refresh, a crash, a closed
+     tab — anything, without needing an exit path to remember to save.
+     That matters more than it sounds: the reason four bugs landed
+     tonight is that exit paths each remembered a different subset of
+     things.
+
+     Cleared in `finish()` only. Stopping does NOT clear it — stopping is
+     precisely the case this exists for. */
+  function mark(){
+    if (!state || !state.tour) return;
+    write({ at: { tour: state.tour.id || '', i: state.i } });
+  }
+
+  function resumePoint(){
+    var a = read().at;
+    if (!a || !a.tour) return null;
+    var list = script().tours || [];
+    for (var i = 0; i < list.length; i++){
+      if (list[i] && list[i].id === a.tour){
+        /* A saved index past the end of a rewritten tour is meaningless;
+           so is one on the very first step, which is just "start". */
+        if (!list[i].steps || a.i <= 0 || a.i >= list[i].steps.length) return null;
+        return { which: i, i: a.i, tour: list[i] };
+      }
+    }
+    return null;                       /* the tour it names is gone */
+  }
+
+  function draw(){
+    if (!state || !state.tour) return;
+    if (drawing) return;
+    drawing = true;
+    try { step(); mark(); }
+    finally { drawing = false; }
+  }
+
   function resume(){
     if (!state || !state.tour) return;
-    if (!waitingForPaint) return;
-    waitingForPaint = false;
-    if (paintTimer){ clearTimeout(paintTimer); paintTimer = null; }
-    step();
+    if (waitingForPaint){
+      waitingForPaint = false;
+      if (paintTimer){ clearTimeout(paintTimer); paintTimer = null; }
+    }
+    draw();
   }
 
   /* NOT EVERY BUTTON NAVIGATES.
@@ -291,7 +539,7 @@ GH.butler = (function(){
       paintTimer = null;
       if (!waitingForPaint) return;
       waitingForPaint = false;
-      step();
+      draw();
     }, 700);
   }
 
@@ -349,6 +597,8 @@ GH.butler = (function(){
     stage.appendChild(who);
 
     host.appendChild(stage);
+    /* Placement is decided below, in place(), once both the bubble and
+       the target are measurable. Nothing to preserve here. */
     host.className = 'bt-overlay is-open' + (blocking ? ' is-blocking' : '');
     if (scrim) scrim.className = 'bt-scrim is-open' + (blocking ? ' is-blocking' : '');
     document.body.style.overflow = blocking ? 'hidden' : '';
@@ -357,55 +607,178 @@ GH.butler = (function(){
        only guess where to scroll. Now that the stage is actually in the
        DOM, its real height is known, so do the scroll here instead. */
     if (pendingLit){
-      scrollClear(pendingLit, stage);
+      /* AFTER THE PAGE HAS STOPPED MOVING, not before.
+
+         Steven, 09 Sep: the Games step zooms down from the jumpbar, then
+         "he warps up and says 'and here are the games', which are no
+         longer on the screen."
+
+         The jumpbar scrolls SMOOTHLY. Measuring the target the instant
+         the bubble is appended reads a rectangle that is still in flight,
+         and then `scrollBy` adds a delta on top of an animation that has
+         not finished — the two compound and the section overshoots off
+         the screen.
+
+         So wait for `scrollY` to hold still, then measure. */
+      settleThenPlace(pendingLit, stage);
       pendingLit = null;
     }
 
     if (GH.nav) GH.nav.ready();
   }
 
-  /* The bubble sits fixed at the bottom of the screen (see .bt-overlay in
-     style.css) — a plain scrollIntoView({block:'center'}) assumes the
-     WHOLE viewport is free, so it can centre a tile right where the
-     bubble is about to land on top of it, and everything below it in the
-     same row along with it (this is exactly what happened with the
-     Progress tile: the bubble covered part of Word List and all of
-     Achievements underneath). Centring within the space the bubble
-     actually leaves free fixes it, computed from `stage`'s real rendered
-     height rather than a guess. */
-  function scrollClear(n, stage){
-    try {
-      var stageTop = stage.getBoundingClientRect().top;
-      var r = n.getBoundingClientRect();
-      var gap = 14;
-      var freeHeight = stageTop - gap;
-      if (freeHeight < r.height){
-        /* The element is taller than the space the bubble leaves — nothing
-           to centre it within, so just bring it to the top instead of
-           fighting for room that isn't there. */
-        n.scrollIntoView({ block:'start', behavior:'smooth' });
+  /* HE IS AT THE TOP LEFT NOW (see .bt-overlay.is-open in style.css), so
+     the free space is BELOW him, not above. A plain
+     scrollIntoView({block:'center'}) assumes the whole viewport is free
+     and can centre a tile right where the bubble already is.
+
+     This function used to park the target a short gap ABOVE the stage,
+     which was correct while the stage sat on the bottom edge. Inverted 08
+     Sep along with the move: the target is now parked a short gap BELOW
+     the stage's bottom. The pointer and the thing it points at still read
+     as one unit and the eye still travels a few dozen pixels — the axis is
+     the only thing that changed. */
+  /* Waits for any smooth scroll already running to finish, then places
+     him. Polls `scrollY` and acts once it has not moved for two frames.
+
+     A DEADLINE, because a page that never stops scrolling — a momentum
+     fling on a phone, say — must not leave the step unplaced forever.
+     After 400ms it places him wherever things have got to; a slightly
+     wrong position is recoverable, no position at all is not. */
+  var settleTimer = null;
+
+  function settleThenPlace(n, stage){
+    if (settleTimer){ clearTimeout(settleTimer); settleTimer = null; }
+    var last = -1, still = 0, waited = 0;
+    (function tick(){
+      var y = window.scrollY || window.pageYOffset || 0;
+      still = (y === last) ? still + 1 : 0;
+      last = y;
+      waited += 40;
+      if (still >= 2 || waited >= 400){
+        settleTimer = null;
+        place(n, stage);
         return;
       }
-      /* JUST ABOVE THE BUBBLE, NOT CENTRED ABOVE IT.
+      settleTimer = setTimeout(tick, 40);
+    })();
+  }
 
-         This used to centre the element in the whole space above the
-         bubble. With a five-line bubble that space is most of the screen,
-         so a small tile ended up pinned at the very top — half behind the
-         jumpbar and about fifteen hundred pixels from the arrow pointing
-         at it. Correct by its own rule, useless to look at: Steven, 08
-         Sep, "look how far away the action is from Waddles."
+  /* ---------- WHICH END OF THE SCREEN HE STANDS AT ----------
 
-         So the element is parked a short gap above the bubble instead.
-         The pointer and the thing it points at then read as one unit, and
-         the eye travels a few dozen pixels rather than a screenful.
+     Steven, 09 Sep: first "Waddles hogs up the screen so you can't see
+     the Appearance menu", then "he's over on top of the achievement
+     button — thought you fixed this?"
 
-         `minTop` keeps it clear of the header. The jumpbar and the title
-         bar sit at the top of the hub, and an element scrolled under them
-         is highlighted but unreadable — which was the other half of what
-         that screenshot showed. */
-      var minTop = 96;
-      var desiredTop = stageTop - gap - r.height;
-      if (desiredTop < minTop) desiredTop = minTop;
+     The first attempt decided this inside `highlight()`, which runs
+     before the bubble exists and before anything has scrolled. So it was
+     measuring a target that was about to move, against a bubble that was
+     not there — and when the page could not scroll far enough to finish
+     the job, he ended up sitting on the thing he was pointing at.
+
+     Decided here instead, where both rectangles are real:
+
+       1. Park the target with `scrollClear()`.
+       2. Measure whether he now OVERLAPS it.
+       3. If he does, move to the other end and park it again.
+
+     Overlap is the actual test. Height on the page was a proxy for it,
+     and a proxy is what let the Achievements step through: that tile sits
+     low enough to look safe, and the page had no room left to scroll it
+     clear.
+
+     One flip, never a loop: if he overlaps at both ends the target is
+     taller than the free space either way, and moving him a third time
+     would only make the screen jump. */
+  /* CLOSE COUNTS AS OVERLAPPING.
+
+     Steven, 10 Sep: on the Quick tour's Reference step "his speech bubble
+     slightly overlaps the top of Reference — he's crowding out the button
+     he wants you to press."
+
+     The first version asked only whether the two rectangles intersected,
+     so a bubble whose bottom edge sat one pixel above the button counted
+     as clear. Technically true and useless: a step that points at a
+     button has to leave the button obviously reachable, not merely
+     untouched.
+
+     `PAD` is the breathing room required between them. Fail it and he
+     moves to the other end, exactly as a real overlap does. */
+  var PAD = 26;
+
+  function overlaps(a, b){
+    return !(a.bottom + PAD <= b.top || a.top - PAD >= b.bottom);
+  }
+
+  function place(n, stage){
+    scrollClear(n, stage);
+    try {
+      var sr = stage.getBoundingClientRect();
+      var r  = n.getBoundingClientRect();
+      if (!overlaps(sr, r)) return;
+
+      var wasLow = /\bis-low\b/.test(host.className);
+      host.className = wasLow
+        ? host.className.replace(/\s*is-low\b/, '')
+        : host.className + ' is-low';
+      scrollClear(n, stage);
+    } catch (e){
+      /* No geometry: leave him where the first pass put him. */
+    }
+  }
+
+  function scrollClear(n, stage){
+    try {
+      var sr = stage.getBoundingClientRect();
+      var r = n.getBoundingClientRect();
+      /* The same breathing room the overlap test demands, so parking
+         and checking cannot disagree. */
+      var gap = PAD;
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+
+      /* WHICH SIDE OF HIM THE FREE SPACE IS ON.
+
+         This function was written when the bubble always sat at the top,
+         so the space to park a target in was always BELOW him. Since 09
+         Sep a step whose target is near the top of the screen moves him
+         to the bottom instead (`is-low`) — and then the space is above
+         him, `vh - stageBottom` is nearly zero, and this parked the tile
+         just under a bubble already on the bottom edge, pushing it off
+         the screen entirely. That is the Quick Tour's Progress step
+         landing in the wrong place.
+
+         So: measure where he actually is and park on the roomier side. */
+      var lowNow = host && /\bis-low\b/.test(host.className);
+      if (lowNow){
+        /* He is at the bottom. Bring the target's BOTTOM to just above
+           his top, so the two read as one unit the same way they do when
+           he is at the top. */
+        var desiredBottom = sr.top - gap;
+        var dl = r.bottom - desiredBottom;
+        if (Math.abs(dl) > 2){
+          window.scrollBy({ top: dl, left: 0, behavior: 'smooth' });
+        }
+        return;
+      }
+
+      var stageBottom = sr.bottom;
+      var freeHeight = vh - stageBottom - gap;
+      if (freeHeight < r.height){
+        /* Taller than the space he leaves below him. Nothing to park
+           within, so bring its top to just under him and let the rest run
+           off the bottom — she can scroll, and its top edge is the part
+           that identifies it. */
+        var over = r.top - (stageBottom + gap);
+        if (Math.abs(over) > 2){
+          window.scrollBy({ top: over, left: 0, behavior: 'smooth' });
+        }
+        return;
+      }
+      /* JUST BELOW THE BUBBLE, NOT CENTRED BELOW IT. Centring in the whole
+         space under him would strand a small tile near the bottom of the
+         screen, which is the same mistake the old version made at the
+         other end: correct by its own rule, useless to look at. */
+      var desiredTop = stageBottom + gap;
       var delta = r.top - desiredTop;
       if (Math.abs(delta) > 2){
         window.scrollBy({ top: delta, left: 0, behavior: 'smooth' });
@@ -472,6 +845,35 @@ GH.butler = (function(){
       box.appendChild(el('p', 'bt-line', say(o.line)));
 
       var acts = el('div', 'bt-acts');
+
+      /* CARRY ON WHERE SHE STOPPED, offered first and as the primary
+         button — it is the only one of these that is not starting over.
+
+         This is the ONE place a tour gets a `primary`. The note below
+         explains why the two tours are deliberately equal; a saved
+         position is different in kind, because she already chose a tour
+         and simply did not finish it.
+
+         Only when there is somewhere to go back to: `resumePoint()`
+         returns null on step zero, past the end of a rewritten tour, or
+         for a tour that no longer exists. */
+      var back = resumePoint();
+      if (back){
+        add(acts, say(o.resume) || t('btResume'), 'primary', function(){
+          state = { tour: back.tour, i: back.i };
+          /* A BEAT BEFORE DROPPING HER BACK IN. Steven's line, 09 Sep.
+             Landing straight on step 42 of 93 with no acknowledgement
+             reads as a glitch — she has no way to tell a resume from a
+             tour that started in the wrong place. */
+          show(function(b2){
+            b2.appendChild(el('p', 'bt-line', t('btBack')));
+            var a2 = el('div', 'bt-acts');
+            add(a2, say(script().nextLabel), 'primary', draw);
+            b2.appendChild(a2);
+          }, true);
+        });
+      }
+
       /* NO DEFAULT TOUR. `primary` on the first made the Quick Tour look
          recommended over the Full Tour purely because it is written first
          — and this is the first screen she ever sees, so that nudge was
@@ -560,7 +962,7 @@ GH.butler = (function(){
     var tour = (script().tours || [])[which];
     if (!tour || !tour.steps || !tour.steps.length){ close(); return; }
     state = { tour:tour, i:0 };
-    step();
+    draw();
   }
 
   /* A way back to the Table of Contents, for anything the tour opens
@@ -589,6 +991,44 @@ GH.butler = (function(){
     return -1;
   }
 
+  /* ---------- THE GIFT, SHOWN RATHER THAN MENTIONED ----------
+
+     The line says "here are 10 to get you started" and the balance in the
+     header ticks up, which is a small number in a corner she is not
+     looking at. Steven, 08 Sep: show it front of screen, the crystal at
+     least as big as Waddles, with +10 above it.
+
+     Deliberately `pointer-events:none` and self-removing on a timer. The
+     same step asks her to tap the crystal icon, so a panel she has to
+     dismiss first would be standing in front of the thing it is
+     announcing. Nothing to press, nothing to get stuck behind.
+
+     The image falls back to the crystal character if the file is missing,
+     the same way coins.js's mark does — a 404 must not leave a blank box
+     in the middle of the screen. */
+  function giftPop(n){
+    var pop = el('div', 'bt-gift');
+    pop.setAttribute('aria-hidden', 'true');
+
+    pop.appendChild(el('p', 'bt-gift-n', t('btGiftPop', { n:n })));
+
+    var src = 'images/ui/crystal.webp';
+    var img = document.createElement('img');
+    img.className = 'bt-gift-img';
+    img.alt = '';
+    img.src = GH.build ? GH.build.url(src) : src;
+    img.addEventListener('error', function(){
+      var fb = el('span', 'bt-gift-img is-char', '\u25c8');
+      if (img.parentNode) img.parentNode.replaceChild(fb, img);
+    });
+    pop.appendChild(img);
+
+    document.body.appendChild(pop);
+    window.setTimeout(function(){
+      if (pop.parentNode) pop.parentNode.removeChild(pop);
+    }, 2200);
+  }
+
   function step(){
     var s = state.tour.steps[state.i];
     if (!s){ finish(); return; }
@@ -612,6 +1052,7 @@ GH.butler = (function(){
       var pay = {}; pay[paidKey] = s.gift;
       write(pay);
       if (GH.purse) GH.purse.refresh();
+      giftPop(s.gift);
     }
 
     var last = state.i >= state.tour.steps.length - 1;
@@ -745,17 +1186,16 @@ GH.butler = (function(){
                 return;
               }
             }
-            step();
+            draw();
           });
         });
-        add(acts, say(script().stopLabel), 'ghost', function(){
-          clearHighlight();
-          disarm();
-          stop();
-        });
+        exitActions(acts);
         box.appendChild(acts);
-        box.appendChild(el('p', 'bt-count',
-          t('btStepN', { n:state.i + 1, of:state.tour.steps.length })));
+        /* NO STEP COUNTER. Removed 08 Sep: a step can now be two-part (see
+           the Quick Tour's Reference→Progress pair), so `steps.length` is
+           not the number of stops she experiences, and "2 of 13" was simply
+           wrong. If a count comes back it has to be computed, not the array
+           length. `btStepN` is left in i18n.js for that day. */
         return;
       }
 
@@ -839,19 +1279,13 @@ GH.butler = (function(){
           if (s.go === 'hub' && GH.app && GH.app.hub){
             waitForPaint(); close(); GH.app.hub(); return;
           }
-          step();
+          draw();
         });
       }
 
-      add(acts, say(script().stopLabel), 'ghost', function(){
-        clearHighlight();
-        disarm();
-        stop();
-      });
+      exitActions(acts);
       box.appendChild(acts);
-
-      box.appendChild(el('p', 'bt-count',
-        t('btStepN', { n:state.i + 1, of:state.tour.steps.length })));
+      /* No step counter here either — see the note above. */
     });
   }
 
@@ -872,16 +1306,82 @@ GH.butler = (function(){
      she can tap it right away. Stopping mid-tour gets the same courtesy. */
   function stop(){
     close();
+    /* The tour is over, so the wait for a next screen goes too — see the
+       note by `cancelPending`. `close()` alone deliberately keeps it. */
+    abandon();
     state = null;
     perch(true);
+  }
+
+  /* ---------- TWO WAYS OUT, AND THEY MEAN DIFFERENT THINGS ----------
+
+     Steven, 09 Sep: "have 2 stop options — Continue tour later / End tour
+     now."
+
+     There was one button, and it saved her place silently. So a tour she
+     meant to abandon kept offering to resume, and a tour she meant to
+     pause never said it had been remembered. One button cannot answer a
+     question with two answers.
+
+       later   leaves the saved position alone. `draw()` has already
+               written it, so there is nothing to do but close.
+       end     clears it, so the next offer starts clean.
+
+     Neither writes `done` — that is finish()'s to write, and it is what
+     stops the tour being offered at all. Ending early is not finishing.
+
+     Built here rather than at the two call sites so they cannot drift;
+     they were already two identical copies of the old single button. */
+  /* HE SAYS WHERE HE WENT ON THE WAY OUT.
+
+     Steven's line, 09 Sep. Without it, closing the tour looks like
+     dismissing him permanently — the perch at the top is small and she
+     has no reason to know it is him.
+
+     Shown on BOTH exits, because both leave him on the perch: pausing
+     and ending differ only in whether the saved position survives.
+
+     `state` is already null by the time this draws — `stop()` cleared it
+     — so this is a plain bubble with one button, not a tour step. That
+     also means `draw()` will not touch it. */
+  function farewell(){
+    show(function(box){
+      box.appendChild(el('p', 'bt-line', t('btBye')));
+      var acts = el('div', 'bt-acts');
+      add(acts, t('howtoGot'), 'primary', function(){
+        close();
+        perch(true);
+      });
+      box.appendChild(acts);
+    }, false);
+  }
+
+  function exitActions(acts){
+    add(acts, t('btLater'), 'ghost', function(){
+      clearHighlight();
+      disarm();
+      /* The position stays: `draw()` wrote it on the way in. */
+      stop();
+      farewell();
+    });
+    add(acts, t('btEndNow'), 'ghost', function(){
+      clearHighlight();
+      disarm();
+      write({ at: null });
+      stop();
+      farewell();
+    });
   }
 
   /* The tour ends by going somewhere. A tour that ends where it began has
      shown her a map and given her nothing to do. */
   function finish(){
     var go = state && state.tour ? state.tour.go : null;
-    write({ done: Date.now() });
+    /* `at:null` — she reached the end, so there is nothing to come back
+       to. Stopping deliberately leaves it. */
+    write({ done: Date.now(), at: null });
     close();
+    abandon();
     state = null;
     /* THE PERCH SURVIVES FINISHING. `stop()` and both refusal paths
        already left it behind; `finish()` did not, so completing the tour
@@ -973,11 +1473,32 @@ GH.butler = (function(){
     clearHighlight();
     var n = document.querySelector(sel);
     if (!n) return false;
+    /* `bt-lit` gives the ring and the lift. But the lift needs
+       `position` set, and setting it unconditionally CLOBBERS an element
+       that is already positioned — `.backlink` is `position:fixed`, and
+       eighteen tour steps point at it, so highlighting the back button
+       dropped it out of its fixed corner and into the document flow.
+       Measured 09 Sep.
+
+       So the positioning half is its own class, added only when the
+       element is actually static and therefore has nothing to lose. */
     n.className += ' bt-lit';
+    try {
+      var pos = window.getComputedStyle(n).position;
+      if (pos === 'static') n.className += ' bt-lit-static';
+    } catch (e){
+      /* No computed style available: skip the lift rather than risk
+         moving the element. The ring still shows. */
+    }
     /* The scroll itself waits for show() to finish appending the bubble —
        see pendingLit / scrollClear() there. The bubble does not exist yet
        at this point in the call, so there is nothing correct to measure
        here. */
+    /* WHERE HE STANDS IS DECIDED LATER, IN `place()`, once the bubble is
+       in the DOM and the scroll has happened. It used to be decided here
+       and that was wrong twice over: the target has not been scrolled yet,
+       so the measurement is stale, and the bubble does not exist, so there
+       is nothing to measure it against. */
     pendingLit = n;
     return true;
   }
@@ -986,7 +1507,9 @@ GH.butler = (function(){
     var lit = document.querySelectorAll('.bt-lit');
     var i;
     for (i = 0; i < lit.length; i++){
-      lit[i].className = lit[i].className.replace(/\s*bt-lit\b/, '');
+      lit[i].className = lit[i].className
+        .replace(/\s*bt-lit-static\b/, '')
+        .replace(/\s*bt-lit\b/, '');
     }
   }
 

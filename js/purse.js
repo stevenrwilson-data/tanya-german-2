@@ -101,13 +101,20 @@ GH.purse = (function(){
        not that she can read every intermediate number. */
     var from = shown, to = now, step = 0;
     shown = now;
-    bar.className = 'purse is-up';
+    /* `classList`, NOT `className =`. Assigning the whole string wipes
+       every other class on the button, and the tour puts one there: the
+       Quick Tour's crystal step highlights `.purse` with `bt-lit`, and the
+       same step carries the 10-crystal gift. So highlight ran, then this
+       count-up finished ~540ms later and silently stripped the outline —
+       leaving a step that says "tap the highlighted button" with nothing
+       highlighted. Steven, 08 Sep. */
+    bar.classList.add('is-up');
     var tick = window.setInterval(function(){
       step++;
       if (step >= 12){
         window.clearInterval(tick);
         paint(to);
-        bar.className = 'purse';
+        bar.classList.remove('is-up');
         return;
       }
       paint(Math.round(from + (to - from) * (step / 12)));
@@ -150,12 +157,20 @@ GH.purse = (function(){
 
   function isOpen(){ return !!pop; }
 
-  /* Local labels, with de and ru waiting for Steven — `pick()` falls back
-     to English until he fills them. Kept here rather than in i18n.js so
-     the whole panel's text is one block to translate. */
+  /* Steven supplied de/ru for `go` on 08 Sep, because the Quick Tour now
+     has a step that tells her to press this button BY NAME — an English
+     label under a Russian instruction would be a dead end. `have` and
+     `note` are still waiting for him and fall back to English via
+     `pick()`. Kept here rather than in i18n.js so the whole panel's text
+     is one block to translate. */
   var TXT = {
     have:  { en:'You have', de:'', ru:'' },
-    go:    { en:'Go to Crystals', de:'', ru:'' },
+    go:    { en:'Go to Crystals', de:'Zu den Kristallen', ru:'К кристаллам' },
+    /* Steven, 10 Sep: a second way out of this panel, straight to the
+       Store. Crystals are earned in one place and spent in another, and
+       this panel is where she looks at the balance — so it should offer
+       both. German and Russian are mine and want checking. */
+    shop:  { en:'Pet Store', de:'Tierladen', ru:'Магазин питомцев' },
     note:  { en:'Earn more by learning around the site.', de:'', ru:'' }
   };
 
@@ -201,6 +216,24 @@ GH.purse = (function(){
       }
     });
     pop.appendChild(go);
+
+    /* WHERE THE CRYSTALS GET SPENT. The button above goes to the place
+       that EXPLAINS them; this one goes to the place that takes them.
+
+       `btn-ghost` rather than a second primary: looking at your balance
+       is usually curiosity, and two equally loud buttons would make the
+       panel an ultimatum. */
+    if (GH.store && GH.store.open){
+      var shop = el('button', 'btn btn-ghost purse-pop-shop', pick(TXT.shop));
+      shop.type = 'button';
+      shop.addEventListener('click', function(){
+        closePop();
+        if (!GH.app || !GH.app.play) return;
+        GH.speech && GH.speech.stop();
+        GH.app.play({ id:'store', open:GH.store.open });
+      });
+      pop.appendChild(shop);
+    }
 
     pop.appendChild(el('p', 'purse-pop-note', pick(TXT.note)));
 

@@ -143,6 +143,24 @@ GH.awardsView = (function(){
     }
 
     host.appendChild(card);
+
+    /* TELL THE TOUR THE SCREEN EXISTS.
+
+       `nav.ready()` is what every activity calls once it has painted, and
+       it is the one place that knows a new screen is up — `butler.js`'s
+       `resume()` hangs off it, so a tour step landing here can find and
+       arm what it is pointing at.
+
+       This view never called it. So on the Quick Tour's Achievements step
+       the tour fell through to `waitForPaint`'s 700ms deadline instead —
+       a race, and when this screen lost it the step drew before
+       `.backlink` existed, failed to arm, and then asked her to press a
+       back button it had never attached to. Tapping it navigated away
+       without advancing. Steven, 09 Sep.
+
+       Last line of `paint()`, so it fires after the card is in the
+       document rather than while it is still being built. */
+    if (GH.nav && GH.nav.ready) GH.nav.ready();
   }
 
   function open(container, onExit){

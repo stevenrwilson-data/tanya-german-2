@@ -188,6 +188,10 @@ GH.questDay = (function(){
     return out;
   }
 
+  /* How many quests she has ever finished. Read by the pet store, where
+     one legendary asks for thirty. */
+  function lifetime(){ return state().ever || 0; }
+
   function allDone(){
     var list = todays();
     if (!list.length) return false;
@@ -237,6 +241,15 @@ GH.questDay = (function(){
       d.hits[id] = (d.hits[id] || 0) + 1;
       if (d.hits[id] < needOf(q)) { marked = true; return; }
       d.done[id] = 1;
+      /* A LIFETIME TALLY, not just today's.
+
+         Daisy's gate is `quests:30` — thirty crystal quests finished, all
+         time. `d.done` is wiped every midnight when the day rolls over,
+         so it can only ever answer "today". This survives the rollover.
+
+         Kept on the same record and written by the same `write()` below,
+         so there is no second place for it to fall out of step with. */
+      d.ever = (d.ever || 0) + 1;
       paid += QUEST_PAY;
     });
 
@@ -244,7 +257,9 @@ GH.questDay = (function(){
        count has to survive even though nothing was earned, or she would
        start from zero every time. */
     if (paid || marked) write();
-    if (paid && GH.coins && GH.coins.earn) GH.coins.earn(paid, 'quest');
+    /* `true` — a finished quest counts toward the day's five, the same as
+       a round of a game. See the note by `earn` in coins.js. */
+    if (paid && GH.coins && GH.coins.earn) GH.coins.earn(paid, 'quest', true);
 
     /* The all-three bonus, once. Checked after the marks above so
        finishing the last one pays both in the same breath. */
@@ -264,6 +279,6 @@ GH.questDay = (function(){
     write();
   }
 
-  return { todays:todays, allDone:allDone, rules:rules, saw:saw, reset:reset,
+  return { todays:todays, allDone:allDone, lifetime:lifetime, rules:rules, saw:saw, reset:reset,
            needOf:needOf };
 })();

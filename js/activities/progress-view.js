@@ -81,8 +81,20 @@ GH.progressView = (function(){
       'plural:er':'-er', 'plural:s':'-s',
       'plural:umlaut':t('pvUmlaut'), 'plural:none':t('mzNoPlural'),
       'case:twoway':t('grCaseNine'), 'case:motion':t('wwTitle'),
-      'case:fixed-dat':t('cv_past') === '' ? 'dative' : t('grPastPrat'),
-      'order:final':t('grOrderEnd'), 'order:bare':t('scBare'),
+      /* wo-wohin grades `case:fixed-dat` and `case:fixed-acc`
+         (wo-wohin.js line ~152). fixed-dat was mapped to grPastPrat — a
+         TENSE label on a case skill — and fixed-acc had no mapping at
+         all, so it rendered as raw "fixed-acc". Fixed 10 Sep. */
+      'case:fixed-dat':t('pvFixedDat'), 'case:fixed-acc':t('pvFixedAcc'),
+      /* Scramble's CURRENT level ids are see/hear/mean/front/sub
+         (scramble.js LEVELS) and grade as `order:<id>`. see and hear had
+         no label here and rendered raw; bare/marked/varied are the
+         pre-rename ids kept as aliases for old records — bare pointed at
+         'scBare', a key that never existed, and printed literal "scBare".
+         All three now alias to the real keys of the levels they became. */
+      'order:final':t('grOrderEnd'),
+      'order:see':t('scSee'), 'order:hear':t('scHear'),
+      'order:bare':t('scMean'),
       'order:marked':t('scSee'), 'order:varied':t('scHear'),
       'order:mean':t('scMean'), 'order:front':t('scFront'), 'order:sub':t('scSub'),
       'tense-bin:past':t('cv_past'), 'tense-bin:present':t('cv_present'),

@@ -147,11 +147,18 @@ window.GH_BUTLER = {
 
       steps: [
         /* ---------- 1. the table of contents ---------- */
-        { line: { en:'Excellent choice. We’ll keep this brief.\n\nFirst, let me show you the Table of Contents. Here you can quickly jump to any part of the site and see what’s in each section.', ru:'Отличный выбор. Будем кратки.\n\nСначала покажу тебе Содержание. Здесь можно быстро перейти в любую часть сайта и посмотреть, что находится в каждом разделе.', de:'Ausgezeichnete Wahl. Wir machen es kurz.\n\nZuerst zeige ich dir das Inhaltsverzeichnis. Hier kannst du schnell zu jedem Teil der Seite springen und sehen, was die einzelnen Abschnitte enthalten.' },
+        { line: { en:'Excellent choice — I’ll be quick.\n\nThis is the Jump Bar. Tap any button to go straight to that part of the site, or tap TOC to see everything at once.', ru:'Отличный выбор — я буду краток.\n\nЭто Панель переходов. Нажми любую кнопку, чтобы сразу перейти к нужному разделу, или ОГЛ — чтобы увидеть всё сразу.', de:'Ausgezeichnete Wahl — ich mache es kurz.\n\nDas ist die Sprungleiste. Tippe auf eine Taste, um direkt zu diesem Bereich zu springen, oder auf TOC, um alles auf einmal zu sehen.' },
           points: '.jumpbar' },
 
         /* ---------- 2. progress ---------- */
-        { line: { en:'Next, we have your Progress.\n\nIt keeps track of what you’ve been working on — what’s settled in, and what’s still due for another look.', ru:'Дальше — твой Прогресс.\n\nЗдесь видно, над чем ты работала — что уже закрепилось и к чему стоит ещё раз вернуться.', ruM:'Дальше — твой Прогресс.\n\nЗдесь видно, над чем ты работал — что уже закрепилось и к чему стоит ещё раз вернуться.', de:'Als Nächstes: dein Fortschritt.\n\nHier siehst du, woran du gearbeitet hast — was schon sitzt und was du dir noch einmal ansehen solltest.' },
+        /* 2a. She gets there herself. The jumpbar pill only scrolls, so no
+           screen repaints — `waitForPaint()`'s 700ms deadline draws the next
+           step where she now is. Labels named in the line are the real UI
+           labels: refHead is Reference / Nachschlagen / Справочник. */
+        { line: { en:'Next, let’s look at your Progress.\n\nTap Reference on the Jump Bar to jump down to that section.', ru:'Теперь посмотрим твой прогресс.\n\nНажми Справочник на Панели переходов, чтобы перейти к этому разделу.', de:'Als Nächstes sehen wir uns deinen Fortschritt an.\n\nTippe auf Nachschlagen in der Sprungleiste, um zu diesem Bereich zu springen.' },
+          points: '[data-jump="refHead"]', tap: true },
+
+        { line: { en:'This is your Progress.\n\nIt keeps track of what’s settled in and what’s still due for another look.', ru:'Это твой Прогресс.\n\nЗдесь видно, над чем ты работала — что закрепилось, а к чему стоит вернуться.', ruM:'Это твой Прогресс.\n\nЗдесь видно, над чем ты работал — что закрепилось, а к чему стоит вернуться.', de:'Das ist dein Fortschritt.\n\nHier siehst du, was schon sitzt und was du dir noch einmal ansehen solltest.' },
           points: '[data-tile="progress-view"]', tap: true },
 
         { line: { en:'Have a look around, then use the Back button when you’re ready. I’ll be waiting for you.', ru:'Осмотрись, а когда захочешь продолжить, нажми «Назад». Я буду ждать тебя.', de:'Sieh dich ruhig um und tippe dann auf Zurück, wenn du weitermachen möchtest. Ich warte auf dich.' },
@@ -165,6 +172,16 @@ window.GH_BUTLER = {
           points: '.backlink', tap: true },
 
         /* ---------- 4. games ---------- */
+        /* 4a. SHE GETS HERSELF THERE, same as Reference above. Without this
+           step the Games line was spoken while the page was still parked at
+           the Reference section, so she had to hunt for what he was talking
+           about. The pill is also the lesson: Games on the Jump Bar is a
+           shortcut she can use again, not the page moving by itself.
+           Labels named in the line are the real ones: gamesHead is
+           Games / Spiele / Игры. */
+        { line: { en:'Next, let’s look at the games.\n\nTap Games on the Jump Bar to jump down to them.', ru:'Теперь посмотрим игры.\n\nНажми Игры на Панели переходов, чтобы перейти к ним.', de:'Als Nächstes sehen wir uns die Spiele an.\n\nTippe auf Spiele in der Sprungleiste, um zu ihnen zu springen.' },
+          points: '[data-jump="gamesHead"]', tap: true },
+
         { line: { en:'And here are the games. They’re another way to practise what you’re learning — and there are quite a few to choose from.', ru:'А вот и Игры. Это ещё один способ потренировать то, что ты учишь, — и выбирать есть из чего.', de:'Und hier sind die Spiele. Sie sind eine weitere Möglichkeit, das zu üben, was du gerade lernst — und es gibt ziemlich viele zur Auswahl.' },
           points: '#sec-gamesHead' },
 
@@ -174,12 +191,53 @@ window.GH_BUTLER = {
         { line: { en:'Have a look through, then tap Back when you’re ready.', ru:'Посмотри всё как следует, а когда захочешь продолжить, нажми «Назад».', de:'Sieh dich in Ruhe um und tippe dann auf Zurück, wenn du weitermachen möchtest.' },
           points: '.backlink', tap: true },
 
-        /* ---------- 5. currency, demonstrated ---------- */
+        /* ---------- 5. back to the top, then currency ---------- */
+        /* 5a. The ↑ pill, taught rather than left sitting there unexplained.
+           She comes back from the game guide parked at the Games section,
+           and the purse she is about to be sent to lives in the header at
+           the very top of the page. Same shape as the Reference and Games
+           pills: she does the scrolling, and learns the control doing it.
+           `.jump.is-up` is created in app.js (~line 305). */
+        { line: { en:'Back from the games?\n\nTap this button to jump back to the top of the page.', ru:'Вернулась из игр?\n\nНажми эту кнопку, чтобы вернуться к началу страницы.', ruM:'Вернулся из игр?\n\nНажми эту кнопку, чтобы вернуться к началу страницы.', de:'Zurück von den Spielen?\n\nTippe auf diese Taste, um wieder an den Anfang der Seite zu springen.' },
+          points: '.jump.is-up', tap: true },
+
+        /* ---------- 6. the table of contents, the real one ---------- */
+        /* `.toc-toggle` is the button beside the filter toggle at the top of
+           the hub (app.js ~line 166) — NOT `.jump.is-toc`, the TOC pill in
+           the jumpbar. Two different controls with the same label. She has
+           just used ↑ to come back to the top, so the top one is the one in
+           front of her. It launches a real screen with `hub` as its way
+           back, so `.backlink` exists on the next step. */
+        { line: { en:'Now that we’re back at the top, tap Table of Contents to have a look at the full site guide.', ru:'Теперь, когда мы снова наверху, нажми Оглавление, чтобы посмотреть полный путеводитель по сайту.', de:'Jetzt, wo wir wieder ganz oben sind, tippe auf Inhaltsverzeichnis, um dir den vollständigen Wegweiser durch die Seite anzusehen.' },
+          points: '.toc-toggle', tap: true },
+
+        { line: { en:'This is the full Table of Contents. You can see everything on the site and jump straight to it from here. The Full Tour explains this page in more detail.\n\nHave a look, then tap Back when you’re ready.', ru:'Это полное Оглавление. Здесь ты можешь увидеть всё, что есть на сайте, и сразу перейти куда нужно. В полной экскурсии эта страница объясняется подробнее.\n\nОсмотрись, а когда будешь готова, нажми «Назад».', ruM:'Это полное Оглавление. Здесь ты можешь увидеть всё, что есть на сайте, и сразу перейти куда нужно. В полной экскурсии эта страница объясняется подробнее.\n\nОсмотрись, а когда будешь готов, нажми «Назад».', de:'Das ist das vollständige Inhaltsverzeichnis. Hier siehst du alles auf der Seite und kannst direkt dorthin springen. In der ausführlichen Tour wird diese Seite genauer erklärt.\n\nSchau dich um und tippe auf Zurück, wenn du bereit bist.' },
+          points: '.backlink', tap: true },
+
+        /* ---------- 7. currency, demonstrated ---------- */
         { line: { en:'You earn crystals by completing activities. Here are 10 to get you started. Tap the crystal icon to see your balance.', ru:'За выполненные задания ты получаешь кристаллы. Вот 10 для начала. Нажми на значок кристалла, чтобы увидеть свой баланс.', de:'Für abgeschlossene Aktivitäten bekommst du Kristalle. Hier sind 10 zum Start. Tippe auf das Kristallsymbol, um deinen Kontostand zu sehen.' },
           points: '.purse', tap: true, gift: 10 },
 
-        /* ---------- 6. the store, pets ---------- */
-        { line: { en:'Ah, the store.\n\nThis is where you can spend the crystals you earn from learning and playing.\n\nOnce you’ve been active for a few days, you’ll be able to adopt a pet. More unusual pets take a little longer to unlock.\n\nApparently, one of them may eventually take my place.\n\nI have chosen not to dwell on this.\n\nHave a look around. When you’re finished, use the Back button to return.', ru:'Ах, Лавка.\n\nЗдесь можно тратить кристаллы, которые ты зарабатываешь за учёбу и игры.\n\nКогда ты позанималась несколько дней, сможешь завести питомца. Более необычным питомцам требуется чуть больше времени, чтобы открыться.\n\nПохоже, один из них когда-нибудь сможет занять моё место.\n\nЯ предпочитаю об этом не задумываться.\n\nОсмотрись. Когда захочешь вернуться, нажми «Назад».', ruM:'Ах, Лавка.\n\nЗдесь можно тратить кристаллы, которые ты зарабатываешь за учёбу и игры.\n\nКогда ты позанимался несколько дней, сможешь завести питомца. Более необычным питомцам требуется чуть больше времени, чтобы открыться.\n\nПохоже, один из них когда-нибудь сможет занять моё место.\n\nЯ предпочитаю об этом не задумываться.\n\nОсмотрись. Когда захочешь вернуться, нажми «Назад».', de:'Ah, der Laden.\n\nHier kannst du die Kristalle ausgeben, die du beim Lernen und Spielen verdienst.\n\nWenn du ein paar Tage aktiv warst, kannst du ein Haustier adoptieren. Ungewöhnlichere Haustiere brauchen etwas länger, bis sie freigeschaltet werden.\n\nAnscheinend könnte eines von ihnen irgendwann meinen Platz einnehmen.\n\nIch habe beschlossen, darüber nicht weiter nachzudenken.\n\nSieh dich ruhig um. Wenn du zurück möchtest, tippe auf Zurück.' },
+        /* ---------- 6. the crystals section, then the store ---------- */
+        /* The store used to be spoken about here with nothing having opened
+           it, and `.backlink` does not exist on the hub, so the step named
+           a place she was not in and highlighted nothing. Two stops added
+           08 Sep so she walks the real route: popover → Crystals → Store.
+
+           `.purse-pop-go` is the "Go to Crystals" button inside the purse
+           popover (purse.js). Its de/ru were empty until today — see the
+           note on TXT there. */
+        { line: { en:'Here’s your crystal balance.\n\nTap Go to Crystals to open the Crystals section.', ru:'Вот твой баланс кристаллов.\n\nНажми «К кристаллам», чтобы открыть раздел «Кристаллы».', de:'Hier ist dein Kristallstand.\n\nTippe auf Zu den Kristallen, um den Bereich Kristalle zu öffnen.' },
+          points: '.purse-pop-go', tap: true },
+
+        /* `.cr-store` (crystals.js) is labelled "Spend them in the store" /
+           "Im Shop ausgeben" / "Потратить их в магазине". The line names it
+           by that label, not "Store", so the words she reads and the words
+           on the button are the same. */
+        { line: { en:'This is your Crystals page.\n\nTap Spend them in the store to visit the Store.', ru:'Это твоя страница кристаллов.\n\nНажми Потратить в магазине, чтобы открыть Магазин.', de:'Das ist deine Kristallseite.\n\nTippe auf Im Shop ausgeben, um den Shop zu öffnen.' },
+          points: '.cr-store', tap: true },
+
+        { line: { en:'Ah, the Store.\n\nThis is where you can spend your crystals and adopt pets. Some pets take longer to unlock than others.\n\nHave a look around, then use Back when you’re ready.', ru:'А, Магазин.\n\nЗдесь ты можешь тратить кристаллы и брать питомцев. Некоторые питомцы открываются дольше, чем другие.\n\nОсмотрись, а когда будешь готова, нажми «Назад».', ruM:'А, Магазин.\n\nЗдесь ты можешь тратить кристаллы и брать питомцев. Некоторые питомцы открываются дольше, чем другие.\n\nОсмотрись, а когда будешь готов, нажми «Назад».', de:'Ah, der Shop.\n\nHier kannst du deine Kristalle ausgeben und Haustiere adoptieren. Manche Haustiere brauchen länger zum Freischalten als andere.\n\nSchau dich um und benutze dann Zurück, wenn du bereit bist.' },
           points: '.backlink', tap: true },
 
         /* ---------- 7. back at the top, and a real choice ---------- */
@@ -315,11 +373,12 @@ window.GH_BUTLER = {
            either: an armed tap would advance underneath the modal and she
            would come out of it a step further on than she expected.
 
-           `.langswitch` and not `.lg-pair`: same reasoning as `.pick` on
-           step 1 — light the wrapper so the whole control is in the clear
-           rather than one button inside it. */
+           `.brand-mark` since 09 Sep. It was `.langswitch`, the wrapper
+           around the `Рус → Нем` pill — and that pill is gone: the brand
+           mark in the corner is the language switch now, and `#langswitch`
+           is `hidden`, so this step would have lit nothing at all. */
         { line: { en:'You can also change the language you speak and the language you want to learn here.', ru:'Здесь ты также можешь изменить язык, на котором говоришь, и язык, который хочешь изучать.', de:'Hier kannst du auch die Sprache ändern, die du sprichst, und die Sprache, die du lernen möchtest.' },
-          points: '.langswitch' },
+          points: '.brand-mark' },
 
         /* ---------- 4. filter by topic ----------
 
@@ -362,8 +421,40 @@ window.GH_BUTLER = {
            nothing else — toc.js gives a row `toc-jump` when its kind is
            `jump`, `toc-row` otherwise, and only the four numbered
            sections are jumps. No new class needed. */
-        { line: { en:'At the top are the four main learning sections. Here you can practise with sentences, short stories, vocabulary, and longer stories.', ru:'Вверху находятся четыре основных учебных раздела. Здесь ты будешь заниматься с предложениями, короткими рассказами, лексикой и более длинными историями.', de:'Oben findest du die vier Hauptbereiche zum Lernen. Hier übst du mit Sätzen, kurzen Geschichten, Wortschatz und längeren Geschichten.' },
-          points: '.toc-jump' },
+        /* A TAP STEP NOW, AND A WAY BACK AFTER IT.
+
+           These pills were highlighted as a read step, but `toc.js`'s
+           `jumpTo()` calls `state.onExit()` — tapping one throws her out
+           of the contents to the hub section. So a ringed button whose
+           whole job is to leave sat in the middle of a run that carried
+           on describing the contents. Steven hit it, 09 Sep.
+
+           Rather than ring it and ask her not to press it, the tour now
+           uses it: she jumps out on purpose, and the next step points at
+           the TOC pill in the jumpbar to bring her back. Both controls
+           get taught and nothing is a trap.
+
+           `.jump.is-toc` is the recovery target rather than `.toc-toggle`
+           because the jumpbar is `position:sticky` — the pill is on
+           screen at any scroll depth, and the filter-row button she used
+           on step 5 has scrolled away by the time she lands in a section.
+           Steven: "the TOC button is on the jump bar that moves down,
+           always visible on the top level." */
+        { line: { en:'At the top are the four main learning sections. Here you can practise with sentences, short stories, vocabulary, and longer stories.\n\nTap one and it takes you straight there.', ru:'Вверху находятся четыре основных учебных раздела. Здесь ты будешь заниматься с предложениями, короткими рассказами, лексикой и более длинными историями.\n\nНажми на любой — и он сразу тебя туда перенесёт.', de:'Oben findest du die vier Hauptbereiche zum Lernen. Hier übst du mit Sätzen, kurzen Geschichten, Wortschatz und längeren Geschichten.\n\nTippe auf einen, und er bringt dich direkt dorthin.' },
+          points: '.toc-jump', tap: true },
+
+        /* STEVEN'S SCRIPT, verbatim. He supplied this line for exactly this
+           situation — back has not reached the contents, so she uses the
+           TOC button instead — and it replaces a draft of mine, 09 Sep.
+
+           His text carried `[]` where the button's name goes, because the
+           label differs per language. It is `tocShort`: TOC, IV, ОГЛ.
+           Filled in below.
+
+           Gender-neutral in Russian, so no `ruM` twin: «нажми» and
+           «вернуться» do not inflect for the listener. */
+        { line: { en:'Now, hit the TOC button at the top of the screen to get back to the Table of Contents.', ru:'Теперь нажми кнопку ОГЛ вверху экрана, чтобы вернуться к содержанию.', de:'Drück jetzt oben auf dem Bildschirm auf den IV-Button, um zurück zum Inhaltsverzeichnis zu kommen.' },
+          points: '.jump.is-toc', tap: true },
 
         /* NOT armed. Tapping the Lessons heading expands the group and
            the tour would move on before she read anything; the line only
@@ -409,7 +500,13 @@ window.GH_BUTLER = {
            tour. Tapping a tile repaints inside the songbook, and the
            700ms fallback carries the tour to the next step. */
         { line: { en:'Pick a song to take a closer look.', ru:'Выбери песню, которую хочешь рассмотреть подробнее.', de:'Wähle ein Lied aus, das du dir genauer ansehen möchtest.' },
-          points: '.tiles', tap: true },
+          /* `.sg-songlist`, not `.tiles`. The song view holds SEVERAL `.tiles`
+             grids — a fresh one starts after each paired-song box — and
+             `butler.js` highlights and arms the FIRST match only, so just the
+             top group lit up and only a tile in it advanced the tour. The
+             wrapper added to songbook.js on 09 Sep covers every song, and a
+             tap on any tile bubbles up to it. Steven, 09 Sep. */
+          points: '.sg-songlist', tap: true },
 
         /* ---------- 9. inside the song ----------
 
@@ -431,7 +528,29 @@ window.GH_BUTLER = {
            Table of Contents rather than the hub, because the TOC opened
            it and passes its own exit — which is what makes Steven's
            "home base" structure work at all. */
-        { line: { en:'Tap the back arrow to return to the Table of Contents.', ru:'Нажми стрелку «Назад», чтобы вернуться к оглавлению.', de:'Tippe auf den Zurück-Pfeil, um zum Inhaltsverzeichnis zurückzukehren.' },
+        /* TWO BACKS, NOT ONE.
+
+           This activity is two screens deep from the contents: a list,
+           then the thing you opened from it. One back arrow lands on the
+           LIST — songbook.js's song back and reader.js's piece back both
+           repaint their own index rather than calling `onExit()`. So a
+           single step saying "return to the Table of Contents" left her
+           on the list while the next step told her to open something that
+           is not on that screen. Steven found it on Songs, 09 Sep; the
+           Reader has the same shape.
+
+           Both steps arm `.backlink`, and `resume()` redraws on every
+           paint, so the second lights the same arrow on the new screen.
+
+           NINE OTHER STEPS STILL SAY THE ONE-BACK LINE. They are the
+           activities with no list-then-item tap inside them, so one back
+           should be right — but that is reasoning, not testing. Checked
+           09 Sep: comics, listen-and-speak, word matching, dialogues, the
+           word list, progress, achievements, grammar, settings. */
+        { line: { en:'Tap the back arrow. That brings you to the list of songs.', ru:'Нажми стрелку «Назад». Так ты попадёшь к списку песен.', de:'Tippe auf den Zurück-Pfeil. Damit kommst du zur Liste der Lieder.' },
+          points: '.backlink', tap: true },
+
+        { line: { en:'Songs was two screens deep, so tap it once more to get back to the Table of Contents.', ru:'Песни были на два экрана в глубину, поэтому нажми ещё раз, чтобы вернуться к оглавлению.', de:'Die Lieder lagen zwei Bildschirme tief, also tippe noch einmal, um zum Inhaltsverzeichnis zurückzukommen.' },
           points: '.backlink', tap: true },
 
         /* ---------- comics ---------- */
@@ -441,8 +560,37 @@ window.GH_BUTLER = {
         /* NOT armed: one explanatory line, and she is already on the
            right screen — the Jukebox row sits in the same open Read and
            listen group the comic is reached from, so no navigation. */
+        /* A TAP STEP, AND A WAY BACK.
+
+           This was a read-only step highlighting a TOC ROW. A row
+           navigates — `toc.js`'s `openActivity()` calls
+           `GH.app.play(a, backHere())` — so she tapped the ringed thing,
+           as every other step has trained her to, landed in the Jukebox,
+           and the next step told her to open Alina and Stella, which is
+           in the contents she had just left. Steven, 09 Sep.
+
+           So she goes in on purpose and comes back on purpose. The back
+           line is Steven's wording, and it is the pattern for any step
+           that sends her into a section.
+
+           ONE BACK IS ENOUGH HERE. `backHere()` restores the Table of
+           Contents with the group still open, so the arrow lands her
+           exactly where the next step expects. Steven's second line —
+           "hit the TOC button at the top of the screen" — is for the
+           cases where back does NOT reach the contents; the button is
+           `.jump.is-toc` in the sticky jumpbar, labelled TOC / IV / ОГЛ
+           (`tocShort`), and step 7 already uses it that way.
+
+           AUDITED 09 Sep, and this is the only case. The other two
+           read-only TOC targets are GROUP HEADERS —
+           `[data-toc-group="lessons"]` at step 8 and `"ref"` at step 82 —
+           and a group header expands in place rather than navigating, so
+           tapping one cannot strand her. */
         { line: { en:'In the Jukebox, you can build your own playlist and arrange the songs in any order you like. The music keeps playing when your phone is locked, so you can listen while you walk.', ru:'В Jukebox ты можешь собрать свой плейлист и расположить песни в любом порядке. Музыка продолжит играть даже с заблокированным телефоном, поэтому её можно слушать во время прогулки.', de:'In der Jukebox kannst du deine eigene Playlist zusammenstellen und die Lieder beliebig anordnen. Die Musik läuft auch bei gesperrtem Handy weiter, sodass du sie beim Spazierengehen hören kannst.' },
-          points: '[data-toc="jukebox"]' },
+          points: '[data-toc="jukebox"]', tap: true },
+
+        { line: { en:'When you are done looking around here, hit the back button.', ru:'Когда закончишь здесь осматриваться, нажми кнопку «Назад».', de:'Wenn du dich hier fertig umgesehen hast, drück auf den Zurück-Button.' },
+          points: '.backlink', tap: true },
 
         { line: { en:'Let\u2019s look at a comic next. Tap Alina and Stella.', ru:'Теперь посмотрим комикс. Нажми Alina and Stella.', de:'Sehen wir uns als Nächstes einen Comic an. Tippe auf Alina und Stella.' },
           points: '[data-toc="comic"]', tap: true },
@@ -483,7 +631,11 @@ window.GH_BUTLER = {
           points: '[data-toc="reader"]', tap: true },
 
         { line: { en:'The Reader has a large collection of short stories, longer stories, poems, and articles. Choose something you\u2019d like to read.', ru:'В Reader есть большая коллекция коротких и длинных рассказов, стихотворений и статей. Выбери то, что тебе хочется прочитать.', de:'Der Reader enthält viele kurze und längere Geschichten, Gedichte und Artikel. Wähle etwas aus, das du lesen möchtest.' },
-          points: '.tiles', tap: true },
+          /* `.rd-list`, not `.tiles`. The Reader builds one grid per tier, and
+             butler.js arms the first match only — so just the top tier lit up
+             and only a tile in it advanced the tour. Wrapper added to
+             reader.js on 09 Sep, same fault as the song list. */
+          points: '.rd-list', tap: true },
 
         /* The four controls each got a class of their own for this —
            `rd-hear` and `rd-startqs` did not exist, both were bare
@@ -502,7 +654,12 @@ window.GH_BUTLER = {
           points: '.rd-startqs' },
 
         /* ---------- listen and speak ---------- */
-        { line: { en:'Tap the back arrow to return to the Table of Contents.', ru:'Нажми стрелку «Назад», чтобы вернуться к оглавлению.', de:'Tippe auf den Zurück-Pfeil, um zum Inhaltsverzeichnis zurückzukehren.' },
+        /* TWO BACKS HERE TOO — see the note on the Songs pair above.
+           reader.js's piece view backs to `paintIndex()`, not `onExit()`. */
+        { line: { en:'Tap the back arrow. That brings you to the list of stories.', ru:'Нажми стрелку «Назад». Так ты попадёшь к списку историй.', de:'Tippe auf den Zurück-Pfeil. Damit kommst du zur Liste der Geschichten.' },
+          points: '.backlink', tap: true },
+
+        { line: { en:'The Reader was two screens deep as well, so tap it once more for the Table of Contents.', ru:'Читалка тоже была на два экрана в глубину, поэтому нажми ещё раз, чтобы вернуться к оглавлению.', de:'Der Leser lag ebenfalls zwei Bildschirme tief, also tippe noch einmal für das Inhaltsverzeichnis.' },
           points: '.backlink', tap: true },
 
         { line: { en:'Open Read and listen.', ru:'Открой «Чтение и аудирование».', de:'Öffne Lesen und Hören.' },

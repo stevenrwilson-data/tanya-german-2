@@ -11,6 +11,24 @@ GH.i18n = (function(){
       hubTitle:'Что будем делать?',
       hubLede:'Послушай предложение, вставь пропущенное слово, послушай ещё раз.',
       sentencesHead:'Раздел 1 · Предложения',
+      /* THE READ AND LISTEN GUIDE — js/activities/readguide.js.
+
+         Steven's text, 09 Sep. `rlSection` heads the panel; the other
+         seven are one row each. `rlReaderM` is the masculine twin —
+         "what you understood" is a past tense and inflects in Russian.
+         The other six are gender-neutral and need no twin. */
+      rlSection:'В этом разделе есть рассказы, статьи, песни, комиксы и стихи, которые можно читать и слушать. Здесь также есть упражнения по прочитанному, в том числе на понимание текста. Вместе эти задания помогают глубже понять язык, который ты изучаешь. Занимайся в своём темпе.',
+      rlListenSpeak:'Работай над тем, чтобы твоя немецкая речь звучала естественнее. Прослушай фразу, произнеси её сама, затем сравни две записи и попробуй ещё раз. Здесь можно спокойно обратить внимание на произношение, ритм и звуки, которые гораздо легче заметить, когда слышишь собственную речь.',
+      /* the masculine twin — Steven's document writes "сам/сама"; the
+         site resolves gender with an M key like rlReaderM. */
+      rlListenSpeakM:'Работай над тем, чтобы твоя немецкая речь звучала естественнее. Прослушай фразу, произнеси её сам, затем сравни две записи и попробуй ещё раз. Здесь можно спокойно обратить внимание на произношение, ритм и звуки, которые гораздо легче заметить, когда слышишь собственную речь.',
+      rlJukebox:'Преврати песни на сайте в музыку, которую можно просто слушать. Собери свой плейлист, расположи песни в любом порядке и оставь музыку играть, пока гуляешь, убираешь, куда-то едешь или занимаешься чем-то другим — даже когда телефон заблокирован.',
+      rlSongs:'Слушай песню, следя за текстом и переводами, а затем работай с языком внутри самой песни. Нажми на любую строку, чтобы услышать, как она чётко произносится, или запиши себя и сравни своё произношение с озвученной версией. Изучай лексику песни, слушай отдельные строки и выполняй упражнения с пропусками и на сопоставление, созданные на основе текста песни.',
+      rlWordMatch:'Связывай немецкие слова, которые ты слышишь, с теми же словами на странице. Сначала прослушай слова, а затем сопоставь услышанное с написанными словами, пока они не станут знакомыми и на слух.',
+      rlComic:'Следи за приключениями Алины и её волшебной сумочки Стеллы в продолжающейся серии забавных и непредсказуемых историй. Возвращайся, чтобы узнать, что Стелла выдаст в следующий раз. Картинки и знакомые персонажи помогают легче следить за немецким текстом. Истории очень наглядные, а также снабжены озвучкой и переводами.',
+      rlReader:'Читай целые рассказы и стихи, а не отдельные предложения из уроков. Следи за смыслом всего текста, а затем используй вопросы, чтобы проверить, что ты поняла и что, возможно, стоит прочитать ещё раз.',
+      rlReaderM:'Читай целые рассказы и стихи, а не отдельные предложения из уроков. Следи за смыслом всего текста, а затем используй вопросы, чтобы проверить, что ты понял и что, возможно, стоит прочитать ещё раз.',
+      rlDialogues:'Практикуй немецкий как часть настоящего разговора, а не как набор отдельных предложений. Следи за обеими сторонами диалога, слушай, как произносится каждая реплика, затем выбери любую роль, запиши свою версию и сравни её с оригиналом.',
       rlHead:'Читать и слушать',
       gamesHead:'Игры',
       longStoriesHead:'Раздел 4 · Длинные истории',
@@ -97,6 +115,19 @@ GH.i18n = (function(){
       gwAgain:'Ещё раз',
       gwOtherLevel:'Другой размер',
       btStepN:'{n} из {of}',
+      /* NO STEP NUMBER. The tour does not show one anywhere, so
+         "continue from step 42" names something she has never seen and
+         cannot judge. Steven, 09 Sep. */
+      /* THE TWO WAYS OUT. `btLater` leaves the saved position alone;
+         `btEndNow` clears it. See `exitActions` in js/butler.js. */
+      /* SAID AS HE LEAVES, either way out — so she knows the perch at
+         the top is how she gets him back. Without it, closing the tour
+         looks like dismissing him for good. */
+      btBye:'Если позже понадобится моя помощь, я наверху.',
+      btLater:'Продолжить позже',
+      btEndNow:'Завершить тур',
+      btResume:'Продолжить тур',
+      btBack:'С возвращением! Продолжим с того места, где остановились.',
       btPerch:'Позвать помощника',
       gwLevel_small:'Мало',
       gwLevel_medium:'Средне',
@@ -239,6 +270,7 @@ GH.i18n = (function(){
       sgViewSing:'Как поётся',
       sgViewText:'Текст',
       sgViewLines:'Строки',
+      sgUniqueLines:'Уникальные строки',
       sgTimesN:'× {n}',
       sgAgain:'снова — наверх',
       sgLineCount:'{d} строк · {s} со всеми повторами',
@@ -385,6 +417,7 @@ GH.i18n = (function(){
       upReload:'Обновить',
       btGiftDone:'Ты уже проходил этот тур и получил бесплатные кристаллы! Вот где находится твой баланс кристаллов.',
       btGiftDoneF:'Ты уже проходила этот тур и получила бесплатные кристаллы! Вот где находится твой баланс кристаллов.',
+      btGiftPop:'+{n} кристаллов',
       stSendHead:'Что уходит с этого устройства',
       stSendNote:'Раз в день приложение отправляет Стивену, что и когда ты делала: какие упражнения, сколько ответов, что открывала. Ни слова из твоих ответов, никаких имён. Только так он может понять, что улучшить.',
       stSendOn:'Отправлять',
@@ -585,13 +618,32 @@ GH.i18n = (function(){
       langName_fr:'французский',
       langName_tl:'тагальский',
       langName_en:'английский',
+      /* THE SONG-LANGUAGE HEADINGS AND CHIP LABELS.
+
+         One key per song language, each translated into all three
+         interface languages. NOT a template like "{lang} songs": German
+         and Russian want an adjective that agrees — Englische Lieder,
+         Английские песни — and no amount of slotting a noun into a
+         pattern produces that. Steven supplied the three strings.
+
+         The same key serves the chip on the belt and the heading above
+         that language's group, so the two can never drift apart. */
+      sgSongs_de:'Немецкие песни',
+      sgSongs_en:'Английские песни',
+      sgSongs_ru:'Русские песни',
       langName_ga:'ирландский',
       /* SHORT FORMS FOR THE L1 -> L2 CONTROL. Rendered in L1, so a Russian
          speaker sees `Рус → Нем`. Steven confirmed Нем; the rest are
          abbreviations of the langName_ values directly above and are
          DRAFTS AWAITING HIS CHECK. */
+      /* THREE CHARACTERS, EVERY LANGUAGE, EVERY BLOCK. Steven, 09 Sep:
+         "make it 3 char, no one gets more than 3." The brand-mark badge
+         stacks two of these, so the longest one sets the badge's width —
+         and 'Engl.' over 'Russ.' was forcing it wider than the corner
+         wants. Capped here rather than truncated in CSS, so the label is
+         a real abbreviation instead of a clipped word. */
       langShort_de:'Нем',  langShort_ru:'Рус',  langShort_es:'Исп',
-      langShort_fr:'Фр',   langShort_tl:'Таг',  langShort_en:'Англ',
+      langShort_fr:'Фра',  langShort_tl:'Таг',  langShort_en:'Анг',
       langShort_ga:'Ирл',
       /* THE TWO-STEP LANGUAGE PICKER. English placeholders — Steven's
          Russian to write, same convention as the Word Lab strings. */
@@ -637,9 +689,35 @@ GH.i18n = (function(){
       pvVerbKind:'Типы глаголов',
       pvTenseBin:'Прошлое · настоящее · будущее',
       pvUmlaut:'с умлаутом',
-      nxDue:'{n} {n|слово ждёт|слова ждут|слов ждут} повторения — это одна короткая игра.',
-      nxWeak:'Сейчас тяжелее всего — {a}.',
-      nxStart:'Начать · {game}',
+      /* WHAT THE PET SUGGESTS. Steven, 09 Sep: the pet should propose two
+         things — the daily crystal quests when they are not finished, and
+         one other activity — and say how many of the five are done. */
+      /* WHAT THE PET SAYS. Steven's English, GPT's German and Russian,
+         09 Sep. Replaces petQuests/petQuestsAll/petThen, which were the
+         two-suggestion version.
+
+         `petReview`'s Russian is TWO forms and Russian wants three:
+         51 takes the singular in Russian because it ends in 1, and the
+         two-form branch gives it the plural. Flagged for a third form —
+         see the note in app.js. */
+      /* {a} is how many she has finished, {n} how many were drawn — the
+     same pair the call in app.js passes. `M` is the masculine twin;
+     Russian marks the doer in the past tense. */
+      /* WADDLES' HELLO, when she has no pet yet. Steven, 10 Sep: not
+         "here is a list of chores" the moment she walks in. Mine — worth
+         replacing with his own wording. */
+      petHello:'Привет! Рад тебя видеть.',
+      petQuestCount:'Ты выполнила {a} из {n} ежедневных активностей.',
+      petQuestCountM:'Ты выполнил {a} из {n} ежедневных активностей.',
+      petQuestAllDone:'Все {n} квестов на сегодня выполнены. Отличная работа.',
+      petQuestPick:'Попробуй этот: {q}',
+      petReview:'{n} {n|слово готово|слова готовы} к повторению.',
+      petNothing:'Ничего не ждёт. Выбирай всё, что хочешь.',
+      petToCrystals:'Кристальные задания',
+      petToActivity:'Задание питомца',
+      petQuests:'Сегодняшние задания: {a} из {n}. Хочешь закрыть остальные?',
+      petQuestsAll:'Все {n} заданий на сегодня сделаны. Молодец!',
+      petThen:'А ещё:',
       tnHead:'Времена в примерах',
       tnNote:'Примеры к словам по умолчанию только в настоящем времени. Прошедшее можно добавить, когда будешь готова.',
       tn_present:'Настоящее',
@@ -665,8 +743,24 @@ GH.i18n = (function(){
       awTitle:'Достижения',
       awSub:'Что уже сделано',
       awUnlocked:'новое достижение',
+      /* the achievement window's announcement line — Steven, 10 Sep.
+         {a} is the achievement's own name. */
+      awGotAch:'Вы получили достижение «{a}»!',
+      /* the crystal bonus line on the achievement window, above Yes! —
+         Steven, 10 Sep. {n} is the achievement's own payout. */
+      awGotCrystals:'+{n} кристаллов!',
       awEarnedN:'{a} из {b}',
       awLocked:'ещё не открыто',
+      /* Collecting, added 10 Sep. Mine — worth replacing with Steven's
+         own wording. */
+      awPets3:'Трое друзей',
+      awPets6:'Шестеро друзей',
+      awPets9:'Девять друзей',
+      awPets12:'Двенадцать друзей',
+      awPets15:'Пятнадцать друзей',
+      awPetsAll:'Все шестнадцать',
+      awCarrier2:'Вторая переноска',
+      awQuests30:'Тридцать заданий',
       awFirstRound:'Первый раунд',
       awFirstPerfect:'Раунд без единой ошибки',
       awStreak10:'Десять подряд',
@@ -711,9 +805,19 @@ GH.i18n = (function(){
       stBuySlot:'Место {n}',
       stChoose:'Выбрать',
       stCheering:'Встречает',
+      /* The button on the just-bought window. Cheerful on purpose —
+         Steven, 09 Sep: "something cheerful like Yes! or Congrats!" A
+         neutral OK makes the moment feel like a dialog to dismiss. */
+      stGotPet:'Да!',
       stBought:'теперь твой',
       stClaim:'Забрать',
+      /* Shown in the pet grid when a tap is refused and the pet is not
+         gated by a requirement — she simply cannot afford it yet. A gated
+         pet shows its real condition instead, via store.js `needFor`. */
+      ptLocked:'Пока не хватает кристаллов.',
+      ptSlotsFull:'Все переноски заняты ({n}). Сначала убери одного питомца.',
       ptYourPets:'Твои питомцы — нажми, чтобы увидеть всех',
+      ptGridHow:'Нажми на своего питомца, чтобы взять его с собой или убрать. Нажми на любого другого, чтобы купить.',
       ptAllPets:'Все питомцы',
       stUseToken:'★ Бесплатно — талон ({kind})',
       stTokensN:'Талоны: {n}',
@@ -742,7 +846,6 @@ GH.i18n = (function(){
       stFormN:'форма {n}',
       stGrewTo:'выросла до формы {n}',
       stFullGrown:'выросла полностью',
-      nxJustPlay:'Ничего срочного — можно просто поиграть.',
       nxAreaWords:'Слова',
       nxAreaTopics:'Темы',
       nxAreaVerbs:'Формы глаголов',
@@ -765,7 +868,15 @@ GH.i18n = (function(){
       mzEnd_er:'добавляется -er',
       mzEnd_s:'добавляется -s',
       mzEnd_same:'ничего не добавляется',
-      stNeedRun:'5 заданий в день: {at} / {n} дней подряд',
+      /* The word itself, above the requirement. Without it a dead button
+         and a grey line read as a bug rather than a condition. */
+      /* Shown on a pet whose gate is open but whose price is out of
+         reach. A shortfall is a target; "cannot afford" is a wall. */
+      stNeedMore:'нужно ещё {n}',
+      stLocked:'Закрыто',
+      /* Steven's wording, 10 Sep. `{q}` is the daily target, read from
+         coins so the sentence follows if it ever changes. */
+      stNeedRun:'Требуется: {at} из {n} дней с {q} заданиями',
       stNeedNow:'серия сейчас: {at} из {n} дней подряд',
       skRule:'Серия падает медленно: первые три дня — по 1 в день, потом по 2, а с двенадцатого дня по 3. Больше трёх в день не снимается никогда.',
       skPassRule:'Каждые 10 дней подряд ты получаешь один свободный день. Он тратится сам, когда ты пропускаешь, — до того как серия начнёт падать.',
@@ -781,7 +892,15 @@ GH.i18n = (function(){
       stNeedAllSlots:'{at} / {n} мест',
       stNeedMature2:'{at} / {n} слов закрепилось',
       stNeedGrown2:'{at} / {n} зверей выросло',
-      stNeedAwards2:'{at} / {n} достижений',
+      /* Steven's phrasing, 10 Sep, matched to the `stNeedRun` line. The
+         gate is a COUNT of achievements, not a named one — `awards:12`
+         in data/pets.js. Naming one would need a new field on the pet
+         and focus support in awards-view.js. */
+      /* The three gate keys added 10 Sep. Same shape as stNeedRun. */
+      stNeedSlots:'Требуется: {at} из {n} переносок',
+      stNeedPets:'Требуется: {at} из {n} питомцев',
+      stNeedQuests:'Требуется: {at} из {n} кристальных заданий',
+      stNeedAwards2:'Требуется: {at} из {n} достижений',
       stNeedLegend:'{at} / {n} легендарных',
       stLegendaryLede:'Их нельзя купить. Каждый требует месяцев занятий подряд — и чего-то ещё сверху. Самый долгий отрезок, который у тебя когда-либо был, засчитывается навсегда: один пропущенный день его не отнимет.',
       stGateOpen:'Питомец разблокирован — теперь его можно купить.',
@@ -896,6 +1015,12 @@ GH.i18n = (function(){
       lsGotIt:'Понятно',
       lsMins:'{n} мин',
       lsRightIs:'Правильно: {word}',
+      lsHarder:'Посложнее',
+      lsRole_subj:'подлежащее',
+      lsRole_verb:'глагол',
+      lsRole_obj:'дополнение',
+      lsFindRole:'Нажми на {role}.',
+      lsHardest:'Самое сложное',
       lsYouSaid:'Ты выбрала: {word}',
       lsFinished:'Урок пройден',
       lsNote:'Это правило теперь встретится в играх — там оно и закрепится.',
@@ -1067,6 +1192,7 @@ GH.i18n = (function(){
       cmNext:'Дальше',
       cmPrev:'Назад',
       cmDone:'Готово',
+      cmZoom:'Увеличить',
       cmSeeEng:'Английская версия',
       cmSeeDeu:'Немецкая версия',
       cmNoImage:'Картинка ещё не готова.',
@@ -1106,6 +1232,62 @@ GH.i18n = (function(){
       ptdEarnedOnly:'Этого не купить ни за какие кристаллы. Только заслужить.',
       ptdToStore:'Открыть магазин',
       grReturn:'Вернуться к упражнению',
+      /* English grammar reference — js/activities/eng-grammar.js.
+         New keys, not reused grammar ones: the German page's headings
+         are about cases and gender and say the wrong thing here. */
+      egTitle:'Грамматика',
+      egSub:'Правила и таблицы',
+      egArticles:'Артикли',
+      egArticlesSub:'a, an, the или ничего',
+      egPairHead:'Сначала новая, потом известная',
+      egPairNote:'Существительное то же. Артикль меняется, потому что изменилась ситуация.',
+      egNew:'Одна, новая',
+      egKnown:'Известная',
+      egSoundHead:'a или an — следующий звук',
+      egSoundNote:'Буква на бумаге — не правило. an hour, a university.',
+      egTrapHead:'Где инстинкт подводит',
+      egTrapNote:'Русский язык опускает это слово. Немецкий язык его сохраняет. Английский не делает ни того, ни другого.',
+      egTrapWrong:'Инстинкт',
+      egTrapRight:'Английский',
+      egNotesHead:'Пока не учим — названы, чтобы не застали врасплох',
+      egQuestions:'Вопросительные слова',
+      egQuestionsSub:'who · what · where · when · why · how',
+      egWordsHead:'Шесть слов и о чём каждое спрашивает',
+      egChainHead:'Утверждение, вопрос, вопросительное слово',
+      egChainNote:'Одно и то же предложение на трёх шагах. Вопросительное слово не заменяет вопрос, а становится перед ним.',
+      egStmt:'Утверждение',
+      egYesNo:'Да или нет',
+      egWh:'С вопросительным словом',
+      egWhoHead:'WHO — подлежащее или дополнение',
+      egWhoNote:'Если who — тот, кто выполняет действие, do / does / did не нужен.',
+      egWhoSubj:'who делает действие',
+      egWhoObj:'действие направлено на who',
+      egFuture:'Будущее время',
+      egFutureSub:'will · be going to · договорённости',
+      egMoveHead:'Движение или будущее?',
+      egMoveNote:'Если после going to идёт ещё один глагол — это будущее. Если идёт место — это просто движение.',
+      egPlan:'план',
+      egMove:'движение',
+      egCommands:'Повелительное наклонение',
+      egCommandsSub:'Сделай. Не делай. Давай.',
+      egOnOffHead:'Сделай, и не делай',
+      egOnOffNote:'Один и тот же глагол, включённый и выключенный. Don’t ставится впереди, а глагол не меняется.',
+      egOn:'сделай',
+      egOff:'не делай',
+      /* Question-word game — js/activities/cuegame.js. The one game that
+         runs in every course; its buttons come from
+         data/question-cues.js, not from a per-language branch. */
+      qcTitle:'Какой это вопрос?',
+      qcSub:'На какой вопрос отвечает это предложение',
+      qcRule:'Прочитай предложение и нажми на вопросительное слово, на которое оно отвечает. «Я иду в магазин» отвечает на вопрос «куда», а «Я нашла это на земле» — на вопрос «где». После ответа появится сам вопрос — именно его ты и учишься задавать.',
+      qcAsk:'На какой вопрос это отвечает?',
+      qcProgress:'{n} из {of}',
+      qcNext:'Дальше',
+      qcFinish:'Закончить',
+      qcHear:'Послушать вопрос',
+      qcMissedHead:'Стоит повторить',
+      qcPairsHead:'Все предложения и вопросы к ним',
+      qcNoBank:'Для этого языка пока нет материала.',
       stWelcomeHead:'Первый запуск',
       stWelcomeNote:'Показать приветствие ещё раз — или стереть с этого устройства всё.',
       stWelcomeAgain:'Показать приветствие снова',
@@ -1175,6 +1357,17 @@ GH.i18n = (function(){
       spPlaying:'Играет…',
       spRecord:'Записать себя',
       spAgain:'Записать заново',
+      /* the Start button on the Listen-and-Speak setup screen. It called
+         t('start'), a key that never existed, so the button read literal
+         "start" in every language. Named with the screen's own sp prefix,
+         10 Sep. */
+      spStart:'Начать',
+      /* Progress labels for wo-wohin's fixed-case skills. `case:fixed-dat`
+         was mapped to grPastPrat — a tense label on a case skill — and
+         `fixed-acc` had no label at all and rendered raw. Wording is mine,
+         worth replacing. 10 Sep. */
+      pvFixedDat:'всегда датив (mit, von, zu…)',
+      pvFixedAcc:'всегда аккузатив (für, ohne, durch…)',
       spStop:'Стоп',
       spCompare:'Сравнить',
       spHearMe:'Я',
@@ -1269,7 +1462,11 @@ GH.i18n = (function(){
       gnRule4:'Пройди уровень без единой ошибки — откроется режим на скорость.',
       gnRule5:'На скорость: чем длиннее серия без ошибок, тем дороже каждый ответ. Ошибка обнуляет серию.',
       howtoPlay:'Как играть',
-      gdOpen:'Что это за игры?',
+      gdOpen:'🎮 Гид по играм',
+      /* the Read-and-listen section's guide button — the sibling of
+         gdOpen and rgOpen, added 10 Sep when the hub finally got a way
+         into readguide.js. Wording is mine, worth replacing. */
+      rlOpen:'🎧 Гид по разделу',
       /* THE REFERENCE GUIDE. Steven, 08 Sep: Reference holds eight
          unrelated destinations and a glyph plus a name does not say what
          is inside any of them. Deliberately RICHER than the `desc*` keys
@@ -1285,7 +1482,7 @@ GH.i18n = (function(){
          and butler-script.js already use. Two keys rather than a gender
          helper because that is the pattern already in this file
          (btGiftDone / btGiftDoneF). The other five need no twin. */
-      rgOpen:'Что здесь есть?',
+      rgOpen:'🧭 Гид по справочнику',
       rgTitle:'Справочник',
       rgProgress:'Посмотри, над чем ты работала и насколько хорошо материал уже усвоен. Узнай, что пора повторить, что ещё закрепляется, и сразу переходи к подходящим упражнениям.',
       rgProgressM:'Посмотри, над чем ты работал и насколько хорошо материал уже усвоен. Узнай, что пора повторить, что ещё закрепляется, и сразу переходи к подходящим упражнениям.',
@@ -1446,6 +1643,14 @@ GH.i18n = (function(){
       hubTitle:'Was möchtest du üben?',
       hubLede:'Satz anhören, fehlendes Wort einsetzen, noch einmal anhören.',
       sentencesHead:'Teil 1 · Sätze',
+      rlSection:'In diesem Bereich findest du Geschichten, Artikel, Lieder, Comics und Gedichte zum Lesen und Anhören. Dazu gibt es Übungen zu den Texten, darunter auch Aufgaben zum Leseverständnis. Zusammen helfen dir diese Aktivitäten, dein Verständnis der Sprache, die du lernst, zu vertiefen. Mach alles in deinem eigenen Tempo.',
+      rlListenSpeak:'Arbeite daran, auf Deutsch natürlicher zu klingen. Hör dir eine Zeile an, sprich sie selbst und vergleiche dann beide Aufnahmen. Danach kannst du es noch einmal versuchen. So kannst du in Ruhe auf Aussprache, Rhythmus und Laute achten, die viel leichter auffallen, wenn du dich selbst hörst.',
+      rlJukebox:'Mach aus den Liedern auf der Website einfach Musik zum Anhören. Stell dir eine Playlist zusammen, ordne die Titel so an, wie du möchtest, und lass die Musik weiterlaufen, während du spazieren gehst, aufräumst, unterwegs bist oder etwas anderes machst — sogar bei gesperrtem Handy.',
+      rlSongs:'Hör dir das Lied an und lies dabei den Text und die Übersetzungen mit. Danach kannst du mit der Sprache im Lied arbeiten. Klick auf eine beliebige Zeile, um sie deutlich gesprochen zu hören, oder nimm dich selbst auf und vergleiche deine Aussprache mit der gesprochenen Version. Entdecke den Wortschatz des Liedes, hör einzelne Zeilen und arbeite mit Lückentext- und Zuordnungsübungen, die direkt aus dem Liedtext erstellt wurden.',
+      rlWordMatch:'Verbinde das Deutsch, das du hörst, mit dem Deutsch, das du auf der Seite erkennst. Hör dir die Wörter zuerst an und ordne dann die gehörten Wörter den geschriebenen Wörtern zu, bis sie dir auch beim Hören vertraut werden.',
+      rlComic:'Begleite Alina und ihre magische Handtasche Stella durch eine fortlaufende Reihe lustiger und unvorhersehbarer Abenteuer. Komm wieder, um zu sehen, was Stella als Nächstes hervorzaubert. Die Bilder und wiederkehrenden Figuren machen es leichter, dem Deutschen zu folgen. Die Geschichten sind stark visuell aufgebaut und bieten außerdem gesprochene Versionen und Übersetzungen.',
+      rlReader:'Lies ganze Geschichten und Gedichte statt einzelner Sätze aus Lektionen. Folge dem Inhalt des gesamten Textes und nutze anschließend die Fragen, um zu prüfen, was du verstanden hast und was du vielleicht noch einmal lesen möchtest.',
+      rlDialogues:'Übe Deutsch als Teil eines echten Gesprächs statt mit einzelnen, voneinander getrennten Sätzen. Folge beiden Seiten des Dialogs, hör dir an, wie jede Zeile gesprochen wird, und übernimm dann eine der beiden Rollen. Nimm deine eigene Version auf und vergleiche sie mit dem Original.',
       rlHead:'Lesen und Hören',
       gamesHead:'Spiele',
       longStoriesHead:'Teil 4 · Lange Geschichten',
@@ -1532,6 +1737,11 @@ GH.i18n = (function(){
       gwAgain:'Noch einmal',
       gwOtherLevel:'Andere Größe',
       btStepN:'{n} von {of}',
+      btBye:'Wenn du später meine Hilfe brauchst, bin ich oben.',
+      btLater:'Später fortsetzen',
+      btEndNow:'Tour beenden',
+      btResume:'Tour fortsetzen',
+      btBack:'Willkommen zurück! Machen wir dort weiter, wo wir aufgehört haben.',
       btPerch:'Den Helfer rufen',
       gwLevel_small:'Klein',
       gwLevel_medium:'Mittel',
@@ -1674,6 +1884,7 @@ GH.i18n = (function(){
       sgViewSing:'Wie gesungen',
       sgViewText:'Text',
       sgViewLines:'Zeilen',
+      sgUniqueLines:'Einzigartige Zeilen',
       sgTimesN:'× {n}',
       sgAgain:'wieder — nach oben',
       sgLineCount:'{d} Zeilen · {s} mit allen Wiederholungen',
@@ -1823,6 +2034,7 @@ GH.i18n = (function(){
          Present rather than absent, so butler.js can ask for it in any
          language without checking which one it is in. */
       btGiftDoneF:'Du hast diese Tour schon gemacht und deine kostenlosen Kristalle bekommen! Hier findest du deinen Kristallstand.',
+      btGiftPop:'+{n} Kristalle',
       stSendHead:'Was dieses Gerät verlässt',
       stSendNote:'Einmal am Tag schickt die App an Steven, was und wann du geübt hast: welche Übungen, wie viele Antworten, was du geöffnet hast. Kein Wort aus deinen Antworten, keine Namen. Nur so kann er sehen, was besser werden muss.',
       stSendOn:'Senden',
@@ -2020,13 +2232,18 @@ GH.i18n = (function(){
       langName_fr:'Französisch',
       langName_tl:'Tagalog',
       langName_en:'Englisch',
+      sgSongs_de:'Deutsche Lieder',
+      sgSongs_en:'Englische Lieder',
+      sgSongs_ru:'Russische Lieder',
       langName_ga:'Irisch',
       /* SHORT FORMS FOR THE L1 -> L2 CONTROL. Rendered in L1. Abbreviations
          of the langName_ values above — DRAFTS AWAITING STEVEN'S CHECK,
          including whether German keeps the trailing point. */
-      langShort_de:'Dt.',   langShort_ru:'Russ.', langShort_es:'Span.',
-      langShort_fr:'Franz.', langShort_tl:'Tag.',  langShort_en:'Engl.',
-      langShort_ga:'Ir.',
+      /* Periods dropped with the fourth character — 'Dt.' beside 'Rus'
+         reads as a typo rather than a style. */
+      langShort_de:'Deu',  langShort_ru:'Rus',  langShort_es:'Spa',
+      langShort_fr:'Fra',  langShort_tl:'Tag',  langShort_en:'Eng',
+      langShort_ga:'Iri',
       /* THE TWO-STEP LANGUAGE PICKER. English placeholders — Steven's
          German to write. */
       lgStep1:'First of two',
@@ -2071,9 +2288,17 @@ GH.i18n = (function(){
       pvVerbKind:'Verbklassen',
       pvTenseBin:'Vergangenheit · Gegenwart · Zukunft',
       pvUmlaut:'mit Umlaut',
-      nxDue:'{n} Wörter warten auf eine Wiederholung — eine kurze Runde reicht.',
-      nxWeak:'Am schwersten fällt gerade {a}.',
-      nxStart:'Los · {game}',
+      petHello:'Hallo! Schön, dich zu sehen.',
+      petQuestCount:'Du hast {a} von deinen {n} täglichen Aktivitäten abgeschlossen.',
+      petQuestAllDone:'Alle {n} Quests für heute sind erledigt. Gut gemacht.',
+      petQuestPick:'Versuch diesen: {q}',
+      petReview:'{n} {n|Wort ist|Wörter sind} bereit für eine Wiederholung.',
+      petNothing:'Nichts wartet auf dich. Such dir aus, was du möchtest.',
+      petToCrystals:'Kristall-Quests',
+      petToActivity:'Pet-Aufgabe',
+      petQuests:'Heutige Aufgaben: {a} von {n}. Willst du den Rest schaffen?',
+      petQuestsAll:'Alle {n} Aufgaben von heute sind erledigt. Gut gemacht!',
+      petThen:'Und außerdem:',
       tnHead:'Zeiten in den Beispielen',
       tnNote:'Die Beispielsätze stehen standardmäßig nur im Präsens. Die Vergangenheit kannst du dazunehmen, wenn du so weit bist.',
       tn_present:'Präsens',
@@ -2099,8 +2324,18 @@ GH.i18n = (function(){
       awTitle:'Erfolge',
       awSub:'Was schon geschafft ist',
       awUnlocked:'neuer Erfolg',
+      awGotAch:'Du hast den Erfolg „{a}“ erhalten!',
+      awGotCrystals:'+{n} Kristalle!',
       awEarnedN:'{a} von {b}',
       awLocked:'noch nicht offen',
+      awPets3:'Drei Freunde',
+      awPets6:'Sechs Freunde',
+      awPets9:'Neun Freunde',
+      awPets12:'Zwölf Freunde',
+      awPets15:'Fünfzehn Freunde',
+      awPetsAll:'Alle sechzehn',
+      awCarrier2:'Zweite Tragetasche',
+      awQuests30:'Dreißig Quests',
       awFirstRound:'Die erste Runde',
       awFirstPerfect:'Eine Runde ohne Fehler',
       awStreak10:'Zehn in Folge',
@@ -2145,9 +2380,13 @@ GH.i18n = (function(){
       stBuySlot:'Platz {n}',
       stChoose:'Auswählen',
       stCheering:'Ist dabei',
+      stGotPet:'Ja!',
       stBought:'gehört jetzt dir',
       stClaim:'Abholen',
+      ptLocked:'Dafür reichen die Kristalle noch nicht.',
+      ptSlotsFull:'Alle Transportboxen sind belegt ({n}). Nimm zuerst ein Tier heraus.',
       ptYourPets:'Deine Tiere — antippen für alle',
+      ptGridHow:'Tippe auf ein eigenes Tier, um es mitzunehmen oder wegzulegen. Tippe auf ein anderes, um es zu kaufen.',
       ptAllPets:'Alle Tiere',
       stUseToken:'★ Gratis — Gutschein ({kind})',
       stTokensN:'Gutscheine: {n}',
@@ -2176,7 +2415,6 @@ GH.i18n = (function(){
       stFormN:'Form {n}',
       stGrewTo:'ist zu Form {n} gewachsen',
       stFullGrown:'ausgewachsen',
-      nxJustPlay:'Nichts Dringendes — spiel einfach so.',
       nxAreaWords:'Wörter',
       nxAreaTopics:'Themen',
       nxAreaVerbs:'Verbformen',
@@ -2199,7 +2437,9 @@ GH.i18n = (function(){
       mzEnd_er:'-er dazu',
       mzEnd_s:'-s dazu',
       mzEnd_same:'kommt nichts dazu —',
-      stNeedRun:'5 Aktivitäten am Tag: {at} / {n} Tage in Folge',
+      stNeedMore:'noch {n} nötig',
+      stLocked:'Gesperrt',
+      stNeedRun:'Erforderlich: {at} von {n} Tagen mit {q} Quests',
       stNeedNow:'aktuelle Serie: {at} von {n} Tagen in Folge',
       skRule:'Die Serie fällt langsam: die ersten drei Tage je 1, danach je 2, ab dem zwölften Tag je 3. Mehr als 3 pro Tag nie.',
       skPassRule:'Alle 10 Tage in Folge bekommst du einen Freitag. Er wird von selbst eingesetzt, wenn du einen Tag auslässt — bevor die Serie überhaupt fällt.',
@@ -2215,7 +2455,10 @@ GH.i18n = (function(){
       stNeedAllSlots:'{at} / {n} Plätze',
       stNeedMature2:'{at} / {n} Wörter gefestigt',
       stNeedGrown2:'{at} / {n} Tiere gewachsen',
-      stNeedAwards2:'{at} / {n} Erfolge',
+      stNeedSlots:'Erforderlich: {at} von {n} Tragetaschen',
+      stNeedPets:'Erforderlich: {at} von {n} Tieren',
+      stNeedQuests:'Erforderlich: {at} von {n} Kristall-Quests',
+      stNeedAwards2:'Erforderlich: {at} von {n} Erfolgen',
       stNeedLegend:'{at} / {n} legendäre',
       stLegendaryLede:'Unverkäuflich. Jedes verlangt Monate an aufeinanderfolgenden Tagen — und darüber hinaus etwas Eigenes. Deine längste Serie zählt dauerhaft: ein verpasster Tag nimmt sie nicht weg.',
       stGateOpen:'Haustier freigeschaltet — jetzt zum Kauf verfügbar.',
@@ -2317,6 +2560,12 @@ GH.i18n = (function(){
       lsGotIt:'Verstanden',
       lsMins:'{n} Min',
       lsRightIs:'Richtig ist: {word}',
+      lsHarder:'Etwas schwieriger',
+      lsRole_subj:'Subjekt',
+      lsRole_verb:'Verb',
+      lsRole_obj:'Objekt',
+      lsFindRole:'Tippe auf das {role}.',
+      lsHardest:'Am schwierigsten',
       lsYouSaid:'Du hattest: {word}',
       lsFinished:'Lektion geschafft',
       lsNote:'Diese Regel kommt jetzt in den Spielen vor — dort setzt sie sich fest.',
@@ -2488,6 +2737,7 @@ GH.i18n = (function(){
       cmNext:'Weiter',
       cmPrev:'Zurück',
       cmDone:'Fertig',
+      cmZoom:'Vergrößern',
       cmSeeEng:'Englische Fassung',
       cmSeeDeu:'Deutsche Fassung',
       cmNoImage:'Das Bild fehlt noch.',
@@ -2527,6 +2777,58 @@ GH.i18n = (function(){
       ptdEarnedOnly:'Für keine Summe Kristalle zu haben. Nur zu verdienen.',
       ptdToStore:'Zum Laden',
       grReturn:'Zurück zur Übung',
+      /* English grammar reference — see the note in the ru block. */
+      egTitle:'Grammatik',
+      egSub:'Die Regeln und die Tabellen',
+      egArticles:'Artikel',
+      egArticlesSub:'a, an, the oder nichts',
+      egPairHead:'Neu, dann bekannt',
+      egPairNote:'Am Nomen ändert sich nichts. Der Artikel ändert sich, weil sich die Lage geändert hat.',
+      egNew:'Eine, neu',
+      egKnown:'Bekannt',
+      egSoundHead:'a oder an — der nächste Laut',
+      egSoundNote:'Der Buchstabe auf der Seite ist nicht die Regel. an hour, a university.',
+      egTrapHead:'Wo das Gefühl täuscht',
+      egTrapNote:'Russisch lässt das Wort weg. Deutsch behält das Wort. Englisch macht beides nicht.',
+      egTrapWrong:'Gefühl',
+      egTrapRight:'Englisch',
+      egNotesHead:'Noch nicht im Lehrgang — nur erwähnt, damit sie später nicht überraschen',
+      egQuestions:'Fragewörter',
+      egQuestionsSub:'who · what · where · when · why · how',
+      egWordsHead:'Sechs Wörter, und wonach jedes fragt',
+      egChainHead:'Aussage, Frage, Fragewort',
+      egChainNote:'Derselbe Satz in drei Schritten. Das Fragewort ersetzt die Frage nicht, es tritt davor.',
+      egStmt:'Aussage',
+      egYesNo:'Ja oder nein',
+      egWh:'Mit Fragewort',
+      egWhoHead:'WHO — Subjekt oder Objekt',
+      egWhoNote:'Wenn who die handelnde Person ist, braucht es kein do / does / did.',
+      egWhoSubj:'who handelt',
+      egWhoObj:'die Handlung richtet sich auf who',
+      egFuture:'Die Zukunft',
+      egFutureSub:'will · be going to · Vereinbarungen',
+      egMoveHead:'Bewegung oder Zukunft?',
+      egMoveNote:'Folgt nach going to noch ein Verb, ist es Zukunft. Folgt ein Ort, ist es einfach Bewegung.',
+      egPlan:'Plan',
+      egMove:'Bewegung',
+      egCommands:'Aufforderungen',
+      egCommandsSub:'Mach es. Mach es nicht. Lass uns.',
+      egOnOffHead:'Mach es, und mach es nicht',
+      egOnOffNote:'Dasselbe Verb, an und aus. Don’t steht davor, und das Verb bleibt gleich.',
+      egOn:'mach es',
+      egOff:'mach es nicht',
+      /* Question-word game — see the note in the ru block. */
+      qcTitle:'Welche Frage ist das?',
+      qcSub:'Welche Frage beantwortet dieser Satz',
+      qcRule:'Lies den Satz und tippe auf das Fragewort, das er beantwortet. „Ich fahre nach Berlin“ antwortet auf wohin, „Ich habe das auf dem Boden gefunden“ auf wo. Danach erscheint die Frage selbst — und genau die lernst du zu stellen.',
+      qcAsk:'Welche Frage beantwortet das?',
+      qcProgress:'{n} von {of}',
+      qcNext:'Weiter',
+      qcFinish:'Fertig',
+      qcHear:'Frage hören',
+      qcMissedHead:'Noch einmal ansehen',
+      qcPairsHead:'Alle Sätze mit ihren Fragen',
+      qcNoBank:'Für diese Sprache gibt es noch kein Material.',
       stWelcomeHead:'Der erste Start',
       stWelcomeNote:'Die Begrüßung noch einmal zeigen — oder alles auf diesem Gerät löschen.',
       stWelcomeAgain:'Begrüßung noch einmal zeigen',
@@ -2596,6 +2898,9 @@ GH.i18n = (function(){
       spPlaying:'Läuft…',
       spRecord:'Dich aufnehmen',
       spAgain:'Neu aufnehmen',
+      spStart:'Start',
+      pvFixedDat:'immer Dativ (mit, von, zu …)',
+      pvFixedAcc:'immer Akkusativ (für, ohne, durch …)',
       spStop:'Stopp',
       spCompare:'Vergleichen',
       spHearMe:'Ich',
@@ -2690,8 +2995,9 @@ GH.i18n = (function(){
       gnRule4:'Eine fehlerfreie Runde schaltet den Zeitmodus frei.',
       gnRule5:'Auf Zeit: je länger die Serie, desto mehr zählt jede Antwort. Ein Fehler setzt sie zurück.',
       howtoPlay:'Spielregeln',
-      gdOpen:'Was sind das für Spiele?',
-      rgOpen:'Was gibt es hier?',
+      gdOpen:'🎮 Spieleführer',
+      rlOpen:'🎧 Lese- und Hörführer',
+      rgOpen:'🧭 Nachschlageführer',
       rgTitle:'Nachschlagen',
       rgProgress:'Sieh, woran du gearbeitet hast und wie gut es schon sitzt. Finde heraus, was wiederholt werden sollte, was noch in Arbeit ist, und springe direkt zu passenden Übungen.',
       rgWords:'Durchsuche den deutschen Wortschatz der gesamten Seite. Sieh dir Bilder, Übersetzungen und Beispielsätze an, höre die Wörter oder filtere die Liste nach bestimmten Wortarten und Themen.',
@@ -2849,6 +3155,14 @@ GH.i18n = (function(){
       hubTitle:'What do you want to practice?',
       hubLede:'Hear the sentence, fill in the missing word, hear it again.',
       sentencesHead:'Section 1 · Sentences',
+      rlSection:'This section has stories, articles, songs, comics, and poems that you can read and listen to. There are exercises based on what you read, including reading comprehension. Together, these activities deepen your understanding of the language you are studying. Enjoy them at your own pace.',
+      rlListenSpeak:'Work on sounding more natural in German. Hear a line, say it yourself, then compare the two recordings and try again. It gives you a private place to notice pronunciation, rhythm, and sounds that are much easier to catch once you hear yourself say them.',
+      rlJukebox:'Turn the songs on the site into something you can simply listen to. Build a playlist, arrange it however you like, and keep the music playing while you walk, clean, travel, or do something else — even with your phone locked.',
+      rlSongs:'Listen to the song while following the lyrics and translations, then work with the language inside it. Click any line to hear it spoken clearly, or record yourself and compare your pronunciation with the spoken version. Explore the song\u2019s vocabulary, hear individual lines, and use fill-in and matching exercises built from the lyrics.',
+      rlWordMatch:'Build the connection between the German you hear and the German you recognise on the page. Listen to the words first, then match the sounds to the written words until hearing them starts to feel familiar.',
+      rlComic:'Follow Alina and her magical purse Stella through a continuing series of funny, unpredictable adventures. Come back to see what Stella will produce next, while the pictures and recurring characters make the German easier to follow. The stories are highly visual, with spoken versions and translations provided.',
+      rlReader:'Read complete stories and poems rather than isolated lesson sentences. Follow the meaning of the whole piece, then use the questions to see what you understood and what might be worth reading again.',
+      rlDialogues:'Practise German as part of an actual conversation rather than as separate sentences. Follow both sides, hear how each line is spoken, then take either role and record your own version against the original.',
       rlHead:'Read and listen',
       gamesHead:'Games',
       longStoriesHead:'Section 4 · Long stories',
@@ -2935,6 +3249,11 @@ GH.i18n = (function(){
       gwAgain:'Again',
       gwOtherLevel:'Another size',
       btStepN:'{n} of {of}',
+      btBye:'If you want my help later, I\u2019m at the top.',
+      btLater:'Continue later',
+      btEndNow:'End tour',
+      btResume:'Resume tour',
+      btBack:'Welcome back! Let\u2019s continue where we left off.',
       btPerch:'Call the helper',
       gwLevel_small:'Few',
       gwLevel_medium:'Some',
@@ -3097,6 +3416,7 @@ GH.i18n = (function(){
       sgViewSing:'As sung',
       sgViewText:'Text',
       sgViewLines:'Lines',
+      sgUniqueLines:'Unique lines',
       sgTimesN:'× {n}',
       sgAgain:'again — jump up',
       sgLineCount:'{d} lines · {s} with every repeat',
@@ -3243,6 +3563,27 @@ GH.i18n = (function(){
       upReload:'Reload',
       btGiftDone:'You’ve already taken this tour and got your free crystals! Here’s where your crystal balance is.',
       btGiftDoneF:'You’ve already taken this tour and got your free crystals! Here’s where your crystal balance is.',
+      btGiftPop:'+{n} Crystals',
+      /* HELD, NOT LIVE. Steven supplied these 08 Sep for the five
+         languages that have no STRINGS block yet:
+
+             es  +{n} cristales
+             it  +{n} cristalli
+             fr  +{n} cristaux
+             uk  +{n} кристалів
+             tl  +{n} kristal
+
+         They are a comment on purpose. `set(code)` opens with
+         `if (!STRINGS[code]) return;`, so a language with a block can be
+         entered — and `t()` falls back to STRINGS.ru, not English, so a
+         block holding one key would put her in a Russian interface with a
+         Spanish crystal line. Reachable and incomplete is worse than
+         absent. Move each line into a real block only when that block is
+         complete.
+
+         Note also that es/fr/it exist in welcome.js as commented rows
+         marked `ui:false` — target languages, not interface languages.
+         uk and tl are in neither list. */
       stSendHead:'What leaves this device',
       stSendNote:'Once a day the app sends Steven what you practised and when: which exercises, how many answers, what you opened. None of your answers, no names. It is the only way he can tell what needs to be better.',
       stSendOn:'Send',
@@ -3441,6 +3782,9 @@ GH.i18n = (function(){
       langName_fr:'French',
       langName_tl:'Tagalog',
       langName_en:'English',
+      sgSongs_de:'German Songs',
+      sgSongs_en:'English Songs',
+      sgSongs_ru:'Russian Songs',
       langName_ga:'Irish',
       /* Short forms for the L1 -> L2 control, rendered in L1. */
       langShort_de:'Ger',  langShort_ru:'Rus',  langShort_es:'Spa',
@@ -3488,9 +3832,21 @@ GH.i18n = (function(){
       pvVerbKind:'Verb classes',
       pvTenseBin:'Past · present · future',
       pvUmlaut:'with umlaut',
-      nxDue:'{n} {n|word is|words are|words are} ready for another look — one short game covers it.',
-      nxWeak:'Right now {a} needs the most work.',
-      nxStart:'Start · {game}',
+      /* English plural is n===1, full stop. The three-form pattern here
+         is the Slavic one, and the picker was choosing the FIRST form for
+         51 — "51 word is ready" — because 51 ends in 1. Two forms, and
+         the second covers everything that is not exactly one. */
+      petHello:'Hello! Good to see you.',
+      petQuestCount:'You have completed {a} out of your {n} daily activities.',
+      petQuestAllDone:'All {n} of today\u2019s quests are done. Nice work.',
+      petQuestPick:'Try this one: {q}',
+      petReview:'{n} {n|word is|words are} ready for another look.',
+      petNothing:'Nothing is waiting. Pick anything you like.',
+      petToCrystals:'Crystal Quests',
+      petToActivity:'Daily pet task',
+      petQuests:'Today\u2019s quests: {a} of {n} done. Want to finish the rest?',
+      petQuestsAll:'All {n} of today\u2019s quests are done. Nice work.',
+      petThen:'And one more:',
       tnHead:'Tenses in the examples',
       tnNote:'Example sentences are present tense only to begin with. Add the past when you are ready for it.',
       tn_present:'Present',
@@ -3516,8 +3872,18 @@ GH.i18n = (function(){
       awTitle:'Achievements',
       awSub:'What you have done so far',
       awUnlocked:'new achievement',
+      awGotAch:'You got the achievement “{a}”!',
+      awGotCrystals:'+{n} Crystals!',
       awEarnedN:'{a} of {b}',
       awLocked:'not yet',
+      awPets3:'Three friends',
+      awPets6:'Six friends',
+      awPets9:'Nine friends',
+      awPets12:'Twelve friends',
+      awPets15:'Fifteen friends',
+      awPetsAll:'All sixteen',
+      awCarrier2:'A second carrier',
+      awQuests30:'Thirty quests',
       awFirstRound:'Your first round',
       awFirstPerfect:'A round without a single mistake',
       awStreak10:'Ten in a row',
@@ -3560,9 +3926,13 @@ GH.i18n = (function(){
       stBuySlot:'Place {n}',
       stChoose:'Choose',
       stCheering:'Coming along',
+      stGotPet:'Yes!',
       stBought:'is yours now',
       stClaim:'Claim',
+      ptLocked:'Not enough crystals for this one yet.',
+      ptSlotsFull:'All {n} carriers are full. Put one pet away first.',
       ptYourPets:'Your pets — tap to see them all',
+      ptGridHow:'Tap a pet you own to bring it along or put it away. Tap any other to buy it.',
       ptAllPets:'All the pets',
       stUseToken:'★ Free — {kind} token',
       stTokensN:'Tokens: {n}',
@@ -3591,7 +3961,6 @@ GH.i18n = (function(){
       stFormN:'form {n}',
       stGrewTo:'grew to form {n}',
       stFullGrown:'fully grown',
-      nxJustPlay:'Nothing urgent — play for the pleasure of it.',
       nxAreaWords:'Vocabulary',
       nxAreaTopics:'Topics',
       nxAreaVerbs:'Verb forms',
@@ -3614,7 +3983,9 @@ GH.i18n = (function(){
       mzEnd_er:'-er is added',
       mzEnd_s:'-s is added',
       mzEnd_same:'nothing is added',
-      stNeedRun:'5 activities a day: {at} / {n} days in a row',
+      stNeedMore:'{n} more needed',
+      stLocked:'Locked',
+      stNeedRun:'Required: {at} of {n} days of {q} quests',
       stNeedNow:'run right now: {at} of {n} days in a row',
       skRule:'The streak falls slowly: 1 a day for the first three days, then 2 a day, then 3 a day from day twelve. Never more than 3 in a day.',
       skPassRule:'Every 10 days in a row earns you one free day. It is spent for you when you miss — before the streak falls at all.',
@@ -3630,7 +4001,10 @@ GH.i18n = (function(){
       stNeedAllSlots:'{at} / {n} places',
       stNeedMature2:'{at} / {n} words settled',
       stNeedGrown2:'{at} / {n} animals grown',
-      stNeedAwards2:'{at} / {n} achievements',
+      stNeedSlots:'Required: {at} of {n} carriers',
+      stNeedPets:'Required: {at} of {n} pets',
+      stNeedQuests:'Required: {at} of {n} crystal quests',
+      stNeedAwards2:'Required: {at} of {n} achievements',
       stNeedLegend:'{at} / {n} legendary',
       stLegendaryLede:'Not for sale. Each asks for months of practice on consecutive days, and then something of its own. Your longest run ever is what counts, and it counts permanently — one missed day cannot take it away.',
       stGateOpen:'Pet unlocked — now available to buy.',
@@ -3733,6 +4107,12 @@ GH.i18n = (function(){
       lsGotIt:'Got it',
       lsMins:'{n} min',
       lsRightIs:'The right one is {word}',
+      lsHarder:'A bit harder',
+      lsRole_subj:'subject',
+      lsRole_verb:'verb',
+      lsRole_obj:'object',
+      lsFindRole:'Tap the {role}.',
+      lsHardest:'Hardest',
       lsYouSaid:'You had {word}',
       lsFinished:'Lesson finished',
       lsNote:'This rule now turns up in the games, which is where it settles.',
@@ -3904,6 +4284,7 @@ GH.i18n = (function(){
       cmNext:'Next',
       cmPrev:'Back',
       cmDone:'Done',
+      cmZoom:'Zoom',
       cmSeeEng:'English edition',
       cmSeeDeu:'German edition',
       cmNoImage:'This picture is not drawn yet.',
@@ -3943,6 +4324,58 @@ GH.i18n = (function(){
       ptdEarnedOnly:'Not for sale at any number of crystals. Only earned.',
       ptdToStore:'Open the store',
       grReturn:'Back to the exercise',
+      /* English grammar reference — see the note in the ru block. */
+      egTitle:'Grammar',
+      egSub:'The rules and the tables',
+      egArticles:'Articles',
+      egArticlesSub:'a, an, the, or nothing',
+      egPairHead:'New, then known',
+      egPairNote:'Nothing in the noun changes. The article changes because the situation changed.',
+      egNew:'One, new',
+      egKnown:'Known',
+      egSoundHead:'a or an — the next sound',
+      egSoundNote:'The letter on the page is not the rule. an hour, a university.',
+      egTrapHead:'Where instinct betrays you',
+      egTrapNote:'Russian drops the word. German keeps the word. English does neither.',
+      egTrapWrong:'Instinct',
+      egTrapRight:'English',
+      egNotesHead:'Not taught yet — named so they do not surprise her',
+      egQuestions:'Question words',
+      egQuestionsSub:'who · what · where · when · why · how',
+      egWordsHead:'Six words, and what each one asks for',
+      egChainHead:'Statement, question, question word',
+      egChainNote:'The same sentence in three steps. The question word does not replace the question — it goes in front of it.',
+      egStmt:'Statement',
+      egYesNo:'Yes or no',
+      egWh:'With a question word',
+      egWhoHead:'WHO — subject or object',
+      egWhoNote:'If who is the person doing the action, no do / does / did is needed.',
+      egWhoSubj:'who is doing it',
+      egWhoObj:'it is being done to who',
+      egFuture:'The future',
+      egFutureSub:'will · be going to · arrangements',
+      egMoveHead:'Movement, or the future?',
+      egMoveNote:'If another verb follows going to, it is the future. If a place follows, it is simply movement.',
+      egPlan:'a plan',
+      egMove:'movement',
+      egCommands:'Commands',
+      egCommandsSub:'Do it. Don’t do it. Let’s.',
+      egOnOffHead:'Do it, and don’t',
+      egOnOffNote:'The same verb, on and off. Don’t goes in front and the verb does not change.',
+      egOn:'do it',
+      egOff:'don’t',
+      /* Question-word game — see the note in the ru block. */
+      qcTitle:'Which question?',
+      qcSub:'Which question does this sentence answer',
+      qcRule:'Read the sentence and tap the question word it answers. "I am going to the store" answers where, and so does "I found this on the ground" — German and Russian split those two, English does not. After you choose, the question itself appears, and that is the thing you are learning to ask.',
+      qcAsk:'Which question does this answer?',
+      qcProgress:'{n} of {of}',
+      qcNext:'Next',
+      qcFinish:'Finish',
+      qcHear:'Hear the question',
+      qcMissedHead:'Worth another look',
+      qcPairsHead:'Every statement, with its question',
+      qcNoBank:'There is no material for this language yet.',
       stWelcomeHead:'The first run',
       stWelcomeNote:'Show the welcome again — or erase everything on this device.',
       stWelcomeAgain:'Show the welcome again',
@@ -4012,6 +4445,9 @@ GH.i18n = (function(){
       spPlaying:'Playing…',
       spRecord:'Record yourself',
       spAgain:'Record again',
+      spStart:'Start',
+      pvFixedDat:'always dative (mit, von, zu…)',
+      pvFixedAcc:'always accusative (für, ohne, durch…)',
       spStop:'Stop',
       spCompare:'Compare',
       spHearMe:'Me',
@@ -4106,8 +4542,9 @@ GH.i18n = (function(){
       gnRule4:'Clear a level with no mistakes and the speed run unlocks.',
       gnRule5:'Speed run: the longer your streak, the more each answer is worth. A mistake resets it.',
       howtoPlay:'How to play',
-      gdOpen:'What are these games?',
-      rgOpen:'What’s here?',
+      gdOpen:'🎮 Game Guide',
+      rlOpen:'🎧 Read & Listen Guide',
+      rgOpen:'🧭 Reference Guide',
       rgTitle:'Reference',
       rgProgress:'See what you’ve been working on and how well it’s sticking. Find what’s due for review, what’s still in progress, and jump directly into suggested practice.',
       rgWords:'Browse the German vocabulary used throughout the site. See pictures, translations, example sentences, and audio, or filter the list to find particular kinds of words.',
@@ -4283,8 +4720,24 @@ GH.i18n = (function(){
     if (s === undefined) s = STRINGS.ru[key];
     if (s === undefined) return key;
     if (vars){
+      /* THREE FORMS FOR THE SLAVIC RULE, TWO FOR EVERYTHING ELSE.
+
+         Only the three-form pattern was ever matched, so an English
+         string written with two — `{n|word is|words are}` — never
+         substituted and printed its own braces to the screen. Steven saw
+         "51 {n|word is|words are} ready for another look", 09 Sep.
+
+         Russian genuinely needs three, and English needs `n === 1` and
+         nothing else; forcing English through the Slavic picker is what
+         produced "51 word is" before that. So both shapes are accepted,
+         and the two-form branch runs FIRST — otherwise the three-form
+         regex would match a two-form string's closing brace and eat the
+         rest of the sentence. */
       s = s.replace(/\{n\|([^|}]*)\|([^|}]*)\|([^}]*)\}/g, function(_, a, b, c){
         return plural(Number(vars.n) || 0, a, b, c);
+      });
+      s = s.replace(/\{n\|([^|}]*)\|([^|}]*)\}/g, function(_, one, many){
+        return (Number(vars.n) === 1) ? one : many;
       });
       Object.keys(vars).forEach(function(k){
         s = s.split('{' + k + '}').join(vars[k]);

@@ -164,7 +164,7 @@ window.GH_LESSONS = [
     },
 
     /* last rung: no options at all */
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'Впиши слово сама', de:'Schreib das Wort selbst', en:'Write the word yourself' },
       rounds:[
         { de:'Ich ___ gestern nach Berlin gefahren.', answer:'bin',
@@ -316,7 +316,7 @@ window.GH_LESSONS = [
       ]
     },
 
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'\u0412\u043f\u0438\u0448\u0438 \u043f\u0440\u0438\u0441\u0442\u0430\u0432\u043a\u0443, \u043a\u043e\u0442\u043e\u0440\u0430\u044f \u0443\u0431\u0435\u0436\u0430\u043b\u0430 \u0432 \u043a\u043e\u043d\u0435\u0446',
             de:'Schreib das Pr\u00e4fix, das ans Ende gewandert ist',
             en:'Write the prefix that ran to the end' },
@@ -464,7 +464,7 @@ window.GH_LESSONS = [
       ]
     },
 
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'Впиши артикль', de:'Schreib den Artikel', en:'Write the article' },
       rounds:[
         { de:'___ Buch liegt auf dem Tisch.', answer:'Das',
@@ -727,7 +727,7 @@ window.GH_LESSONS = [
       ]
     },
 
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'Впиши артикль', de:'Schreib den Artikel', en:'Write the article' },
       rounds:[
         { de:'Die Lampe steht neben ___ Bett.', answer:'dem',
@@ -1013,7 +1013,7 @@ window.GH_LESSONS = [
       ]
     },
 
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'Впиши слово', de:'Schreib das Wort', en:'Write the word' },
       rounds:[
         { de:'Sie zieht ___ ein blaues Kleid an.', answer:'sich',
@@ -1585,7 +1585,7 @@ window.GH_LESSONS = [
       ]
     },
 
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'Впиши артикль', de:'Schreib den Artikel', en:'Write the article' },
       rounds:[
         { de:'Sie nimmt das Brot aus ___ Tasche.', answer:'der',
@@ -1805,7 +1805,7 @@ window.GH_LESSONS = [
         en:'This is not a small thing: свой lets her skip the question of who owns it, and German never lets her skip it. That habit is what this lesson is really for.' }
     },
 
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'Впиши форму', de:'Schreib die Form', en:'Write the form' },
       rounds:[
         { de:'Das ist ___ Tasche. (ich)', answer:'meine',
@@ -2244,7 +2244,7 @@ window.GH_LESSONS = [
         en:'Look at the last two: kein never stands beside das, and never beside mein. One determiner per noun.' }
     },
 
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'Впиши kein, keine, keinen или nicht',
             de:'Schreib kein, keine, keinen oder nicht',
             en:'Write kein, keine, keinen or nicht' },
@@ -2973,7 +2973,7 @@ window.GH_LESSONS = [
         en:'The weh goes to the very end, like a separable prefix — because that is what it is: wehtun is a separable verb.' }
     },
 
-    { kind:'type',
+    { kind:'type', exact:true,
       ask:{ ru:'Впиши слово', de:'Schreib das Wort', en:'Write the word' },
       rounds:[
         { de:'Diese Jacke passt ___ gut.', answer:'mir',
@@ -3279,5 +3279,915 @@ window.GH_LESSONS = [
 
   ]
 },
+
+/* ==================================================================
+   Wie ein Satz funktioniert — Subjekt · Verb · Objekt · Adjektiv
+
+   The German half of the foundational lesson. Its English twin is
+   `en-parts` in data/curriculum-en.js, and it uses THE SAME SENTENCES on
+   purpose — because the point is partly that the order moves and the
+   roles do not.
+
+   Same core distinction:
+
+       Nomen / Verb / Adjektiv  =  what KIND of word it is
+       Subjekt / Objekt         =  what JOB it does in the sentence
+
+   ------------------------------------------------------------------
+   WHAT THE GERMAN VERSION CAN TEACH THAT THE ENGLISH ONE CANNOT
+
+   Two things, and they are the reason this is not a translation:
+
+   1. THE ARTICLE MARKS THE OBJECT. `den` is what tells you Kaffee is
+      the object in Tanya trinkt den kalten Kaffee. English has nothing
+      like it — Max sees Alina and Alina sees Max are told apart by
+      position alone. So German can ask her to find the object by
+      looking at its article, which is a far more reliable skill than
+      counting word positions, and it feeds straight into the case
+      lessons she already has.
+
+   2. THE VERB IS SECOND AND THE SUBJECT MOVES. Heute trinkt Tanya den
+      kalten Kaffee puts the verb second and the subject third. The four
+      roles are unchanged. Seeing the labels stay put while the order
+      moves is the strongest version of the lesson, and it is only
+      available in German. It also reinforces `verb-second`.
+
+   Russian sits at the far end of the same scale: free word order, roles
+   carried entirely by case. So the three languages line up as a
+   sequence — English position only, German case plus a fixed verb slot,
+   Russian case alone — and that framing is in the closing step.
+
+   ------------------------------------------------------------------
+   NO `target` FIELD. Absent means German; see the note on
+   GH.lessons.all() in js/activities/lessons.js. Adding target:'de' here
+   would work too but would be the only lesson in this file to carry it.
+
+   Same engine limits as the English twin: sort with the words as cards,
+   pick with the role named in the stem. Tapping a word inside a
+   rendered sentence is a step kind that does not exist.
+   ================================================================== */
+{
+  id:'de-parts',
+  glyph:'\uD83E\uDDE9',
+  mins:9,
+  topic:'order',
+
+  name:{
+    ru:'Как устроено предложение',
+    de:'Wie ein Satz funktioniert',
+    en:'How a sentence works'
+  },
+
+  sub:{
+    ru:'Подлежащее · глагол · дополнение · прилагательное',
+    de:'Subjekt · Verb · Objekt · Adjektiv',
+    en:'Subject · verb · object · adjective'
+  },
+
+  steps:[
+
+    /* ---------- 1. subject and verb ---------- */
+    { kind:'read',
+      head:{ ru:'Подлежащее и глагол', de:'Subjekt und Verb', en:'Subject and verb' },
+      body:{
+        ru:'Подлежащее — это тот, кто или то, о чём говорится в предложении. Глагол показывает, что происходит. Двух этих частей уже достаточно для целого предложения.',
+        de:'Das Subjekt ist die Person oder Sache, um die es im Satz geht. Das Verb sagt, was passiert. Diese zwei Teile genügen schon für einen ganzen Satz.',
+        en:'The subject is who or what the sentence is about. The verb tells what happens. Those two are already a whole sentence.' },
+      show:[
+        { de:'<b>Der Hund</b> <b>schläft</b>.',
+          gloss:{ ru:'Собака спит. Подлежащее: der Hund. Глагол: schläft.', en:'The dog sleeps.' } },
+        { de:'<b>Tanya</b> <b>arbeitet</b>.',
+          gloss:{ ru:'Таня работает.', en:'Tanya works.' } },
+        { de:'<b>Die Kinder</b> <b>spielen</b>.',
+          gloss:{ ru:'Дети играют.', en:'The children are playing.' } }
+      ]
+    },
+
+    /* ---------- 2. sort ---------- */
+    { kind:'sort',
+      ask:{ ru:'Подлежащее или глагол?', de:'Subjekt oder Verb?', en:'Subject or verb?' },
+      bins:[
+        { id:'subj', label:'Subjekt' },
+        { id:'verb', label:'Verb'    }
+      ],
+      cards:[
+        { text:'der Hund',   bin:'subj' },
+        { text:'schläft',    bin:'verb' },
+        { text:'Tanya',      bin:'subj' },
+        { text:'arbeitet',   bin:'verb' },
+        { text:'die Kinder', bin:'subj' },
+        { text:'spielen',    bin:'verb' },
+        { text:'Nazar',      bin:'subj' },
+        { text:'liest',      bin:'verb' }
+      ]
+    },
+
+    /* ---------- 3. the object, and the article that marks it ---------- */
+    { kind:'read',
+      head:{ ru:'Дополнение — и его артикль', de:'Das Objekt — und sein Artikel', en:'The object, and its article' },
+      body:{
+        ru:'Дополнение — это тот, на кого или на что направлено действие. И вот главное: в немецком дополнение видно по артиклю. В «Nazar liest ein Buch» именно артикль показывает роль, а не место в предложении. В английском такого нет вообще.',
+        de:'Das Objekt ist die Person oder Sache, auf die sich die Handlung richtet. Und das Wichtigste: im Deutschen erkennt man das Objekt am Artikel. In „Tanya trinkt den Kaffee“ zeigt der Artikel die Funktion an, nicht die Stellung. Englisch hat das gar nicht.',
+        en:'The object is who or what receives the action. And the important part: in German the article marks the object. In "Tanya trinkt den Kaffee", the article shows the job — not the position. English has nothing like this.' },
+      table:[
+        ['Nazar liest ein Buch.',       'Nazar',  'ein Buch'],
+        ['Tanya trinkt den Kaffee.',    'Tanya',  'den Kaffee'],
+        ['Mila öffnet die Tür.',        'Mila',   'die Tür'],
+        ['Max kauft einen Apfel.',      'Max',    'einen Apfel']
+      ],
+      note:{
+        ru:'der → den, ein → einen: у мужского рода дополнение видно сразу. Это то же самое, что ты уже знаешь из падежей.',
+        de:'der → den, ein → einen: beim Maskulinum sieht man das Objekt sofort. Das ist dasselbe, was du aus den Fällen schon kennst.',
+        en:'der → den, ein → einen: on a masculine noun the object is visible at once. This is the case system you already know.' }
+    },
+
+    /* ---------- 4. find the object by its article ---------- */
+    { kind:'pick',
+      ask:{ ru:'Найди дополнение', de:'Finde das Objekt', en:'Find the object' },
+      rounds:[
+        { de:'Tanya trinkt den Kaffee. \u2014 das Objekt ist ___', answer:'den Kaffee', options:['den Kaffee','Tanya'],
+          gloss:{ ru:'den показывает дополнение.', en:'den marks the object.' } },
+        { de:'Max kauft einen Apfel. \u2014 das Objekt ist ___', answer:'einen Apfel', options:['einen Apfel','Max'],
+          gloss:{ ru:'einen вместо ein — значит дополнение.', en:'einen rather than ein means object.' } },
+        { de:'Nazar liest ein Buch. \u2014 das Objekt ist ___', answer:'ein Buch', options:['ein Buch','Nazar'],
+          gloss:{ ru:'У среднего рода артикль не меняется — помогает порядок.', en:'Neuter does not change, so position helps here.' } },
+        { de:'Mila öffnet die Tür. \u2014 das Objekt ist ___', answer:'die Tür', options:['die Tür','Mila'],
+          gloss:{ ru:'У женского рода тоже не меняется.', en:'Feminine does not change either.' } },
+        { de:'Der Hund sieht die Katze. \u2014 das Subjekt ist ___', answer:'der Hund', options:['der Hund','die Katze'],
+          gloss:{ ru:'der — подлежащее.', en:'der is the subject form.' } },
+        { de:'Den Hund sieht die Katze. \u2014 das Subjekt ist ___', answer:'die Katze', options:['der Hund','die Katze'],
+          gloss:{ ru:'Здесь дополнение стоит первым! Но den всё равно показывает, что это дополнение.', en:'Here the object comes FIRST — and den still tells you it is the object.' } }
+      ],
+      note:{
+        ru:'Последний пример — самое важное. По-английски так сказать нельзя: там первым идёт подлежащее, и всё.',
+        de:'Das letzte Beispiel ist das wichtigste. Auf Englisch geht das nicht: dort steht das Subjekt zuerst, und damit ist es entschieden.',
+        en:'That last one is the point. English cannot do it: the subject comes first, and that settles it.' }
+    },
+
+    /* ---------- 5. word type is not sentence job ---------- */
+    { kind:'read',
+      head:{ ru:'Часть речи — не роль в предложении', de:'Wortart ist nicht Satzfunktion', en:'A word type is not a sentence job' },
+      body:{
+        ru:'Существительное — это часть речи. Подлежащее и дополнение — это роли в предложении. Существительное может быть и тем, и другим.',
+        de:'Ein Nomen ist eine Wortart. Subjekt und Objekt sind Funktionen im Satz. Ein Nomen kann beides sein.',
+        en:'A noun is a kind of word. Subject and object are jobs in a sentence. A noun can be either.' },
+      show:[
+        { de:'Nazar liest ein Buch.',
+          gloss:{ ru:'Назар читает книгу.', en:'Nazar reads a book.' } },
+        { de:'<b>Nazar</b> = Nomen UND Subjekt',
+          gloss:{ ru:'существительное и подлежащее', en:'noun and subject' } },
+        { de:'<b>Buch</b> = Nomen UND Objekt',
+          gloss:{ ru:'существительное и дополнение', en:'noun and object' } },
+        { de:'<b>liest</b> = Verb',
+          gloss:{ ru:'глагол', en:'verb' } }
+      ],
+      note:{
+        ru:'Это самая важная мысль урока. Часть речи у слова всегда одна и та же; роль — только внутри конкретного предложения.',
+        de:'Der wichtigste Gedanke der Lektion. Die Wortart bleibt immer gleich; die Funktion gilt nur in einem bestimmten Satz.',
+        en:'The most important idea here. A word keeps its type; it only has a job inside a particular sentence.' }
+    },
+
+    /* ---------- 6. the same noun, both jobs ---------- */
+    { kind:'read',
+      head:{ ru:'Одно существительное — разные роли', de:'Dasselbe Nomen, andere Funktion', en:'The same noun can change jobs' },
+      body:{
+        ru:'В немецком роль показывает артикль, а не порядок слов. Поэтому Макс и Алина меняются ролями через артикль или через сам смысл, а порядок может остаться прежним.',
+        de:'Im Deutschen zeigt der Artikel die Funktion, nicht die Wortstellung. Deshalb tauschen Max und Alina die Funktion über den Artikel oder über den Sinn — die Stellung kann gleich bleiben.',
+        en:'In German the article shows the job, not the order. So Max and Alina swap roles through the article or the sense, and the order can stay as it was.' },
+      show:[
+        { de:'<b>Max</b> sieht <b>Alina</b>.',
+          gloss:{ ru:'Макс видит Алину. Макс — подлежащее.', en:'Max sees Alina.' } },
+        { de:'<b>Alina</b> sieht <b>Max</b>.',
+          gloss:{ ru:'Алина видит Макса. Теперь Алина — подлежащее.', en:'Alina sees Max.' } },
+        { de:'<b>Der Hund</b> sieht <b>die Katze</b>. \u00b7 <b>Die Katze</b> sieht <b>den Hund</b>.',
+          gloss:{ ru:'Здесь видно по артиклю: der → подлежащее, den → дополнение.', en:'Here the article shows it: der subject, den object.' } }
+      ]
+    },
+
+    /* ---------- 7. adjectives ---------- */
+    { kind:'read',
+      head:{ ru:'Прилагательные', de:'Adjektive', en:'Adjectives' },
+      body:{
+        ru:'Прилагательное описывает существительное. В немецком перед существительным оно всегда получает окончание, и это окончание зависит от рода, падежа и артикля — то есть от роли в предложении. В английском прилагательное не меняется никогда.',
+        de:'Ein Adjektiv beschreibt ein Nomen. Vor einem Nomen bekommt es im Deutschen immer eine Endung, und diese Endung hängt von Geschlecht, Fall und Artikel ab — also von der Funktion im Satz. Im Englischen ändert sich das Adjektiv nie.',
+        en:'An adjective describes a noun. Before a noun, German always gives it an ending, and that ending depends on gender, case and article — that is, on the job in the sentence. English never changes the adjective.' },
+      show:[
+        { de:'Der <b>glückliche</b> Hund schläft.',
+          gloss:{ ru:'glückliche описывает Hund. Подлежащее — окончание -e.', en:'The happy dog sleeps.' } },
+        { de:'Tanya kauft ein <b>neues</b> Handy.',
+          gloss:{ ru:'neues описывает Handy.', en:'Tanya buys a new phone.' } },
+        { de:'Tanya trinkt den <b>kalten</b> Kaffee.',
+          gloss:{ ru:'Дополнение мужского рода — окончание -en.', en:'Masculine object, so the ending is -en.' } }
+      ],
+      note:{
+        ru:'Окончание прилагательного — ещё одна подсказка о роли: kalten говорит, что это дополнение.',
+        de:'Die Adjektivendung ist ein weiterer Hinweis auf die Funktion: kalten sagt, dass es das Objekt ist.',
+        en:'The adjective ending is one more clue to the job: kalten tells you this is the object.' }
+    },
+
+    /* ---------- 8. sort: word types ---------- */
+    { kind:'sort',
+      ask:{ ru:'Какая это часть речи?', de:'Welche Wortart ist das?', en:'Which kind of word is it?' },
+      bins:[
+        { id:'noun', label:'Nomen'    },
+        { id:'verb', label:'Verb'     },
+        { id:'adj',  label:'Adjektiv' }
+      ],
+      cards:[
+        { text:'Handy',      bin:'noun' },
+        { text:'kauft',      bin:'verb' },
+        { text:'neues',      bin:'adj'  },
+        { text:'Hund',       bin:'noun' },
+        { text:'schläft',    bin:'verb' },
+        { text:'glückliche', bin:'adj'  },
+        { text:'Tasche',     bin:'noun' },
+        { text:'trägt',      bin:'verb' },
+        { text:'schwere',    bin:'adj'  }
+      ]
+    },
+
+    /* ---------- 9. the verb moves, the roles do not ---------- */
+    { kind:'read',
+      head:{ ru:'Порядок меняется — роли нет', de:'Die Stellung ändert sich, die Funktionen nicht', en:'The order moves, the roles do not' },
+      body:{
+        ru:'Глагол в немецком стоит на втором месте. Если предложение начинается со времени или места, подлежащее уходит за глагол — но роли остаются те же. Это самая наглядная часть урока, и в английском её просто нет.',
+        de:'Das Verb steht im Deutschen an zweiter Stelle. Beginnt der Satz mit einer Zeit oder einem Ort, rutscht das Subjekt hinter das Verb — die Funktionen bleiben aber dieselben. Das ist der anschaulichste Teil der Lektion, und im Englischen gibt es ihn nicht.',
+        en:'The German verb takes second position. If the sentence starts with a time or a place, the subject moves behind the verb — but the roles are unchanged. This is the clearest part of the lesson, and English simply does not have it.' },
+      show:[
+        { de:'<b>Tanya</b> trinkt den kalten Kaffee.',
+          gloss:{ ru:'Подлежащее первым.', en:'Subject first.' } },
+        { de:'Heute <b>trinkt</b> <b>Tanya</b> den kalten Kaffee.',
+          gloss:{ ru:'Глагол второй, подлежащее третье — роли те же.', en:'Verb second, subject third — same roles.' } },
+        { de:'Den kalten Kaffee trinkt <b>Tanya</b>.',
+          gloss:{ ru:'Даже дополнение может стоять первым: den всё равно показывает роль.', en:'Even the object can come first: den still marks it.' } }
+      ],
+      note:{
+        ru:'Английский: только порядок. Немецкий: падеж плюс твёрдое второе место для глагола. Русский: только падеж, порядок почти свободный.',
+        de:'Englisch: nur die Stellung. Deutsch: Fall plus fester zweiter Platz für das Verb. Russisch: nur der Fall, die Stellung ist fast frei.',
+        en:'English: position only. German: case plus a fixed second slot for the verb. Russian: case alone, order almost free.' }
+    },
+
+    /* ---------- 10. one part at a time ---------- */
+    { kind:'pick',
+      ask:{ ru:'Найди каждую часть', de:'Finde jeden Satzteil', en:'Find each part' },
+      rounds:[
+        { de:'Der kleine Hund sieht Mila. \u2014 das Verb ist ___', answer:'sieht', options:['sieht','Hund','kleine'],
+          gloss:{ ru:'Маленькая собака видит Милу.', en:'The small dog sees Mila.' } },
+        { de:'Der kleine Hund sieht Mila. \u2014 das Subjekt ist ___', answer:'der kleine Hund', options:['der kleine Hund','Mila','sieht'],
+          gloss:{ ru:'Подлежащее — вся группа.', en:'The subject is the whole group.' } },
+        { de:'Der kleine Hund sieht Mila. \u2014 das Adjektiv ist ___', answer:'kleine', options:['kleine','Hund','sieht'],
+          gloss:{ ru:'kleine описывает Hund.', en:'kleine describes Hund.' } },
+        { de:'Mila trägt eine schwere Tasche. \u2014 das Objekt ist ___', answer:'eine schwere Tasche', options:['eine schwere Tasche','Mila','trägt'],
+          gloss:{ ru:'Мила несёт тяжёлую сумку.', en:'Mila carries a heavy bag.' } },
+        { de:'Heute trinkt Tanya den Kaffee. \u2014 das Subjekt ist ___', answer:'Tanya', options:['Tanya','Heute','den Kaffee'],
+          gloss:{ ru:'Heute стоит первым, но подлежащее — Таня.', en:'Heute is first, but the subject is Tanya.' } },
+        { de:'Nazar öffnet das Fenster. \u2014 das Objekt ist ___', answer:'das Fenster', options:['das Fenster','Nazar','öffnet'],
+          gloss:{ ru:'Назар открывает окно.', en:'Nazar opens the window.' } }
+      ]
+    },
+
+    /* ---------- 11. no hints ---------- */
+    { kind:'type',
+      exact:true,
+      ask:{ ru:'Определи часть без подсказок', de:'Bestimme den Satzteil ohne Hinweise', en:'Name the part, no hints' },
+      rounds:[
+        { de:'Mila trägt eine schwere Tasche. \u2014 das Verb ist ___', answer:'trägt',
+          gloss:{ ru:'Мила несёт тяжёлую сумку.', en:'Mila carries a heavy bag.' } },
+        { de:'Mila trägt eine schwere Tasche. \u2014 das Adjektiv ist ___', answer:'schwere',
+          gloss:{ ru:'schwere описывает Tasche.', en:'schwere describes Tasche.' } },
+        { de:'Das rote Auto hält an. \u2014 das Adjektiv ist ___', answer:'rote',
+          gloss:{ ru:'Красная машина останавливается.', en:'The red car stops.' } },
+        { de:'Nazar öffnet das Fenster. \u2014 das Subjekt ist ___', answer:'Nazar',
+          gloss:{ ru:'Подлежащее — Назар.', en:'The subject is Nazar.' } },
+        { de:'Tanya kauft ein neues Handy. \u2014 das Adjektiv ist ___', answer:'neues',
+          gloss:{ ru:'neues описывает Handy.', en:'neues describes Handy.' } },
+        { de:'Der glückliche Hund schläft. \u2014 das Adjektiv ist ___', answer:'glückliche',
+          gloss:{ ru:'glückliche описывает Hund.', en:'glückliche describes Hund.' } },
+        { de:'Tanya trinkt den kalten Kaffee. \u2014 das Verb ist ___', answer:'trinkt',
+          gloss:{ ru:'Таня пьёт холодный кофе.', en:'Tanya drinks the cold coffee.' } }
+      ]
+    },
+
+    /* ---------- finish ---------- */
+    { kind:'read',
+      head:{ ru:'Итог', de:'Kurz gesagt', en:'In short' },
+      body:{
+        ru:'Существительное — это часть речи. Подлежащее и дополнение — это роли в предложении. В немецком роль показывает артикль, а глагол стоит на втором месте — поэтому порядок может меняться, а роли остаются. В английском роль определяет только порядок; в русском — только падеж.',
+        de:'Ein Nomen ist eine Wortart. Subjekt und Objekt sind Funktionen im Satz. Im Deutschen zeigt der Artikel die Funktion, und das Verb steht an zweiter Stelle — die Stellung kann sich also ändern, die Funktionen bleiben. Im Englischen entscheidet nur die Stellung, im Russischen nur der Fall.',
+        en:'A noun is a kind of word. Subject and object are jobs in a sentence. In German the article shows the job and the verb stands second, so the order can move while the roles stay. English uses position alone; Russian uses case alone.' },
+      show:[
+        { de:'Tanya trinkt den kalten Kaffee.',
+          gloss:{ ru:'Tanya — подлежащее, trinkt — глагол, den kalten Kaffee — дополнение, kalten — прилагательное.', en:'Tanya subject, trinkt verb, den kalten Kaffee object, kalten adjective.' } },
+        { de:'Heute trinkt Tanya den kalten Kaffee.',
+          gloss:{ ru:'Порядок другой — роли те же.', en:'Different order, same roles.' } },
+        { de:'der \u2192 Subjekt \u00b7 den \u2192 Objekt',
+          gloss:{ ru:'Артикль — самая надёжная подсказка.', en:'The article is the most reliable clue.' } }
+      ]
+    }
+
+  ]
+},
+
+/* ==================================================================
+   Aufzählungen — commas, und/oder, and keeping the form
+
+   Grok's teaching text and 28 drill items, 09 Sep, with the reshapes
+   noted below. Steven's two decisions are built in:
+
+   NOTHING IS WITHHELD, IT IS LABELLED AND ORDERED. Steven: "The
+   difficulty should be labeled and sort the easier material to the
+   front. Nothing should be withheld just labeled — let learners pick how
+   they want to learn." So the harder material — case consistency across
+   a list, and the correlative connectors — is at the END and carries
+   `level:'harder'`, which draws a quiet chip (see the note in
+   js/activities/lessons.js). It is not removed.
+
+   THREE RESHAPES the engine forced:
+
+   1. "Which sentence is correct? A / B" has no gap, and a pick step
+      needs one. Written as `de:'___'` with the whole sentences as the
+      options — which also makes the speak button read the CORRECT
+      sentence aloud, so a tap teaches rather than just scores.
+
+   2. "Type the complete correctly punctuated sentence" is not usable.
+      `Anna hat Äpfel, Bananen und Orangen.` is 36 characters with an
+      umlaut, graded exactly, on a phone. Converted to a two-option pick.
+
+   3. Grok's easy/medium/harder labels map to the engine's `level`:
+      easy and medium draw no chip, harder does.
+
+   THE GERMAN COMMA RULE IS THE POINT OF CONTACT WITH ENGLISH, and it
+   runs the opposite way to the English lesson: German takes NO comma
+   before und in a simple list, and English always takes one. Both
+   lessons say so, and each names the other.
+   ================================================================== */
+{
+  id:'de-lists',
+  glyph:'\uD83D\uDCCE',
+  mins:9,
+  topic:'order',
+
+  name:{
+    ru:'Перечисления',
+    de:'Aufzählungen',
+    en:'Lists'
+  },
+
+  sub:{
+    ru:'запятые · und · oder',
+    de:'Kommas · und · oder',
+    en:'commas · und · oder'
+  },
+
+  steps:[
+
+    /* ---------- 1. the rules ---------- */
+    { kind:'read',
+      head:{ ru:'Основные правила', de:'Grundregeln', en:'The rules' },
+      body:{
+        ru:'В немецком элементы перечисления разделяются запятыми. Последние два соединяются словами und («и») или oder («или»). И главное: в простом перечислении перед und или oder запятая НЕ ставится.',
+        de:'Im Deutschen trennt man Elemente einer Aufzählung durch Kommas. Die letzten beiden werden mit und oder oder verbunden. Und das Wichtigste: in einer einfachen Aufzählung steht kein Komma vor und oder oder.',
+        en:'German separates list items with commas. The last two are joined with und or oder. And the important part: in a simple list there is NO comma before und or oder.' },
+      table:[
+        ['A, B, C und D',  'alles davon',      'Ich kaufe Brot, Käse, Milch und Äpfel.'],
+        ['A, B, C oder D', 'eines davon',      'Wir können heute, morgen oder am Freitag kommen.'],
+        ['A und B',        'nur zwei, kein Komma', 'Ich kaufe Brot und Käse.']
+      ],
+      note:{
+        ru:'Английский здесь делает наоборот и всегда ставит запятую перед and. Не переноси эту привычку в немецкий.',
+        de:'Englisch macht es genau umgekehrt und setzt immer ein Komma vor and. Übertrage diese Gewohnheit nicht ins Deutsche.',
+        en:'English does the opposite and always puts a comma before and. Do not carry that habit into German.' }
+    },
+
+    /* ---------- 2. what is being listed ---------- */
+    { kind:'sort',
+      ask:{ ru:'Что перечисляется?', de:'Was wird aufgezählt?', en:'What is being listed?' },
+      bins:[
+        { id:'d', label:'Dinge'      },
+        { id:'h', label:'Handlungen' },
+        { id:'p', label:'Personen'   }
+      ],
+      cards:[
+        { text:'Brot, Käse und Milch',            bin:'d' },
+        { text:'Hemden, Hosen und Schuhe',        bin:'d' },
+        { text:'Kartoffeln, Karotten und Zwiebeln', bin:'d' },
+        { text:'lesen, schreiben und sprechen',   bin:'h' },
+        { text:'laufen, springen und schwimmen',  bin:'h' },
+        { text:'singen, tanzen und kochen',       bin:'h' },
+        { text:'Tanya, Nazar und Mila',           bin:'p' },
+        { text:'Alina, Max und Dasha',            bin:'p' },
+        { text:'meine Mutter, mein Vater und mein Bruder', bin:'p' }
+      ]
+    },
+
+    /* ---------- 3. und or oder ---------- */
+    { kind:'pick',
+      ask:{ ru:'und или oder?', de:'und oder oder?', en:'und or oder?' },
+      rounds:[
+        { de:'Ich kaufe Brot, Milch ___ Käse.', answer:'und', options:['und','oder'],
+          gloss:{ ru:'Я покупаю хлеб, молоко и сыр.', en:'I am buying bread, milk, and cheese.' } },
+        { de:'Möchtest du Tee, Kaffee ___ Wasser?', answer:'oder', options:['und','oder'],
+          gloss:{ ru:'Ты хочешь чай, кофе или воду?', en:'Would you like tea, coffee, or water?' } },
+        { de:'Anna hat einen Hund, eine Katze ___ zwei Fische.', answer:'und', options:['und','oder'],
+          gloss:{ ru:'У Анны есть собака, кошка и две рыбки.', en:'Anna has a dog, a cat, and two fish.' } },
+        { de:'Wir können am Montag, Dienstag ___ Mittwoch fahren. Nur ein Tag.', answer:'oder', options:['und','oder'],
+          gloss:{ ru:'Мы можем поехать в понедельник, вторник или среду. Только один день.', en:'We can go Monday, Tuesday, or Wednesday. One day only.' } },
+        { de:'Für die Suppe brauchen wir Kartoffeln, Karotten ___ Zwiebeln.', answer:'und', options:['und','oder'],
+          gloss:{ ru:'Для супа нам нужны картофель, морковь и лук.', en:'We need potatoes, carrots, and onions for the soup.' } },
+        { de:'Du kannst mit dem Bus, mit dem Zug ___ mit dem Auto fahren. Nur eins.', answer:'oder', options:['und','oder'],
+          gloss:{ ru:'Ты можешь поехать на автобусе, поезде или машине. Только одно.', en:'You can travel by bus, train, or car. Just one.' } },
+        { de:'Nazar lernt Deutsch, Englisch ___ Mathematik. Alle drei.', answer:'und', options:['und','oder'],
+          gloss:{ ru:'Назар изучает немецкий, английский и математику. Все три.', en:'Nazar studies German, English, and mathematics. All three.' } },
+        { de:'Soll ich heute, morgen ___ am Freitag kommen? Ein Termin genügt.', answer:'oder', options:['und','oder'],
+          gloss:{ ru:'Мне прийти сегодня, завтра или в пятницу? Достаточно одного.', en:'Should I come today, tomorrow, or Friday? One is enough.' } }
+      ],
+      note:{
+        ru:'Решает смысл, а не место в предложении: всё вместе — und, выбрать одно — oder.',
+        de:'Der Sinn entscheidet, nicht die Stellung: alles zusammen — und, eines auswählen — oder.',
+        en:'The meaning decides, not the position: all of them — und; pick one — oder.' }
+    },
+
+    /* ---------- 4. no comma before und ---------- */
+    { kind:'read',
+      head:{ ru:'Перед und запятой нет', de:'Kein Komma vor und', en:'No comma before und' },
+      body:{
+        ru:'Это то место, где английская привычка мешает. По-английски перед последним and запятая ставится всегда. По-немецки в простом перечислении — нет.',
+        de:'Hier stört die englische Gewohnheit. Im Englischen steht vor dem letzten and immer ein Komma. Im Deutschen in einer einfachen Aufzählung nicht.',
+        en:'This is where the English habit gets in the way. English always puts a comma before the final and. German, in a simple list, does not.' },
+      show:[
+        { de:'\u2713 Brot, Käse, Milch <b>und</b> Äpfel.',
+          gloss:{ ru:'Немецкий: запятой перед und нет.', en:'German: no comma before und.' } },
+        { de:'\u2717 Brot, Käse, Milch<b>,</b> und Äpfel.',
+          gloss:{ ru:'Это английская расстановка.', en:'That is the English punctuation.' } },
+        { de:'bread, cheese, milk<b>,</b> and apples',
+          gloss:{ ru:'А по-английски именно так и правильно.', en:'And in English that is exactly right.' } }
+      ],
+      note:{
+        ru:'Запятая перед und бывает — но только когда und соединяет два полных предложения: «Lisa kocht, und Paul deckt den Tisch.» Это уже не перечисление.',
+        de:'Ein Komma vor und gibt es schon — aber nur, wenn und zwei vollständige Sätze verbindet: „Lisa kocht, und Paul deckt den Tisch.“ Das ist keine Aufzählung mehr.',
+        en:'A comma before und does exist — but only when und joins two full clauses: "Lisa kocht, und Paul deckt den Tisch." That is no longer a list.' }
+    },
+
+    /* ---------- 5. which is correct ---------- */
+    { kind:'pick',
+      ask:{ ru:'Какой вариант правильный?', de:'Welche Variante ist richtig?', en:'Which one is right?' },
+      rounds:[
+        { de:'___', answer:'Ich kaufe Brot, Käse und Milch.',
+          options:['Ich kaufe Brot, Käse und Milch.','Ich kaufe Brot, Käse, und Milch.'],
+          gloss:{ ru:'Я покупаю хлеб, сыр и молоко.', en:'I buy bread, cheese, and milk.' } },
+        { de:'___', answer:'Wir besuchen Berlin, Hamburg und München.',
+          options:['Wir besuchen Berlin, Hamburg und München.','Wir besuchen Berlin, Hamburg, und München.'],
+          gloss:{ ru:'Мы посещаем Берлин, Гамбург и Мюнхен.', en:'We are visiting Berlin, Hamburg, and Munich.' } },
+        { de:'___', answer:'Sie liest, schreibt und zeichnet gern.',
+          options:['Sie liest, schreibt und zeichnet gern.','Sie liest, schreibt, und zeichnet gern.'],
+          gloss:{ ru:'Она любит читать, писать и рисовать.', en:'She likes reading, writing, and drawing.' } },
+        { de:'___', answer:'Anna hat Äpfel, Bananen und Orangen.',
+          options:['Anna hat Äpfel, Bananen und Orangen.','Anna hat Äpfel Bananen und Orangen.'],
+          gloss:{ ru:'У Анны есть яблоки, бананы и апельсины.', en:'Anna has apples, bananas, and oranges.' } }
+      ]
+    },
+
+    /* ---------- 6. parallel form ---------- */
+    { kind:'read',
+      head:{ ru:'Одинаковая форма', de:'Dieselbe Form', en:'The same form' },
+      body:{
+        ru:'Все элементы перечисления должны иметь одну и ту же грамматическую форму. Это и есть настоящая грамматика перечислений — а не только запятые.',
+        de:'Alle Elemente einer Aufzählung sollten dieselbe grammatische Form haben. Das ist die eigentliche Grammatik von Aufzählungen — nicht nur die Kommas.',
+        en:'Every item in a list should have the same grammatical form. That is the real grammar of lists, not just the commas.' },
+      show:[
+        { de:'\u2713 Ich möchte schwimmen, tanzen <b>und singen</b>.',
+          gloss:{ ru:'Три инфинитива.', en:'Three infinitives.' } },
+        { de:'\u2717 Ich möchte schwimmen, tanze <b>und zu singen</b>.',
+          gloss:{ ru:'Три разные формы в одном списке.', en:'Three different forms in one list.' } },
+        { de:'\u2713 lesen, schreiben und rechnen \u00b7 \u2717 lesen, zu schreiben und rechnet',
+          gloss:{ ru:'Начал инфинитивами — заканчивай инфинитивами.', en:'Start with infinitives, finish with infinitives.' } }
+      ]
+    },
+
+    /* ---------- 7. keep the form ---------- */
+    { kind:'pick',
+      ask:{ ru:'Сохрани форму', de:'Behalte die Form', en:'Keep the form' },
+      rounds:[
+        { de:'Ich möchte schwimmen, tanzen und ___.', answer:'singen', options:['singen','zu singen','singe'],
+          gloss:{ ru:'Я хочу плавать, танцевать и петь.', en:'I want to swim, dance, and sing.' } },
+        { de:'Sie kann gut lesen, schreiben und ___.', answer:'sprechen', options:['sprechen','spricht','zu sprechen'],
+          gloss:{ ru:'Она умеет хорошо читать, писать и говорить.', en:'She can read, write, and speak well.' } },
+        { de:'Max möchte essen, schlafen und ___.', answer:'spielen', options:['spielen','spielt','zu spielen'],
+          gloss:{ ru:'Макс хочет есть, спать и играть.', en:'Max wants to eat, sleep, and play.' } },
+        { de:'___', answer:'Ich mag schwimmen, tanzen und singen.',
+          options:['Ich mag schwimmen, tanzen und singen.','Ich mag schwimmen, tanzen und ich singe.','Ich mag schwimmen, zu tanzen und singen.'],
+          gloss:{ ru:'Только в первом все три формы одинаковы.', en:'Only the first keeps all three forms the same.' } }
+      ]
+    },
+
+    /* ---------- 8. the case, and it is harder ---------- */
+    { kind:'read',
+      level:'harder',
+      head:{ ru:'Падеж тоже должен совпадать', de:'Auch der Kasus muss passen', en:'The case has to match too' },
+      body:{
+        ru:'Это самая немецкая часть темы. Предлог задаёт падеж — и он держится до конца перечисления. für, ohne, durch требуют аккузатив; mit, bei, zu — датив. Нельзя начать в одном падеже и закончить в другом.',
+        de:'Das ist der deutscheste Teil des Themas. Die Präposition bestimmt den Kasus — und der gilt bis zum Ende der Aufzählung. für, ohne, durch verlangen den Akkusativ; mit, bei, zu den Dativ. Man kann nicht in einem Kasus anfangen und in einem anderen enden.',
+        en:'This is the most German part of the topic. The preposition sets the case, and it holds to the end of the list. für, ohne and durch take the accusative; mit, bei and zu take the dative. You cannot start in one case and finish in another.' },
+      show:[
+        { de:'\u2713 für meine Mutter, meinen Vater und <b>meinen</b> Bruder',
+          gloss:{ ru:'für — аккузатив во всём списке.', en:'für — accusative all the way through.' } },
+        { de:'\u2717 für meine Mutter, meinen Vater und <b>meinem</b> Bruder',
+          gloss:{ ru:'Последний элемент выпал в датив.', en:'The last item slipped into the dative.' } },
+        { de:'\u2713 mit meinem Bruder, meiner Schwester und <b>meinem</b> Vater',
+          gloss:{ ru:'mit — датив во всём списке.', en:'mit — dative all the way through.' } }
+      ],
+      note:{
+        ru:'Читай предлог, а не запоминай окончание. Одно и то же слово будет meinen после für и meinem после mit.',
+        de:'Lies die Präposition, statt die Endung zu lernen. Dasselbe Wort ist meinen nach für und meinem nach mit.',
+        en:'Read the preposition rather than memorising the ending. The same word is meinen after für and meinem after mit.' }
+    },
+
+    /* ---------- 9. the case, drilled ---------- */
+    { kind:'pick',
+      level:'harder',
+      ask:{ ru:'Какой падеж держится до конца?', de:'Welcher Kasus gilt bis zum Ende?', en:'Which case holds to the end?' },
+      rounds:[
+        { de:'Ich kaufe Geschenke für meinen Vater, meine Mutter und ___ Onkel.', answer:'meinen', options:['meinen','meinem','mein'],
+          gloss:{ ru:'für — аккузатив.', en:'für takes the accusative.' } },
+        { de:'Sie geht ohne ihren Mantel, ihre Tasche und ___ Regenschirm.', answer:'ihren', options:['ihren','ihrem','ihr'],
+          gloss:{ ru:'ohne — аккузатив.', en:'ohne takes the accusative.' } },
+        { de:'Wir gehen mit meinem Bruder, meiner Schwester und ___ Vater.', answer:'meinem', options:['meinem','meinen','mein'],
+          gloss:{ ru:'mit — датив.', en:'mit takes the dative.' } },
+        { de:'Sie wohnt bei ihrem Sohn, ihrer Tochter und ___ Bruder.', answer:'ihrem', options:['ihrem','ihren','ihr'],
+          gloss:{ ru:'bei — датив.', en:'bei takes the dative.' } },
+        { de:'Ich fahre zu meiner Mutter, meinem Vater und ___ Schwester.', answer:'meiner', options:['meiner','meine','meinen'],
+          gloss:{ ru:'zu — датив, и Schwester женского рода.', en:'zu takes the dative, and Schwester is feminine.' } },
+        { de:'Wir laufen durch den Park, die Stadt und ___ Wald.', answer:'den', options:['den','dem','der'],
+          gloss:{ ru:'durch — аккузатив, Wald мужского рода.', en:'durch takes the accusative, and Wald is masculine.' } },
+        { de:'Mila spricht mit ihrem Lehrer, ihrer Freundin und ___ Nachbarn.', answer:'ihrem', options:['ihrem','ihren','ihre'],
+          gloss:{ ru:'mit — датив.', en:'mit takes the dative.' } },
+        { de:'Das Geschenk ist für Tanya, Nazar und ___ Freundin Mila.', answer:'ihre', options:['ihre','ihrer','ihren'],
+          gloss:{ ru:'für — аккузатив, Freundin женского рода.', en:'für takes the accusative, and Freundin is feminine.' } }
+      ]
+    },
+
+    /* ---------- 10. the other connectors, harder ---------- */
+    { kind:'read',
+      level:'harder',
+      head:{ ru:'Другие связки', de:'Weitere Verbindungswörter', en:'The other connectors' },
+      body:{
+        ru:'Кроме und и oder есть ещё несколько. Они звучат более формально и часто встречаются в текстах — знать их полезно, даже если сама ты пока пользуешься und и oder.',
+        de:'Außer und und oder gibt es noch einige. Sie klingen formeller und kommen in Texten oft vor — es lohnt sich, sie zu kennen, auch wenn du selbst noch und und oder benutzt.',
+        en:'Besides und and oder there are a few more. They sound more formal and turn up in texts often, so they are worth knowing even while you still use und and oder yourself.' },
+      table:[
+        ['sowie',                'a также',        'Hemden, Hosen sowie zwei Pullover'],
+        ['sowohl … als auch',    'как … так и',    'sowohl Deutsch als auch Englisch'],
+        ['entweder … oder',      'либо … либо',    'entweder den Bus oder die Bahn'],
+        ['weder … noch',         'ни … ни',        'weder Kaffee noch Tee']
+      ],
+      note:{
+        ru:'weder … noch уже содержит отрицание — второго nicht не нужно.',
+        de:'weder … noch enthält die Verneinung schon — ein zweites nicht braucht es nicht.',
+        en:'weder … noch already carries the negative — it needs no second nicht.' }
+    },
+
+    /* ---------- 11. no choices ---------- */
+    { kind:'type',
+      exact:true,
+      ask:{ ru:'Впиши пропущенное слово', de:'Schreib das fehlende Wort', en:'Type the missing word' },
+      rounds:[
+        { de:'Ich kaufe Brot, Milch ___ Käse.', answer:'und',
+          gloss:{ ru:'Всё вместе.', en:'All of them.' } },
+        { de:'Möchtest du Tee, Kaffee ___ Wasser?', answer:'oder',
+          gloss:{ ru:'Выбрать одно.', en:'Pick one.' } },
+        { de:'Ich möchte schwimmen, tanzen und ___.', answer:'singen',
+          gloss:{ ru:'Форма та же.', en:'Same form.' } },
+        { de:'Nazar kann lesen, schreiben und ___.', answer:'sprechen',
+          gloss:{ ru:'Форма та же.', en:'Same form.' } },
+        { de:'Ich kaufe Geschenke für meine Mutter und ___ Vater.', answer:'meinen',
+          gloss:{ ru:'für — аккузатив.', en:'für takes the accusative.' } },
+        { de:'Wir fahren mit Tanya, Mila und ___ Bruder.', answer:'meinem',
+          gloss:{ ru:'mit — датив.', en:'mit takes the dative.' } },
+        { de:'Er trinkt weder Kaffee ___ Tee.', answer:'noch',
+          gloss:{ ru:'weder … noch.', en:'weder … noch.' } },
+        { de:'Sie spricht sowohl Deutsch ___ auch Englisch.', answer:'als',
+          gloss:{ ru:'sowohl … als auch.', en:'sowohl … als auch.' } }
+      ]
+    },
+
+    /* ---------- finish ---------- */
+    { kind:'read',
+      head:{ ru:'Итог', de:'Kurz gesagt', en:'In short' },
+      body:{
+        ru:'Запятые между элементами, und или oder перед последним, и НИКАКОЙ запятой перед und. Все элементы — в одной грамматической форме, и падеж, заданный предлогом, держится до конца списка. В английском правило про запятую обратное.',
+        de:'Kommas zwischen den Elementen, und oder oder vor dem letzten, und KEIN Komma vor und. Alle Elemente in derselben grammatischen Form, und der Kasus der Präposition gilt bis zum Ende. Im Englischen ist die Kommaregel umgekehrt.',
+        en:'Commas between the items, und or oder before the last one, and NO comma before und. Every item in the same grammatical form, and the case the preposition set holds to the end. In English the comma rule is the other way round.' },
+      show:[
+        { de:'Ich kaufe Brot, Käse, Milch <b>und</b> Äpfel.' },
+        { de:'für meine Mutter, meinen Vater und <b>meinen</b> Bruder' },
+        { de:'Ich möchte schwimmen, tanzen und <b>singen</b>.' }
+      ]
+    }
+
+  ]
+},
+
+/* ==================================================================
+   Subjekt · Verb · Objekt — sie tippt auf den Satz
+
+   The German twin of `en-svo`, and it goes one level further, because
+   German can do something English cannot.
+
+   LEVEL 3 IS THE POINT OF THE WHOLE COLOUR SCHEME. Die Katze sieht der
+   Hund — the object stands first and the dog is STILL the subject.
+   Move the parts in the array and the roles travel with them, which is
+   exactly why the sentence is stored as parts rather than as offsets.
+   English cannot copy this: swap its subject and object and the meaning
+   swaps.
+
+   ONE THING NOT TO TEACH, and Grok flagged it correctly: do not tell her
+   `die` means object. Feminine `die` is nominative AND accusative. The
+   clue in that pair is `der Hund` — unmistakably nominative — and every
+   fronted example here contains a masculine noun for exactly that
+   reason. A pair like `Die Katze sieht die Maus` has no answer.
+
+   Then the contrast that DOES change meaning — Die Katze sieht den Hund,
+   with `den` — comes last, after the same-meaning fronting is solid.
+   Grok's ordering, and it is right: teach that the role survives the
+   move before teaching that a changed article changes the role.
+
+   Strictly S, V, O. No adjectives, no adverbs.
+   ================================================================== */
+{
+  id:'de-svo',
+  glyph:'\uD83D\uDD35',
+  mins:9,
+  topic:'order',
+
+  name:{
+    ru:'Подлежащее, глагол, дополнение',
+    de:'Subjekt, Verb, Objekt',
+    en:'Subject, verb, object'
+  },
+
+  sub:{
+    ru:'Нажми на часть предложения',
+    de:'Tippe auf den Satzteil',
+    en:'Tap the part of the sentence'
+  },
+
+  steps:[
+
+    /* ---------- 1. the three roles ---------- */
+    { kind:'read',
+      head:{ ru:'Три части', de:'Drei Teile', en:'Three parts' },
+      body:{
+        ru:'Подлежащее — кто или что выполняет действие. Глагол — само действие. Дополнение — на кого или на что действие направлено. Артикль всегда остаётся со своим существительным: der Hund — одна часть.',
+        de:'Das Subjekt — wer oder was die Handlung ausführt. Das Verb — die Handlung selbst. Das Objekt — wen oder was die Handlung betrifft. Der Artikel bleibt immer bei seinem Nomen: der Hund ist ein Teil.',
+        en:'The subject — who or what does the action. The verb — the action itself. The object — who or what it affects. The article always stays with its noun: der Hund is one part.' },
+      table:[
+        ['Subjekt', 'blau',   'wer oder was handelt'],
+        ['Verb',    'orange', 'die Handlung'],
+        ['Objekt',  'grün',   'wen oder was es betrifft']
+      ],
+      show:[
+        { de:'Der Hund sieht die Katze.',
+          gloss:{ ru:'Собака видит кошку.', en:'The dog sees the cat.' } }
+      ]
+    },
+
+    /* ---------- 2. scaffolded: coloured, and the asked part glows ----------
+       TWO SENTENCES, EACH ASKED THREE WAYS, and the four mark steps
+       between them use all six orderings of S, V, O. Steven, 09 Sep:
+       "don't ALWAYS go Sub, Verb, Obj. There's 6 orderings, use all 6."
+       This step uses S-V-O and V-O-S. */
+    { kind:'mark',
+      colour:true,
+      ask:{ ru:'Нажми на названную часть', de:'Tippe auf den genannten Teil', en:'Tap the part I name' },
+      rounds:[
+        { parts:[{role:'subj',text:'Das Mädchen'}, {role:'verb',text:'isst'}, {role:'obj',text:'einen Apfel'}],
+          find:'subj', gloss:{ ru:'Действие выполняет девочка.', en:'The girl does the action.' } },
+        { parts:[{role:'subj',text:'Das Mädchen'}, {role:'verb',text:'isst'}, {role:'obj',text:'einen Apfel'}],
+          find:'verb', gloss:{ ru:'Действие — «isst».', en:'The action is "isst".' } },
+        { parts:[{role:'subj',text:'Das Mädchen'}, {role:'verb',text:'isst'}, {role:'obj',text:'einen Apfel'}],
+          find:'obj', gloss:{ ru:'Действие направлено на яблоко. einen — дополнение.', en:'It lands on the apple. einen marks the object.' } },
+        { parts:[{role:'subj',text:'Der Hund'}, {role:'verb',text:'sieht'}, {role:'obj',text:'die Katze'}],
+          find:'verb', gloss:{ ru:'Действие — «sieht».', en:'The action is "sieht".' } },
+        { parts:[{role:'subj',text:'Der Hund'}, {role:'verb',text:'sieht'}, {role:'obj',text:'die Katze'}],
+          find:'obj', gloss:{ ru:'Действие направлено на кошку.', en:'It lands on the cat.' } },
+        { parts:[{role:'subj',text:'Der Hund'}, {role:'verb',text:'sieht'}, {role:'obj',text:'die Katze'}],
+          find:'subj', gloss:{ ru:'Видит собака. der — подлежащее.', en:'The dog sees. der marks the subject.' } }
+      ]
+    },
+
+    /* ---------- 3. the article is a clue ---------- */
+    { kind:'read',
+      head:{ ru:'Артикль подсказывает', de:'Der Artikel verrät es', en:'The article gives it away' },
+      body:{
+        ru:'В немецком у дополнения мужского рода артикль меняется: der становится den, ein становится einen. Это самая надёжная подсказка о роли — надёжнее, чем место в предложении.',
+        de:'Im Deutschen ändert sich beim maskulinen Objekt der Artikel: der wird den, ein wird einen. Das ist der zuverlässigste Hinweis auf die Rolle — zuverlässiger als die Position.',
+        en:'In German a masculine object changes its article: der becomes den, ein becomes einen. That is the most reliable clue to the role — more reliable than the position.' },
+      show:[
+        { de:'<b>Der</b> Hund sieht die Katze. \u2192 der = Subjekt',
+          gloss:{ ru:'der — подлежащее.', en:'der marks the subject.' } },
+        { de:'Die Katze sieht <b>den</b> Hund. \u2192 den = Objekt',
+          gloss:{ ru:'den — дополнение.', en:'den marks the object.' } },
+        { de:'Max tritt <b>den</b> Ball. \u00b7 Anna öffnet <b>die</b> Tür.',
+          gloss:{ ru:'У женского и среднего рода артикль не меняется — там подсказки нет.', en:'Feminine and neuter do not change, so there is no clue there.' } }
+      ],
+      note:{
+        ru:'Осторожно: die бывает и подлежащим, и дополнением. Артикль помогает только там, где есть слово мужского рода.',
+        de:'Vorsicht: die kann Subjekt UND Objekt sein. Der Artikel hilft nur, wenn ein maskulines Wort dabei ist.',
+        en:'Careful: die can be subject AND object. The article only helps when a masculine word is involved.' }
+    },
+
+    /* ---------- 4. unscaffolded. Orderings O-S-V and S-O-V. ---------- */
+    { kind:'mark',
+      ask:{ ru:'Нажми на названную часть', de:'Tippe auf den genannten Teil', en:'Tap the part I name' },
+      rounds:[
+        { parts:[{role:'subj',text:'Tanya'}, {role:'verb',text:'öffnet'}, {role:'obj',text:'das Fenster'}],
+          find:'obj', gloss:{ ru:'Открывает окно.', en:'She opens the window.' } },
+        { parts:[{role:'subj',text:'Tanya'}, {role:'verb',text:'öffnet'}, {role:'obj',text:'das Fenster'}],
+          find:'subj', gloss:{ ru:'Открывает Таня.', en:'Tanya opens it.' } },
+        { parts:[{role:'subj',text:'Tanya'}, {role:'verb',text:'öffnet'}, {role:'obj',text:'das Fenster'}],
+          find:'verb', gloss:{ ru:'Действие — «öffnet».', en:'The action is "öffnet".' } },
+        { parts:[{role:'subj',text:'Der Junge'}, {role:'verb',text:'wirft'}, {role:'obj',text:'den Ball'}],
+          find:'subj', gloss:{ ru:'Бросает мальчик. der — подлежащее.', en:'The boy throws. der marks the subject.' } },
+        { parts:[{role:'subj',text:'Der Junge'}, {role:'verb',text:'wirft'}, {role:'obj',text:'den Ball'}],
+          find:'obj', gloss:{ ru:'den Ball — дополнение, это видно по den.', en:'den Ball is the object, and den shows it.' } },
+        { parts:[{role:'subj',text:'Der Junge'}, {role:'verb',text:'wirft'}, {role:'obj',text:'den Ball'}],
+          find:'verb', gloss:{ ru:'Действие — «wirft».', en:'The action is "wirft".' } }
+      ]
+    },
+
+    /* ---------- 5. sort ---------- */
+    { kind:'sort',
+      ask:{ ru:'Какая это роль?', de:'Welche Rolle ist das?', en:'Which role is it?' },
+      bins:[
+        { id:'subj', label:'Subjekt' },
+        { id:'verb', label:'Verb'    },
+        { id:'obj',  label:'Objekt'  }
+      ],
+      cards:[
+        { text:'Tanya',        bin:'subj' },
+        { text:'trinkt',       bin:'verb' },
+        { text:'Kaffee',       bin:'obj'  },
+        { text:'Nazar',        bin:'subj' },
+        { text:'liest',        bin:'verb' },
+        { text:'ein Buch',     bin:'obj'  },
+        { text:'Der Hund',     bin:'subj' },
+        { text:'sieht',        bin:'verb' },
+        { text:'den Ball',     bin:'obj'  }
+      ]
+    },
+
+    /* ---------- 6. the order moves, the role does not ---------- */
+    { kind:'read',
+      level:'harder',
+      head:{ ru:'Порядок меняется — роль нет', de:'Die Stellung ändert sich, die Rolle nicht', en:'The order moves, the role does not' },
+      body:{
+        ru:'В немецком дополнение может встать в начало предложения. Смысл при этом НЕ меняется — потому что роль держится на артикле, а не на месте. В английском так нельзя.',
+        de:'Im Deutschen kann das Objekt am Satzanfang stehen. Die Bedeutung ändert sich dabei NICHT — denn die Rolle hängt am Artikel, nicht an der Position. Im Englischen geht das nicht.',
+        en:'In German the object can stand at the front of the sentence. The meaning does NOT change — because the role hangs on the article, not on the position. English cannot do this.' },
+      show:[
+        { de:'Der Hund sieht die Katze.',
+          gloss:{ ru:'Обычный порядок. Собака видит кошку.', en:'Neutral order. The dog sees the cat.' } },
+        { de:'Die Katze sieht <b>der Hund</b>.',
+          gloss:{ ru:'Дополнение впереди — но видит по-прежнему собака.', en:'Object first — but the dog is still the one seeing.' } },
+        { de:'Den Ball tritt <b>Max</b>. \u00b7 Das Buch liest <b>Nazar</b>.',
+          gloss:{ ru:'То же самое: den и das впереди, подлежащее позади.', en:'Same again: den and das in front, subject behind.' } }
+      ],
+      note:{
+        ru:'Подсказка здесь — «der Hund», а не «die Katze». Не запоминай, что die значит дополнение: die бывает и подлежащим.',
+        de:'Der Hinweis ist hier „der Hund“, nicht „die Katze“. Merke dir nicht, dass die Objekt bedeutet: die kann auch Subjekt sein.',
+        en:'The clue here is "der Hund", not "die Katze". Do not learn that die means object: die can be the subject too.' }
+    },
+
+    /* ---------- 7. object fronted, subject last. Orderings V-S-O and
+           O-V-S, completing all six.
+           Both sentences carry a MASCULINE noun on purpose: der/den is
+           the only article pair that actually disambiguates, and without
+           one the exercise would have no answer. */
+    { kind:'mark',
+      level:'harder',
+      ask:{ ru:'Нажми на названную часть', de:'Tippe auf den genannten Teil', en:'Tap the part I name' },
+      rounds:[
+        { parts:[{role:'obj',text:'Die Katze'}, {role:'verb',text:'sieht'}, {role:'subj',text:'der Hund'}],
+          find:'verb', gloss:{ ru:'Действие — «sieht».', en:'The action is "sieht".' } },
+        { parts:[{role:'obj',text:'Die Katze'}, {role:'verb',text:'sieht'}, {role:'subj',text:'der Hund'}],
+          find:'subj', gloss:{ ru:'Видит собака — der показывает подлежащее, хотя стоит в конце.', en:'The dog sees — der marks the subject even at the end.' } },
+        { parts:[{role:'obj',text:'Die Katze'}, {role:'verb',text:'sieht'}, {role:'subj',text:'der Hund'}],
+          find:'obj', gloss:{ ru:'Дополнение стоит впереди, но остаётся дополнением.', en:'The object stands first and is still the object.' } },
+        { parts:[{role:'obj',text:'Den Ball'}, {role:'verb',text:'tritt'}, {role:'subj',text:'Max'}],
+          find:'obj', gloss:{ ru:'Бьёт Макс.', en:'Max does the kicking.' } },
+        { parts:[{role:'obj',text:'Den Ball'}, {role:'verb',text:'tritt'}, {role:'subj',text:'Max'}],
+          find:'verb', gloss:{ ru:'Действие — «tritt».', en:'The action is "tritt".' } },
+        { parts:[{role:'obj',text:'Den Ball'}, {role:'verb',text:'tritt'}, {role:'subj',text:'Max'}],
+          find:'subj', gloss:{ ru:'den Ball — дополнение, хотя первое слово.', en:'den Ball is the object though it comes first.' } }
+      ]
+    },
+
+    /* ---------- 8. same or different meaning ---------- */
+    { kind:'pick',
+      level:'harder',
+      ask:{ ru:'Изменился ли смысл?', de:'Hat sich die Bedeutung geändert?', en:'Did the meaning change?' },
+      rounds:[
+        { de:'Nazar liest das Buch. \u2192 Das Buch liest Nazar. \u2014 ___', answer:'nur die Stellung',
+          options:['nur die Stellung','die Bedeutung'],
+          gloss:{ ru:'Только порядок. Назар по-прежнему подлежащее.', en:'Only the order. Nazar is still the subject.' } },
+        { de:'Der Hund sieht die Katze. \u2192 Die Katze sieht der Hund. \u2014 ___', answer:'nur die Stellung',
+          options:['nur die Stellung','die Bedeutung'],
+          gloss:{ ru:'der Hund — подлежащее в обоих.', en:'der Hund is the subject in both.' } },
+        { de:'Der Hund sieht die Katze. \u2192 Die Katze sieht den Hund. \u2014 ___', answer:'die Bedeutung',
+          options:['nur die Stellung','die Bedeutung'],
+          gloss:{ ru:'den Hund — теперь дополнение. Видит кошка.', en:'den Hund is now the object. The cat sees.' } },
+        { de:'Die Katze sieht den Hund. \u2014 wer sieht? ___', answer:'die Katze', options:['die Katze','den Hund'],
+          gloss:{ ru:'Видит кошка.', en:'The cat sees.' } },
+        { de:'Die Katze sieht der Hund. \u2014 wer sieht? ___', answer:'der Hund', options:['die Katze','der Hund'],
+          gloss:{ ru:'Видит собака. Разница в одном артикле.', en:'The dog sees. One article apart.' } },
+        { de:'Warum ist der Hund in "Die Katze sieht der Hund" das Subjekt? ___', answer:'wegen des Artikels der',
+          options:['wegen des Artikels der','weil er am Ende steht','weil Deutsch keine Objekte hat'],
+          gloss:{ ru:'Из-за артикля der, а не из-за места.', en:'Because of the article der, not the position.' } }
+      ]
+    },
+
+    /* ---------- 9. some words are neither ---------- */
+    { kind:'read',
+      head:{ ru:'Не каждая часть — S, V или O', de:'Nicht jeder Teil ist S, V oder O', en:'Not every part is S, V or O' },
+      body:{
+        ru:'В предложении может быть больше, чем эти три части. Пока мы выделяем только их — остальное остаётся текстом и нажать на него нельзя.',
+        de:'Ein Satz kann mehr enthalten als diese drei Teile. Im Moment markieren wir nur sie — der Rest bleibt Text und ist nicht antippbar.',
+        en:'A sentence can hold more than these three parts. For now we mark only those — the rest stays text and cannot be tapped.' },
+      show:[
+        { de:'Tanya kauft Brot <b>im Laden</b>.',
+          gloss:{ ru:'«im Laden» — вне этих трёх ролей.', en:'"im Laden" is outside the three roles.' } },
+        { de:'Nazar liest ein Buch <b>in der Schule</b>.',
+          gloss:{ ru:'«in der Schule» тоже.', en:'"in der Schule" likewise.' } }
+      ]
+    },
+
+    /* ---------- 10. with a chunk that has no role at all ---------- */
+    { kind:'mark',
+      ask:{ ru:'Нажми на названную часть', de:'Tippe auf den genannten Teil', en:'Tap the part I name' },
+      rounds:[
+        { parts:[{role:'subj',text:'Tanya'}, {role:'verb',text:'kauft'}, {role:'obj',text:'Brot'}, {text:'im Laden'}],
+          find:'subj', gloss:{ ru:'Покупает Таня.', en:'Tanya buys it.' } },
+        { parts:[{role:'subj',text:'Tanya'}, {role:'verb',text:'kauft'}, {role:'obj',text:'Brot'}, {text:'im Laden'}],
+          find:'obj', gloss:{ ru:'Покупает хлеб, а не «im Laden».', en:'She buys bread, not "im Laden".' } },
+        { parts:[{role:'subj',text:'Tanya'}, {role:'verb',text:'kauft'}, {role:'obj',text:'Brot'}, {text:'im Laden'}],
+          find:'verb', gloss:{ ru:'Действие — «kauft».', en:'The action is "kauft".' } },
+        { parts:[{role:'subj',text:'Nazar'}, {role:'verb',text:'liest'}, {role:'obj',text:'ein Buch'}, {text:'in der Schule'}],
+          find:'obj', gloss:{ ru:'Читает книгу; «in der Schule» вне трёх ролей.', en:'He reads a book; "in der Schule" is outside the three.' } },
+        { parts:[{role:'subj',text:'Nazar'}, {role:'verb',text:'liest'}, {role:'obj',text:'ein Buch'}, {text:'in der Schule'}],
+          find:'verb', gloss:{ ru:'Действие — «liest».', en:'The action is "liest".' } },
+        { parts:[{role:'subj',text:'Nazar'}, {role:'verb',text:'liest'}, {role:'obj',text:'ein Buch'}, {text:'in der Schule'}],
+          find:'subj', gloss:{ ru:'Читает Назар.', en:'Nazar reads it.' } }
+      ]
+    },
+
+    /* ---------- 11. no boxes at all: she writes the part ----------
+
+       Steven's third tier. An ordinary `type` step, so the sentence is
+       plain text and she writes the part herself — nothing to tap and
+       nothing to eliminate.
+
+       `exact:true`, and here it matters more than in English: `der Hund`
+       against `den Hund` is ONE edit, and the fuzzy matcher would accept
+       either. That single letter is the entire lesson. Case and umlaut
+       spelling are still forgiven. */
+    { kind:'type',
+      exact:true,
+      level:'harder',
+      ask:{ ru:'Напиши названную часть', de:'Schreib den genannten Teil', en:'Write the part I name' },
+      rounds:[
+        { de:'Der Hund sieht die Katze. \u2014 das Subjekt ist ___', answer:'Der Hund',
+          gloss:{ ru:'Собака видит кошку.', en:'The dog sees the cat.' } },
+        { de:'Der Hund sieht die Katze. \u2014 das Objekt ist ___', answer:'die Katze',
+          gloss:{ ru:'Дополнение — кошка.', en:'The object is the cat.' } },
+        { de:'Die Katze sieht der Hund. \u2014 das Subjekt ist ___', answer:'der Hund',
+          gloss:{ ru:'Дополнение стоит впереди, но подлежащее — собака.', en:'Object first, but the dog is the subject.' } },
+        { de:'Die Katze sieht den Hund. \u2014 das Objekt ist ___', answer:'den Hund',
+          gloss:{ ru:'Здесь den — значит собака теперь дополнение.', en:'Here it is den, so the dog is now the object.' } },
+        { de:'Tanya trinkt Kaffee. \u2014 das Verb ist ___', answer:'trinkt',
+          gloss:{ ru:'Таня пьёт кофе.', en:'Tanya drinks coffee.' } },
+        { de:'Den Ball tritt Max. \u2014 das Subjekt ist ___', answer:'Max',
+          gloss:{ ru:'Бьёт Макс.', en:'Max kicks it.' } },
+        { de:'Tanya kauft Brot im Laden. \u2014 das Objekt ist ___', answer:'Brot',
+          gloss:{ ru:'Не «im Laden» — это вне трёх ролей.', en:'Not "im Laden" — that is outside the three roles.' } }
+      ]
+    },
+
+    /* ---------- finish ---------- */
+    { kind:'read',
+      head:{ ru:'Итог', de:'Kurz gesagt', en:'In short' },
+      body:{
+        ru:'Подлежащее, глагол и дополнение — это роли, а не места. В немецком роль часто держится на артикле: der — подлежащее, den — дополнение. Поэтому дополнение может встать вперёд, а смысл останется прежним. В английском так нельзя: там роль задаёт порядок слов.',
+        de:'Subjekt, Verb und Objekt sind Rollen, keine Positionen. Im Deutschen hängt die Rolle oft am Artikel: der Subjekt, den Objekt. Deshalb kann das Objekt nach vorn und der Sinn bleibt derselbe. Im Englischen geht das nicht: dort bestimmt die Wortstellung die Rolle.',
+        en:'Subject, verb and object are roles, not positions. In German the role often hangs on the article: der subject, den object. So the object can move to the front and the meaning stays. English cannot do that: there the word order sets the role.' },
+      show:[
+        { de:'Der Hund sieht die Katze. \u00b7 Die Katze sieht der Hund.',
+          gloss:{ ru:'Тот же смысл. Другой порядок.', en:'Same meaning. Different order.' } },
+        { de:'Die Katze sieht den Hund.',
+          gloss:{ ru:'Один артикль — и смысл другой.', en:'One article, and the meaning is different.' } }
+      ]
+    }
+
+  ]
+}
 
 ];

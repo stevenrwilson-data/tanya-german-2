@@ -635,7 +635,7 @@ GH.listenSpeak = (function(){
     foot.appendChild(el('span', 'spacer'));
     /* `sp-start` so the tour can send her through to the practice screen.
        `btn btn-primary js-advance` is shared with half the app. */
-    var go = el('button', 'btn btn-primary js-advance sp-start', t('start'));
+    var go = el('button', 'btn btn-primary js-advance sp-start', t('spStart'));
     go.type = 'button';
     go.disabled = !state.src.length;
     go.addEventListener('click', function(){

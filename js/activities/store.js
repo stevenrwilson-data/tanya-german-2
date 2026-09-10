@@ -80,6 +80,442 @@ GH.store = (function(){
   /* Noir the Black Panther Ninja does not fit on a card two inches wide,
      but the title is most of why he is worth having. Full name where
      there is room, first word where there is not. */
+  /* ---------- A SMALL SOUND, WITHOUT AN AUDIO FILE ----------
+
+     Two short notes on a rising third, about a fifth of a second. Enough
+     to register as a reward and short enough that it never gets in the
+     way of the twentieth purchase.
+
+     SYNTHESISED, NOT A FILE. A .ogg would mean another asset, another
+     format question, another thing that can 404 and another row in the
+     audit. WebAudio makes this in a dozen lines and cannot go missing.
+
+     BUILT ON DEMAND AND THROWN AWAY. A context created at load time is a
+     context iOS suspends before she ever buys anything; creating it
+     inside the tap keeps it inside the user gesture that unlocks audio.
+
+     WRAPPED IN try/catch AND SILENT ON FAILURE. A browser with no
+     WebAudio, or one that refuses the context, must not stop the card
+     from appearing — the sound is the garnish, the card is the reward. */
+  /* The just-bought window. Built as an overlay so it interrupts — she
+     should not have to notice a strip further down a page she is already
+     scrolling. Dismissed by the button, the backdrop, or Escape. */
+  function gotWindow(p){
+    /* CLEAR ANY STRAY WINDOW FIRST, AND UNLOCK SCROLLING.
+
+       This sets `document.body.style.overflow = 'hidden'` while it is open
+       and restores it in `shut()`. If the window is ever removed by
+       anything other than `shut()` — a repaint, a route change, a second
+       purchase before the first was dismissed — the lock survives and the
+       page cannot be scrolled at all.
+
+       Steven, 10 Sep: "my iPhone can't see below lessons." That is what a
+       stranded `overflow:hidden` looks like.
+
+       Cheap insurance: sweep before opening, so at worst the lock lasts
+       until the next purchase rather than until a reload. */
+    var stray = document.querySelectorAll('.pt-got-wrap');
+    for (var si = 0; si < stray.length; si++){
+      if (stray[si].parentNode) stray[si].parentNode.removeChild(stray[si]);
+    }
+    document.body.style.overflow = '';
+
+    var wrap = el('div', 'pt-got-wrap');
+
+    /* THE TIER DRESSES THE WHOLE WINDOW.
+
+       Steven, 09 Sep: "green for commons, blue for rare, purple for epic,
+       amber for legendary" — and "I really want to elevate the experience
+       of buying pets."
+
+       So rarity is not just a colour swap: the window gets a class and
+       everything downstream reads from it. A legendary arrives with a
+       wider burst, more sparkles and a longer settle than a common,
+       because a legendary that lands exactly like a common teaches her
+       the tiers do not matter.
+
+       `--tier-common` and friends already exist and are already tuned for
+       light and dark themes — the shop headings use them. Reusing them
+       means the glow can never disagree with the badge on the card she
+       just bought from. */
+    var tier = p.tier || 'common';
+    /* THE TIER CLASS GOES ON THE FRAME, not the box.
+
+       `--got` and `--got-reach` are declared by it, and BOTH the box and
+       the sparkle layer need them — they are siblings inside the frame,
+       so the variables have to live on their shared parent. Putting the
+       class on the box left the sparkles with no colour at all. */
+    var box = el('div', 'pt-got pt-got-pop');
+
+    /* The glow sits behind the picture, in its own layer, so a missing
+       file leaves the animal exactly where it was. */
+    var stage = el('div', 'pt-got-stage');
+    /* The coloured burst is CSS, so the tier reads even before any glow
+       file exists — and it keeps reading if one never does. */
+    stage.appendChild(el('span', 'pt-got-burst'));
+    /* ONE GLOW FILE FOR ALL FOUR TIERS.
+
+       It was trying `pet-glow-<tier>.webp` first and falling back to the
+       shared one — which 404s on every purchase, because there is only
+       ever one file. The tier colour comes from a CSS hue rotation on
+       that single image (see `--got-spin`), so a per-tier file was never
+       part of the design and asking for one was my mistake. Steven's
+       console, 10 Sep.
+
+       If a tier ever wants genuinely different artwork rather than a
+       recolour, add the chain back — but only for the tier that has it. */
+    var glowSrc = 'images/pets/pet-glow.webp';
+    var glow = document.createElement('img');
+    glow.className = 'pt-got-glow';
+    glow.alt = '';
+    glow.src = GH.build ? GH.build.url(glowSrc) : glowSrc;
+    glow.addEventListener('error', function(){ glow.style.display = 'none'; });
+    stage.appendChild(glow);
+
+    var pic = art(p, 'greet');
+    if (pic){
+      pic.className = (pic.className || '') + ' pt-got-pic';
+      stage.appendChild(pic);
+    }
+    box.appendChild(stage);
+
+    box.appendChild(el('p', 'pt-got-sub', t('stBought')));
+    box.appendChild(el('h2', 'pt-got-name', shortName(p)));
+    if (p.de) box.appendChild(el('p', 'pt-got-de', p.de));
+
+    var line = GH.petVoice && GH.petVoice.bandLine
+      ? GH.petVoice.bandLine(p.id, 'buy') : null;
+    if (line){
+      /* German on top, her language under it — the same rule as every
+         other surface. Tap to hear it again. */
+      var says = el('button', 'pt-got-say');
+      says.type = 'button';
+      says.appendChild(el('span', 'pt-got-de-line', line.de));
+      if (line.tr) says.appendChild(el('span', 'pt-got-tr', line.tr));
+      says.addEventListener('click', function(){
+        if (GH.speech) GH.speech.say(line.say);
+      });
+      box.appendChild(says);
+    }
+
+    function shut(){
+      /* THE JINGLE IS NOT STOPPED. Steven, 10 Sep: "let the jingle finish,
+         it's only 10s — it's not like she'll open a new lesson right after
+         buying a pet and start working before it finishes."
+
+         Right. Cutting the music the instant she taps Yes! makes the
+         reward feel retracted, and closing the window is not a request for
+         silence. It plays out. */
+      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+      document.removeEventListener('keydown', onKey, true);
+      document.body.style.overflow = '';
+    }
+    function onKey(e){ if (e.key === 'Escape'){ e.stopPropagation(); shut(); } }
+
+    var ok = el('button', 'btn btn-primary pt-got-ok', t('stGotPet'));
+    ok.type = 'button';
+    ok.addEventListener('click', shut);
+    box.appendChild(ok);
+
+    /* The backdrop closes it, but only the backdrop — a tap inside the
+       window must not dismiss the thing she is reading. */
+    wrap.addEventListener('click', function(e){ if (e.target === wrap) shut(); });
+
+    /* NO SPARKLES FLYING OUT OF THE WINDOW.
+
+       They were there and they are gone. Steven, 10 Sep: "the glow that
+       flies out from the window just looks lame, sorta distorts the
+       screen — if I can't have sparkles I don't want anything. The music
+       and the special image and the glow around the pet do a lot."
+
+       Right. Three things were competing for the same moment and the
+       weakest one was the loudest. What carries it is the jingle, the
+       artwork, and the glow behind the animal INSIDE the window — all of
+       which are still here.
+
+       The frame stays because it carries the tier variables that both the
+       window and its contents read. */
+    var frame = el('div', 'pt-got-frame pt-got-' + tier);
+    frame.appendChild(box);
+
+    wrap.appendChild(frame);
+    document.body.appendChild(wrap);
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey, true);
+    if (ok.focus) ok.focus();
+
+    /* If it turns out there is no jingle, the greeting speaks after all —
+       see `fanfare`. The flag stops it speaking twice if the failure
+       arrives late. */
+    var spoke = false;
+    function speakLine(){
+      if (spoke || !line || !GH.speech) return;
+      spoke = true;
+      GH.speech.say(line.say);
+    }
+    var tune = fanfare(tier, speakLine);
+
+    /* THE JINGLE AND THE GREETING DO NOT TALK OVER EACH OTHER.
+
+       With a tier jingle playing, the pet's line is NOT spoken
+       automatically — the button under it still speaks on tap. Two audio
+       streams at once makes both unintelligible, and the jingle is the
+       one carrying the celebration.
+
+       Without a jingle the synth chime is 200ms, so the greeting speaks
+       on arrival as before. A greeting she has to press for is not a
+       greeting; a greeting buried under music is worse. */
+    if (!tune) speakLine();
+  }
+
+  /* ---------- A SOUND PER TIER, WITH THE SYNTH AS A FLOOR ----------
+
+     Steven, 09 Sep: "there will be a sound for each tier."
+
+     Tries `audio/pet-<tier>.ogg` and falls back to the two-note chime
+     below if there is no file, no decoder, or playback is refused. So the
+     moment always has a sound, the tiers get their own the day the files
+     land, and nothing 404s in a way she can hear.
+
+     OGG ONLY — the project's rule, recorded in _local-only/HANDOFF.md.
+     One track is one file; do not add an m4a fallback here.
+
+     `play()` returns a promise in modern browsers and throws in old ones,
+     so both are handled: a rejected promise means autoplay policy or a
+     missing file, and either way the synth covers it. */
+  /* Returns the <audio> so the window can stop it on the way out, or null
+     when it fell back to the synth.
+
+     THE JINGLES ARE 9-10 SECONDS. Steven is making them in Suno, 10 Sep.
+     That is far longer than the window is open — she dismisses in two or
+     three — so an unstopped clip plays on over whatever she does next.
+     `shut()` stops it. */
+  /* `onSilent` runs when there turns out to be no jingle — because the
+     file is missing, the codec is unsupported, or autoplay was refused.
+
+     IT HAS TO BE A CALLBACK. A missing file does NOT throw: `new Audio()`
+     succeeds and only the `play()` promise rejects, asynchronously. So a
+     synchronous return value cannot tell "playing" from "about to fail",
+     and treating the object as proof of sound would suppress the spoken
+     greeting AND never chime — silence on every purchase until the files
+     exist. */
+  /* ===================================================================
+     THE ACHIEVEMENT WINDOW.
+
+     Steven, 10 Sep: "I need that same window used for achievements. Same
+     picture same glow, same button, different sound."
+
+     So it is the pet-buy window's structure — the same `.pt-got-*`
+     classes, the same tier frame, glow, `Yes!` button and Escape/backdrop
+     close — with two differences he asked for:
+
+       • the SOUND is chosen by the achievement's payout, not the pet tier
+         (see `awardFanfare` below): A under 350, B 350–999, C 1000+.
+       • the TEXT is two lines: the active pet's own congratulation (its
+         `award` band in petlines.js), then the announcement of which
+         achievement was earned (`awGotAch`).
+
+     WHO SPEAKS: her active pet — `chosen()[0]`, the companion she has
+     already picked. That is why every pet has an `award` line. If she has
+     no pet yet (the first achievement can land before she owns one), the
+     window still shows, with the announcement line alone and no portrait
+     — it cannot show a pet that is not there.
+
+     The buy window (`gotWindow`) is deliberately left untouched: the Full
+     Tour taps into it and the buy flow is tuned, so this is a sibling
+     rather than a shared rewrite. The shared surface is the CSS. */
+  function awardWindow(won){
+    if (!won) return;
+    var list = won.length ? won : [won];
+    if (!list.length) return;
+    /* One window. If a round unlocks several at once, the first is the
+       one announced here — the rest are still paid and still listed on
+       the end screen; this is the moment, not the ledger. */
+    var a = list[0];
+
+    /* The active pet, if any, and its tier for the frame colour. */
+    var petId = (chosen()[0]) || null;
+    var pet = petId ? find(petId) : null;
+    var tier = (pet && pet.tier) || 'common';
+
+    var stray = document.querySelectorAll('.pt-got-wrap');
+    for (var si = 0; si < stray.length; si++){
+      if (stray[si].parentNode) stray[si].parentNode.removeChild(stray[si]);
+    }
+    document.body.style.overflow = '';
+
+    var wrap = el('div', 'pt-got-wrap');
+    var box = el('div', 'pt-got pt-got-pop');
+
+    var stage = el('div', 'pt-got-stage');
+    stage.appendChild(el('span', 'pt-got-burst'));
+    var glowSrc = 'images/pets/pet-glow.webp';
+    var glow = document.createElement('img');
+    glow.className = 'pt-got-glow';
+    glow.alt = '';
+    glow.src = GH.build ? GH.build.url(glowSrc) : glowSrc;
+    glow.addEventListener('error', function(){ glow.style.display = 'none'; });
+    stage.appendChild(glow);
+
+    /* The portrait is the active pet's pleased face, the same one the end
+       screen cheers with. Skipped cleanly when she has no pet. */
+    if (pet){
+      var pic = art(pet, 'greet');
+      if (pic){
+        pic.className = (pic.className || '') + ' pt-got-pic';
+        stage.appendChild(pic);
+      }
+    }
+    box.appendChild(stage);
+
+    /* Eyebrow + the achievement's own name, in place of the pet's name. */
+    box.appendChild(el('p', 'pt-got-sub', t('awUnlocked')));
+    box.appendChild(el('h2', 'pt-got-name', t(a.key)));
+
+    /* LINE ONE: the pet's congratulation, German over her language, tap to
+       replay — exactly the buy window's `.pt-got-say`. Absent with no pet. */
+    var line = (pet && GH.petVoice && GH.petVoice.bandLine)
+      ? GH.petVoice.bandLine(pet.id, 'award') : null;
+    if (line){
+      var says = el('button', 'pt-got-say');
+      says.type = 'button';
+      says.appendChild(el('span', 'pt-got-de-line', line.de));
+      if (line.tr) says.appendChild(el('span', 'pt-got-tr', line.tr));
+      says.addEventListener('click', function(){
+        if (GH.speech) GH.speech.say(line.say);
+      });
+      box.appendChild(says);
+    }
+
+    /* LINE TWO: the announcement. Its own quieter row so it does not
+       compete with the pet's voice for the eye. */
+    var told = el('p', 'pt-got-told');
+    told.textContent = t('awGotAch', { a:t(a.key) });
+    box.appendChild(told);
+
+    /* THE CRYSTAL BONUS, just above the button. Steven, 10 Sep — the number
+       is the achievement's own payout, so it adjusts per achievement. */
+    box.appendChild(el('p', 'pt-got-crystals', t('awGotCrystals', { n:a.pay })));
+
+    function shut(){
+      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+      document.removeEventListener('keydown', onKey, true);
+      document.body.style.overflow = '';
+    }
+    function onKey(e){ if (e.key === 'Escape'){ e.stopPropagation(); shut(); } }
+
+    var ok = el('button', 'btn btn-primary pt-got-ok', t('stGotPet'));
+    ok.type = 'button';
+    ok.addEventListener('click', shut);
+    box.appendChild(ok);
+
+    wrap.addEventListener('click', function(e){ if (e.target === wrap) shut(); });
+
+    var frame = el('div', 'pt-got-frame pt-got-' + tier);
+    frame.appendChild(box);
+    wrap.appendChild(frame);
+    document.body.appendChild(wrap);
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey, true);
+    if (ok.focus) ok.focus();
+
+    /* Sound by payout band. Same speak-on-silent contract as the buy
+       window: with a jingle the pet line waits for a tap, without one it
+       speaks on arrival. */
+    var spoke = false;
+    function speakLine(){
+      if (spoke || !line || !GH.speech) return;
+      spoke = true;
+      GH.speech.say(line.say);
+    }
+    var tune = awardFanfare(a.pay, speakLine);
+    if (!tune) speakLine();
+  }
+
+  /* THREE SOUNDS, CHOSEN BY PAYOUT. Steven, 10 Sep: "A is any achievement
+     under 350 crystals payout. B is 350 to 999. C is anything 1000+."
+
+     Files live beside the pet jingles, same `.ogg` rule. A missing file
+     falls through to the synth chime exactly as the pet fanfare does, so
+     an unrecorded band never 404-crashes the celebration. */
+  function awardBand(pay){
+    var n = pay || 0;
+    if (n >= 1000) return 'c';
+    if (n >= 350)  return 'b';
+    return 'a';
+  }
+  function awardFanfare(pay, onSilent){
+    var src = 'audio/pets/award-' + awardBand(pay) + '.ogg';
+    var done = false;
+    function silent(){
+      if (done) return;
+      done = true;
+      chime();
+      if (onSilent) onSilent();
+    }
+    try {
+      var au = new Audio(GH.build ? GH.build.url(src) : src);
+      au.volume = 0.7;
+      au.addEventListener('error', silent);
+      var pr = au.play();
+      if (pr && pr.catch) pr.catch(silent);
+      else if (!pr) silent();
+      return au;
+    } catch (e){ silent(); }
+    return null;
+  }
+
+  function fanfare(tier, onSilent){
+    /* `audio/pets/`, not `audio/`. Steven, 10 Sep — the songs already own
+       the top of that folder and these are a different kind of thing. */
+    var src = 'audio/pets/pet-' + (tier || 'common') + '.ogg';
+    var done = false;
+    function silent(){
+      if (done) return;
+      done = true;
+      chime();
+      if (onSilent) onSilent();
+    }
+    try {
+      var a = new Audio(GH.build ? GH.build.url(src) : src);
+      a.volume = 0.7;
+      a.addEventListener('error', silent);
+      var pr = a.play();
+      if (pr && pr.catch) pr.catch(silent);
+      else if (!pr) silent();          /* old browser, no promise: assume none */
+      return a;
+    } catch (e){ silent(); }
+    return null;
+  }
+
+  function chime(){
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      var ctx = new AC();
+      var now = ctx.currentTime;
+      [[660, 0], [880, 0.09]].forEach(function(n){
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = n[0];
+        /* A quick fade rather than a hard stop: an abrupt cut on a sine
+           wave clicks, and the click is louder than the note. */
+        gain.gain.setValueAtTime(0.0001, now + n[1]);
+        gain.gain.exponentialRampToValueAtTime(0.16, now + n[1] + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + n[1] + 0.16);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now + n[1]);
+        osc.stop(now + n[1] + 0.18);
+      });
+      /* Close it once the notes are done, so a session of buying does not
+         leave a stack of live audio contexts behind. */
+      window.setTimeout(function(){
+        try { ctx.close(); } catch (e){}
+      }, 600);
+    } catch (e){}
+  }
+
   function shortName(p){
     return (p.name || p.de).split(' the ')[0];
   }
@@ -238,6 +674,26 @@ GH.store = (function(){
       petsOf().forEach(function(x){ if (owns(x.id) && form(x.id) > 1) g++; });
       if (g < n.grown) return false;
     }
+    /* THREE NEW GATE KEYS, 10 Sep. Steven replaced the old ones:
+
+         slots   carrier slots owned, so `slots:2` is the second carrier
+         pets    how many pets she owns, any tier
+         quests  crystal quests finished, all time
+
+       The keys they replace — `allPets`, `allSlots`, `mature`, `grown` —
+       still work, because nothing says a pet cannot use them and removing
+       live code for data that no longer references it is how a future
+       change breaks silently. */
+    if (n.slots && slots() < n.slots) return false;
+    if (n.pets){
+      var owned = 0;
+      petsOf().forEach(function(x){ if (owns(x.id)) owned++; });
+      if (owned < n.pets) return false;
+    }
+    if (n.quests){
+      var qd = (GH.questDay && GH.questDay.lifetime) ? GH.questDay.lifetime() : 0;
+      if (qd < n.quests) return false;
+    }
     if (n.awards){
       if (!GH.awards || GH.awards.earned() < n.awards) return false;
     }
@@ -255,7 +711,12 @@ GH.store = (function(){
     var tu = GH.tutor ? GH.tutor.stats() : { mature:0 };
     var bits = [];
 
-    if (n.run) bits.push(t('stNeedRun', { at:GH.coins ? GH.coins.bestRun() : 0, n:n.run }));
+    /* `q` is the daily target — five — read from coins rather than written
+       into the sentence, so the wording follows if it ever changes. */
+    /* An object, not a function — see the note in app.js. */
+    var dayTarget = (GH.coins && GH.coins.rates) ? (GH.coins.rates.target || 5) : 5;
+    if (n.run) bits.push(t('stNeedRun', {
+      at:GH.coins ? GH.coins.bestRun() : 0, n:n.run, q:dayTarget }));
     /* Now that `now` is enforced it has to be SAID, or the shelf refuses for
        a reason it never gave. Its own line, not folded into `run`: they are
        different questions and she should be able to see which one she is
@@ -282,6 +743,19 @@ GH.store = (function(){
       var g = 0;
       petsOf().forEach(function(x){ if (owns(x.id) && form(x.id) > 1) g++; });
       bits.push(t('stNeedGrown2', { at:g, n:n.grown }));
+    }
+    if (n.slots){
+      bits.push(t('stNeedSlots', { at:slots(), n:n.slots }));
+    }
+    if (n.pets){
+      var op = 0;
+      petsOf().forEach(function(x){ if (owns(x.id)) op++; });
+      bits.push(t('stNeedPets', { at:op, n:n.pets }));
+    }
+    if (n.quests){
+      bits.push(t('stNeedQuests', {
+        at:(GH.questDay && GH.questDay.lifetime) ? GH.questDay.lifetime() : 0,
+        n:n.quests }));
     }
     if (n.awards){
       bits.push(t('stNeedAwards2', { at:GH.awards ? GH.awards.earned() : 0, n:n.awards }));
@@ -618,6 +1092,20 @@ GH.store = (function(){
     }
 
     if (gated && !gateOpen){
+      /* SAY "LOCKED" BEFORE SAYING WHY.
+
+         Steven, 10 Sep: "nothing says this, it just looks broken."
+
+         The requirement line was there and has been all along — but a
+         quiet grey sentence under a button that does nothing reads as a
+         fault, not as a condition. Nothing on the card ever used the word.
+
+         So: a label with a padlock, then the requirement under it. The
+         card now states its state before it states its terms. */
+      var lk = el('div', 'pt-lockrow');
+      lk.appendChild(el('span', 'pt-lock-ico', '\uD83D\uDD12'));
+      lk.appendChild(el('span', 'pt-lock-word', t('stLocked')));
+      box.appendChild(lk);
       box.appendChild(el('span', 'pt-need', needText(p)));
 
       /* A WAY TO GO AND LOOK. Steven: "if there's an achievement
@@ -659,6 +1147,29 @@ GH.store = (function(){
       b.appendChild(GH.coins.markWith(p.cost));
       b.addEventListener('click', function(){ buy(p); });
       box.appendChild(b);
+
+      /* EVERY PET THAT CANNOT BE BOUGHT SAYS WHY.
+
+         Steven, 10 Sep: "if you cannot buy the pet, it needs to have a
+         message on the pet — why you cannot buy the pet." On every one,
+         not just the gated ones.
+
+         The gate has its own label further up. This is the other reason:
+         the gate is open, the price is simply out of reach. A disabled
+         button with a number on it and nothing else is the same dead end
+         as the locked card was — she can see the price, but not that the
+         price IS the problem, nor how far off she is.
+
+         The shortfall is stated, because "you need 240 more" is a target
+         and "you cannot afford this" is a wall. */
+      if (!GH.coins.afford(p.cost)){
+        var short = p.cost - (GH.coins.balance ? GH.coins.balance() : 0);
+        var dr = el('div', 'pt-lockrow is-dear');
+        dr.appendChild(el('span', 'pt-lock-ico', '\uD83D\uDC8E'));
+        dr.appendChild(el('span', 'pt-lock-word', t('stNeedMore', { n:Math.max(0, short) })));
+        box.appendChild(dr);
+      }
+
       /* the gate is behind her, so say so rather than leaving the card
          looking the same as one that was never gated */
       if (gated) box.appendChild(el('span', 'pt-need is-open', t('stGateOpen')));
@@ -719,14 +1230,28 @@ GH.store = (function(){
       state.justGrew = null;
     }
 
+    /* ---------- SHE JUST BOUGHT ONE ----------
+
+       Steven, 09 Sep: "when you buy a pet I want a window to open, the
+       pet greets you" — with a glow behind the animal, the message below
+       it, and a cheerful button.
+
+       A WINDOW, NOT A STRIP. This began as one green line under the
+       shelf. A pet costs real crystals and is the one thing in the app
+       she picks out and keeps; a receipt is the wrong shape for that.
+
+       VERTICAL, and the order matters: the animal first with its glow
+       behind it, then who it is, then what it says. The glow is
+       decoration and sits UNDER the picture, so a missing file changes
+       nothing but the sparkle.
+
+       IT SAYS ITS OWN LINE. All sixteen pets have a `buy` line written in
+       data/petlines.js — German, English, Russian in both genders — and
+       nothing had ever read it. This is a screen for text that was
+       already there, not new content. */
     if (state.justBought){
       var p = find(state.justBought);
-      if (p){
-        var yay = el('div', 'pt-got');
-        yay.appendChild(el('span', 'pt-got-name', (p.name || p.de) + ' \u00b7 ' + p.de));
-        yay.appendChild(el('span', 'pt-got-sub', t('stBought')));
-        card.appendChild(yay);
-      }
+      if (p) gotWindow(p);
       state.justBought = null;
     }
 
@@ -1027,6 +1552,136 @@ GH.store = (function(){
     });
   }
 
+  /* ---------- THE THREE THE PET GRID CALLS ----------
+
+     `petstrip.js`'s `tapped()` has always called `S.buyState(id)`,
+     `S.pickById(id)` and `S.buyById(id)`. NONE OF THE THREE EXISTED.
+     store.js exported eighteen functions and not one of those, so every
+     tap in the pet grid threw and the grid did nothing — which is the
+     "8 of 16 cells do nothing when tapped" noted days ago and never
+     chased down. Steven found the consequence, 09 Sep: "if I buy pet
+     carriers there's no clear way to choose which 3 I want to bring."
+
+     It was not that choosing was unimplemented. petstrip.js was written
+     against an interface store.js never grew.
+
+     AND `chosen` WAS APPEND-ONLY. Both `buy()` and `spendToken()` do
+
+         if (m.me.chosen.length < slots()) m.me.chosen.push(p.id);
+
+     so a pet joins the strip only if there is room at the moment it is
+     bought. Buy a carrier AFTER owning pets and the older ones can never
+     be brought out; get bored of one and it can never be put away. That
+     is the three-slots-showing-two Steven saw. `pickById` is the only
+     thing in the file that can remove an id, which is why it is the
+     important one of the three. */
+
+  /* No `byId` existed either, and three call sites now want one. */
+  function byId(id){
+    var all = petsOf(), i;
+    for (i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
+    return null;
+  }
+
+  /* What the grid needs to know about a pet to decide what a tap means.
+
+     `tokenFor(p)` already returns the token kind she holds that would
+     take this pet, or null, AND already returns null for one she owns —
+     so it is the whole token question in one call. My first version
+     paired it with `tokensHeld(kind)`, which does not take an argument
+     and returns a list; that would have been true for every pet. */
+  function buyState(id){
+    var p = byId(id);
+    if (!p) return 'locked';
+    if (owns(id)) return 'own';
+    if (p.need && !earned(p)) return 'locked';
+    if (tokenFor(p)) return 'can';
+    if (!p.cost) return 'locked';
+    return (GH.coins && GH.coins.balance && GH.coins.balance() >= p.cost)
+      ? 'can' : 'locked';
+  }
+
+  function buyById(id){
+    var p = byId(id);
+    if (!p || owns(id)) return false;
+
+    /* THE STORE SCREEN DOES NOT HAVE TO BE OPEN.
+
+       `buy()` and `spendToken()` both end with `state.justBought = ...`
+       and `paint()`. `state` is assigned only inside `open()` and
+       `paint()` writes into `host` — so both are screen operations, and
+       calling them from the PET GRID, which can be opened from the header
+       without ever visiting the Store, throws on a null `state`.
+
+       That is a live path: the grid is where Steven expects to buy and
+       equip, and it is reachable from every screen.
+
+       So the screen bookkeeping is stubbed for the duration of the call
+       and put back afterwards. Stubbing rather than guarding inside
+       `buy()` keeps the store screen's own behaviour exactly as it was —
+       when the Store IS open, `state` is real and this changes nothing. */
+    var hadState = state, hadHost = host;
+    var headless = !state;
+    if (headless){
+      /* BOTH of them. `state` alone is not enough: `paint()` starts with
+         `host.textContent = ''`, so a null host throws one line after the
+         purchase has already been saved. Measured — the first version of
+         this stubbed only `state` and every buy came back false while
+         quietly succeeding.
+
+         A detached div rather than the real host: `paint()` then draws a
+         complete store screen into nothing and it is discarded. Cheap,
+         and far safer than teaching `buy()` to skip its repaint. */
+      state = { onExit:null, justBought:null, justGrew:null, focus:null };
+      host = document.createElement('div');
+    }
+    try {
+      /* A token pays before crystals do: it is the narrower currency, and
+         spending crystals on a pet a held token would have taken wastes
+         the token, which may fit nothing else. */
+      if (tokenFor(p)) spendToken(p); else buy(p);
+    } catch (e){
+      /* Nothing above should throw now. If something does, the save has
+         already happened or it has not — `owns()` below is read AFTER
+         the fact either way, which is what the first version got wrong:
+         it captured the answer before the save. */
+    }
+    if (headless){ state = hadState; host = hadHost; }
+    return owns(id);
+  }
+
+  /* IN AND OUT OF THE STRIP. Toggles, capped at the carriers she owns.
+
+     REFUSES rather than swapping when the slots are full. Steven's call
+     was mine to make and this is the safer half: swapping the oldest
+     would silently put away a pet she had deliberately chosen, on a tap
+     she may have meant for something else. Refusing costs her one extra
+     tap and cannot lose anything.
+
+     Returns 'on', 'off' or 'full' so the caller can say which happened —
+     a refusal that looks identical to a no-op is the bug this replaces. */
+  function pickById(id){
+    if (!owns(id)) return 'no';
+    var m = mine();
+    var list = (m.me.chosen || []).filter(function(x){
+      return m.me.own.indexOf(x) >= 0;
+    });
+    var at = list.indexOf(id);
+    var out;
+    if (at >= 0){
+      list.splice(at, 1);
+      out = 'off';
+    } else if (list.length >= slots()){
+      return 'full';                 /* nothing saved, nothing lost */
+    } else {
+      list.push(id);
+      out = 'on';
+    }
+    m.me.chosen = list;
+    save(m);
+    return out;
+  }
+
   /* Every pet, with whether it is hers — for the grid. `earned` says
      whether the gate is behind her, so the grid can tell "not bought yet"
      from "not available yet", which are different disappointments. */
@@ -1040,7 +1695,42 @@ GH.store = (function(){
     });
   }
 
-  return { open:open, cheerers:cheerers, art:art, owns:owns,
+  /* WHY A PET CANNOT BE BOUGHT, in her language.
+
+     The grid greys a locked cell and needs to say what would open it.
+     `needText` already builds that sentence for the shelf, so this is the
+     same wording rather than a second one that could drift from it.
+
+     Empty string when the pet is not gated — the caller then falls back
+     to "not yet", which covers simply not affording it. */
+  /* Does this pet's gate mention achievements? The grid asks, so a tap on
+     such a pet can go straight there rather than only saying so. */
+  /* Counts the achievements read. Exported so awards.js can test them
+     without reaching into this module's storage. */
+  function ownedCount(){
+    var n = 0;
+    petsOf().forEach(function(x){ if (owns(x.id)) n++; });
+    return n;
+  }
+  function slotCount(){ return slots(); }
+
+  function needsAward(id){
+    var p = find(id);
+    return !!(p && p.need && p.need.awards);
+  }
+
+  function needFor(id){
+    var p = find(id);
+    if (!p || !p.need) return '';
+    return needText(p) || '';
+  }
+
+  return { open:open, cheerers:cheerers, art:art, owns:owns, needFor:needFor, needsAward:needsAward,
+           awardWindow:awardWindow,
+           ownedCount:ownedCount, slotCount:slotCount,
+           /* The three petstrip.js has always called — see the note by
+              `buyState`. Missing until 09 Sep. */
+           buyState:buyState, buyById:buyById, pickById:pickById,
            strip:strip, shelf:shelf, chosen:chosen,
            slots:slots, form:form, god:god, setGod:setGod,
            tokens:tokens, tokensHeld:tokensHeld, tokenFor:tokenFor,

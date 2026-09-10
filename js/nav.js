@@ -37,10 +37,12 @@ GH.nav = (function(){
                 class of bug the note above this list describes.
 
                 `.pick` covers the collapsed picker, its trigger and its
-                panel in one, and `.lg-pair` is the L1 -> L2 control. The
+                panel in one, and `.brand-mark` is the L1 -> L2 control —
+                it was `.lg-pair` and `.langswitch` until 09 Sep, when the
+                pill was replaced by the badge in the corner. The
                 header sits on every screen, so anything added to it must
                 be listed here or it inherits the same bug. */
-             ' .swatch, .pick, .lg-pair, .langswitch, .typeswitch,' +
+             ' .swatch, .pick, .brand-mark, .typeswitch,' +
              /* Anything with its own job on a screen that also has an
                 advance button has to be listed here, or one tap does two
                 things. Three screens were quietly wrong:
@@ -100,6 +102,25 @@ GH.nav = (function(){
              ' .rd-translate, .rd-warn-yes, .rd-warn-no, .sg-words, .sg-fill, .sw-de, .sw-lens, .pt-buy,' +
              ' .sw-match,' +
              ' .gd-open, .gd-head, .gd-go, .purse,' +
+             /* The comic page, which became tappable on 09 Sep so she can
+                open it in the lightbox — lettering at page-tile size is
+                not readable on a phone. Without this entry one tap would
+                both zoom the page AND count as a navigation on a screen
+                that may be armed, same reason as every other line here. */
+             ' .cm-page,' +
+             /* THE LIGHTBOX'S OWN CONTROLS, which were never here.
+
+                Pre-existing gap, found while adding `.cm-page` above:
+                closing the zoomed picture also counted as a navigation.
+                It mattered less when the lightbox only opened from the
+                word list and the end screen; now that a comic page opens
+                it, the screen behind it can be armed, so dismissing the
+                picture could advance the comic.
+
+                `.lb-close` is also a Full Tour target (step 61 tells her
+                to close it), and a tour tap that ALSO navigates is how a
+                step gets skipped. */
+             ' .lb-overlay, .lb-close, .lb-pic,' +
              /* The purse's panel and everything in it. `.purse` alone was
                 enough while the balance navigated away; now it opens a
                 panel that sits ON a screen which may have a

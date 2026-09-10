@@ -51,6 +51,24 @@
   /* Grammatical gender, colour-coded. Tokens rather than literals so the
      dark themes can lift them; a fixed mid-tone cannot serve both. */
   --gen-m:#285F90;             --gen-f:#97385B;        --gen-n:#43592B;
+  /* MEASURED, NOT PICKED BY EYE. Contrast against the off-white strip
+     (#FAF7F2), WCAG AA for text needs 4.5:
+         blue   #2B6CB0  5.07   Grok's value, and it passes
+         orange #A85A0B  4.76   Grok's #DD6B20 was 3.17 and FAILED
+         green  #2F855A  4.25 FAILED -> #2E7D4F 4.72
+     Orange on a light background is the hard one: both the value Grok
+     proposed and my first attempt (#C0700F, 3.53) were unreadable by
+     the standard. #A85A0B is a deeper amber that clears it and still
+     reads unmistakably orange — and being browner than --flame
+     (#F15025) is a bonus, since flame is the app accent in 133 rules. */
+  --role-subj:#2B6CB0;         --role-verb:#A85A0B;    --role-obj:#2E7D4F;
+  --role-adj:#7A4BA8;          --role-adv:#0F7C82;
+  --mark-neg:#B3243C;          --mark-agree:#2E7D4F;
+  --role-subj-rgb:43 108 176;      --role-verb-rgb:168 90 11;
+  --role-obj-rgb:46 125 79;       --role-adj-rgb:122 75 168;
+  --role-adv-rgb:15 124 130;
+  --mark-neg-rgb:179 36 60;       --mark-agree-rgb:46 125 79;
+  --strip-bg:#FAF7F2;          --strip-ink:#2B2228;    --strip-edge:#E3DAD0;
 
   /* --shade-rgb does two different jobs and they disagree in a dark theme.
      As an inset tint it must lighten a dark panel, so it flips to white.
@@ -201,6 +219,14 @@ html[data-theme="grove"]{
 
 html[data-theme="midnight"]{
   --gen-m:#8FB6E8;                --gen-f:#F09CBC;        --gen-n:#9FD8A6;
+  --role-subj:#8FC4F0;         --role-verb:#E8A64B;    --role-obj:#7FD3A3;
+  --role-adj:#C9A6E8;          --role-adv:#6FD3D8;
+  --mark-neg:#FF9AA8;          --mark-agree:#7FD3A3;
+  --role-subj-rgb:143 196 240;      --role-verb-rgb:232 166 75;
+  --role-obj-rgb:127 211 163;       --role-adj-rgb:201 166 232;
+  --role-adv-rgb:111 211 216;
+  --mark-neg-rgb:255 154 168;       --mark-agree-rgb:127 211 163;
+  --strip-bg:#221C21;          --strip-ink:#F2EBE6;    --strip-edge:#3A3138;
   --sand:#9FB4D8;              --sand-rgb:159 180 216;
   --sand-deep:#6E86AE;         --sand-wash:#1B2233;
   --flame:#FF7A59;             --flame-rgb:255 122 89;
@@ -215,6 +241,14 @@ html[data-theme="midnight"]{
 
 html[data-theme="ember"]{
   --gen-m:#93BEE8;                --gen-f:#F5A3B8;        --gen-n:#A9D6A2;
+  --role-subj:#8FC4F0;         --role-verb:#E8A64B;    --role-obj:#7FD3A3;
+  --role-adj:#C9A6E8;          --role-adv:#6FD3D8;
+  --mark-neg:#FF9AA8;          --mark-agree:#7FD3A3;
+  --role-subj-rgb:143 196 240;      --role-verb-rgb:232 166 75;
+  --role-obj-rgb:127 211 163;       --role-adj-rgb:201 166 232;
+  --role-adv-rgb:111 211 216;
+  --mark-neg-rgb:255 154 168;       --mark-agree-rgb:127 211 163;
+  --strip-bg:#221C21;          --strip-ink:#F2EBE6;    --strip-edge:#3A3138;
   --sand:#E5B98F;              --sand-rgb:229 185 143;
   --sand-deep:#B98A5E;         --sand-wash:#2A1F1A;
   --flame:#FF8A4C;             --flame-rgb:255 138 76;
@@ -229,6 +263,14 @@ html[data-theme="ember"]{
 
 html[data-theme="pine"]{
   --gen-m:#93C4EE;                --gen-f:#F2A2BC;        --gen-n:#A8DEB2;
+  --role-subj:#8FC4F0;         --role-verb:#E8A64B;    --role-obj:#7FD3A3;
+  --role-adj:#C9A6E8;          --role-adv:#6FD3D8;
+  --mark-neg:#FF9AA8;          --mark-agree:#7FD3A3;
+  --role-subj-rgb:143 196 240;      --role-verb-rgb:232 166 75;
+  --role-obj-rgb:127 211 163;       --role-adj-rgb:201 166 232;
+  --role-adv-rgb:111 211 216;
+  --mark-neg-rgb:255 154 168;       --mark-agree-rgb:127 211 163;
+  --strip-bg:#221C21;          --strip-ink:#F2EBE6;    --strip-edge:#3A3138;
   --sand:#A9C8A6;              --sand-rgb:169 200 166;
   --sand-deep:#7CA178;         --sand-wash:#18261C;
   --flame:#FFA24C;             --flame-rgb:255 162 76;
@@ -517,18 +559,94 @@ button{font-family:inherit;font-size:inherit;cursor:pointer}
   margin:0 auto;
 }
 
-.brand{display:flex;align-items:center;gap:10px;min-width:0}
+/* ROOM FOR THE BACK BUTTON, WHICH FLOATS OVER THIS HEADER.
 
+   Steven, 09 Sep: "The back button is still over the DE orange thing —
+   need to shift it over so the back button does not overlap."
+
+   `.backlink` is `position:fixed` at `top:8px` and `left:clamp(16px,4vw,
+   40px)` — pinned to the VIEWPORT, and at the top of the page that band
+   is the topbar. So on every screen with a back button it lands squarely
+   on `.brand-mark`, the 38px orange DE tile.
+
+   UNCONDITIONAL, AND THAT IS DELIBERATE. `body:has(.backlink)` would
+   shift it only where a button exists, and the note further down this
+   file records why that was rejected once already: `:has()` is missing
+   from Safari before 15.4 and Firefox before 121, and the fallback is the
+   collision it was meant to fix. A layout that depends on a recent
+   selector is broken on someone's phone.
+
+   So the brand sits 52px in on every screen, hub included. The cost is a
+   little air to the left of the logo where no button is; the alternative
+   is the logo hidden behind an arrow on all forty sub-screens.
+
+   52px is the measured clearance: the button is 45px wide (17px font,
+   19px icon at 1.1em, 13px padding each side) and starts at the same
+   `clamp()` the topbar's own padding uses, so its left edge and the
+   brand's are already aligned. */
+.brand{display:flex;align-items:center;gap:10px;min-width:0;padding-left:52px}
+@media (min-width:980px){
+  /* From here `main` and the topbar are centred at 900px, so the
+     viewport-anchored button sits outside them and the gap is for
+     nothing. Same breakpoint as `.practice-title`. */
+  .brand{ padding-left:0 }
+}
+
+/* THE LANGUAGE SWITCH, which used to be a static logo tile.
+
+   See the note by `paintLang` in app.js. Two stacked lines now: the
+   language she is LEARNING on top, her own underneath.
+
+   42x42, back near the original 38. `langShort` is capped at three
+   characters in every language now, so the widest stacked pair is three
+   over three and the badge no longer has to be wide enough for "Engl."
+   over "Russ." — see the note by `langShort_de` in i18n.js.
+
+   It is a <button> now, so it needs the button reset: browsers give one
+   their own font, border and background, none of which the old <span>
+   had to override. */
 .brand-mark{
   flex:none;
-  width:38px;height:38px;
+  position:relative;
+  width:44px;min-height:44px;
   display:grid;place-items:center;
+  border:0;
   border-radius:11px;
   background:var(--flame);
   color:var(--ink-on-accent);
-  font-weight:700;
-  letter-spacing:.06em;
+  font-family:var(--ff-ui);
+  letter-spacing:.04em;
   box-shadow:0 3px 0 var(--flame-dark);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.brand-mark:active{ transform:translateY(1px); box-shadow:0 2px 0 var(--flame-dark) }
+.brand-mark:focus-visible{ outline:3px solid var(--fg); outline-offset:2px }
+
+/* ONE BADGE READS, THE OTHER SITS ON IT.
+
+   Steven, 09 Sep: "bigger version = L2, tiny version in bottom corner =
+   L1. L1 barely has to be readable, the L2 is the main one."
+
+   Stacking them evenly made two labels of equal weight and the eye had to
+   pick. The target language is what she checks; her own is a reminder
+   that it is a switch at all and what it switches FROM. So the target
+   fills the tile and the native rides the corner, deliberately small.
+
+   Absolutely placed rather than in the flow, so the target stays
+   optically centred in the tile instead of being pushed up by a second
+   line. */
+.bm-to{
+  font:700 1.02rem/1 var(--ff-ui);
+}
+.bm-from{
+  position:absolute; right:2px; bottom:1px;
+  padding:1px 3px;
+  border-radius:4px;
+  background:rgb(var(--shade-rgb) / .30);
+  font:700 .48rem/1 var(--ff-ui);
+  letter-spacing:.02em;
+  opacity:.9;
 }
 
 .brand-text{display:flex;flex-direction:column;line-height:1.22;min-width:0}
@@ -555,38 +673,20 @@ button{font-family:inherit;font-size:inherit;cursor:pointer}
 
    The old buttons were 31px tall, under the 40px every other control in
    this header meets. This one is a single target and gets the full height. */
-.langswitch{ display:flex }
 
-.lg-pair{
-  display:flex; align-items:center; gap:6px;
-  min-height:40px;
-  padding:7px 12px;
-  border-radius:999px;
-  background:rgb(var(--paper-rgb) / .8);
-  border:1.5px solid rgb(var(--mauve-rgb) / .45);
-  color:var(--fg);
-  font-weight:600; font-size:.92rem; letter-spacing:.04em;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
-.lg-pair:hover{ background:rgb(var(--sand-rgb) / .55) }
-.lg-pair:focus-visible{ outline:2px solid var(--flame); outline-offset:2px }
 
 /* The eye should land on the two languages, not the connector: lighter,
    smaller, and given room on both sides so it reads as a relation rather
    than a third word. */
-.lg-arrow{
-  color:var(--fg-soft);
-  font-size:.85em;
-  line-height:1;
-  transform:translateY(-.5px);
-}
 /* L2 is the point of the app, so it carries the accent and L1 does not. */
-.lg-l2{ color:var(--fg-accent) }
 
 /* ---------- the two-step picker ---------- */
 .lg-wrap{
-  position:fixed; inset:0; z-index:120;
+  position:fixed; inset:0; z-index:770
+  /* 770, not 120 — above the tour scrim (700), below the
+     bubble (900). the language picker. A panel below the scrim gets
+     dimmed during a tour and its contents cannot be lit, because a
+     child cannot escape its ancestor’s stacking context. */;
   display:grid; place-items:center;
   padding:20px;
   background:rgb(var(--ink-rgb) / .55);
@@ -867,7 +967,50 @@ h2{
   gap:14px;
   margin-bottom:16px;
 }
-.practice-title{min-width:0}
+/* ROOM FOR THE BACK BUTTON, ON EVERY SCREEN THAT HAS ONE.
+
+   Steven, 09 Sep: "every section you move into with the BACK button, can
+   we move the titles forward just a tiny bit so the back button doesn't
+   overlap them?"
+
+   `.backlink` is `position:fixed` and aligned to the VIEWPORT edge, not
+   the content column — so it takes up no space in the `.practice-head`
+   it is a child of, and the title beside it starts at the column's left
+   edge and slides underneath.
+
+   ONE RULE RATHER THAN FORTY. `.practice-title` is the header of every
+   activity in the app — forty files use it — so the offset belongs here
+   and not in each screen. A comic-specific version of this fix went into
+   `.cm-bar-t` earlier the same day; that one stays because the comic
+   builds its own bar rather than using `.practice-head`.
+
+   ONLY WHERE IT IS NEEDED. `main` is 900px and centred, so from about
+   980px up the content column already begins well right of the button
+   and the offset would be a gap for nothing. Below that the two overlap,
+   which is why this is the phone-and-tablet case.
+
+   MEASURED, NOT GUESSED, and the first attempt was too generous.
+
+   `main` uses `padding:8px clamp(16px,4vw,40px)` and the button uses
+   `left:clamp(16px,4vw,40px)` — THE SAME EXPRESSION. So the title's left
+   edge already sits exactly where the button begins, at every width, and
+   the offset only has to clear the button's own WIDTH rather than its
+   position as well.
+
+   That width is fixed: font-size `calc(.86rem + 3px)` is 17px, the svg is
+   1.1em so 19px, plus 13px padding either side — 45px, the same on a
+   phone and a tablet because none of it scales with the viewport. Hence
+   one value rather than the two breakpoints this had, and 52px rather
+   than 62 and 76.
+
+   Steven, 09 Sep: "we turned it into an icon so its footprint is pretty
+   limited for all versions of it." Right on both counts — small, and the
+   same size whichever of the four arrows is chosen. */
+.practice-title{min-width:0; padding-left:52px}
+@media (min-width:980px){
+  /* Content column is clear of the viewport-anchored button from here. */
+  .practice-title{ padding-left:0 }
+}
 .practice-title h2{font-size:1.1rem;line-height:1.25}
 .practice-title p{margin:2px 0 0;font-size:0.94rem;color:var(--fg-accent);font-weight:600}
 
@@ -1292,12 +1435,12 @@ h2{
 .backlink{
   position:fixed;
   top:calc(8px + env(safe-area-inset-top, 0px));
-  /* Aligned to the CONTENT COLUMN, not the viewport edge. `main` is 900px
-     centred, so a button pinned to the left of a wide desktop window would
-     float in empty space a hand's width from anything it belongs to.
-     This is the same sum main uses for its own left padding. */
-  left:max(clamp(16px, 4vw, 40px),
-           calc(50vw - 450px + clamp(16px, 4vw, 40px)));
+  /* THE VIEWPORT EDGE, NOT THE CONTENT COLUMN. It was aligned to `main`
+     (900px centred) so it would sit against the text it belongs to. On a
+     wide window that puts it a third of the way across the screen, where
+     it stops reading as persistent navigation and starts looking like
+     page content. Steven asked for it back on the side, 08 Sep. */
+  left:clamp(16px, 4vw, 40px);
   z-index:40;
   display:inline-flex;align-items:center;gap:6px;
   background:var(--paper);
@@ -1402,7 +1545,66 @@ h2{
    is the viewport: the panel lands a full screen height below the header
    and off the bottom, so tapping the balance looks like it does nothing.
    `.pick` next to it declares the same thing for the same reason. */
+/* ============================================================
+   THE TOOLBAR ROW. ONE HEIGHT, SET HERE, FOR EVERYTHING IN IT.
+   ============================================================
+
+   Steven, 09 Sep: "I WANT ALL OF THEM TO ALIGN LIKE THEY WERE BORN TO BE
+   EXACTLY IN ALIGNMENT — to the pixel, no up or down even by 1 pixel on
+   1 of them. I never want to have to mention this again, ever."
+
+   THIS BLOCK IS THE ONLY PLACE THE ROW'S HEIGHT IS DECIDED. Do not set a
+   height, min-height, padding or border on `.purse`, `.themeswitch`,
+   `.petstrip`, `.petstrip-btn` or `.bt-perch` that could change their
+   outer box. If a new control joins the row it inherits 40px here and
+   needs no rule of its own.
+
+   WHY IT KEPT DRIFTING. Each control carried its own sizing, so the row
+   was only ever as aligned as five separate rules happened to agree.
+   `.themeswitch` was the last offender: `padding:3px` and a `1.5px`
+   border around a 40px swatch, with no height of its own, computed to
+   49px under `border-box` — and a `min-height:40px` added to it did
+   nothing, because 49 already cleared it. Fixing them one at a time is
+   how this took eight attempts.
+
+   `height` AND `min-height` AND `max-height`, all 40: `min` alone lets a
+   tall child push a control out, `max` alone lets a short one collapse,
+   and `height` alone is overridable by a later `min-height`. All three
+   together cannot be beaten by content.
+
+   `> *` reaches the direct children (`.purse`, `.themeswitch`,
+   `.petstrip`, `.bt-perch`), and the second selector reaches the button
+   INSIDE the pet strip, which is a nav wrapping a button.
+
+   `flex:none` stops the flex row stretching or shrinking any of them.
+   `align-self:center` is belt and braces over the row's own
+   `align-items`, so a control setting its own alignment cannot escape. */
 .topbar-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;position:relative}
+
+/* NAMED CONTROLS, NOT `> *`. The first version blanketed every direct
+   child — and the panels that open FROM this row are also children of it:
+   the crystals popup (`.purse-pop`) and the Appearance panel. Both got
+   clamped to 40px and collapsed on themselves. Steven, 09 Sep, twice,
+   which is once more than it should have taken.
+
+   Naming the four controls means a panel added later cannot be caught by
+   this, and a new CONTROL is one line to add. */
+.topbar-controls.topbar-controls > .purse,
+.topbar-controls.topbar-controls > .themeswitch,
+.topbar-controls.topbar-controls > .petstrip,
+.topbar-controls.topbar-controls .petstrip-btn{
+  height:40px;
+  min-height:40px;
+  max-height:40px;
+  flex:none;
+  align-self:center;
+  box-sizing:border-box;
+  margin-top:0;
+  margin-bottom:0;
+}
+/* The pet strip is a nav around the button; it must not add a box of its
+   own on top of the button's 40. */
+.topbar-controls.topbar-controls .petstrip{ padding:0; border:0; background:none }
 
 /* The listening counter above a song, and the one-off explanation of what
    tapping every line is worth. The tip is a note, not a dialog: it appears
@@ -1580,11 +1782,24 @@ h2{
 /* Inside the card the two rows are bare — the card already carries the
    border, the background and the padding, and a bordered box inside a
    bordered box reads as a mistake. */
+/* THE PANEL'S OWN ROWS ARE NOT THE TOOLBAR ROW.
+
+   `.themeswitch` is used twice: once as the collapsed 40px control in the
+   header, and again INSIDE this panel as a wrapping grid of swatches. The
+   40px height that makes the header row line up crushes the panel version,
+   whose rows wrap — which is how the colour dots ended up sitting on top
+   of the `Aa` type samples. Steven's screenshot, 09 Sep.
+
+   So the panel explicitly undoes the height. `height:auto` and
+   `max-height:none` together, because the header rule sets both and
+   overriding only one leaves the other clamping. */
 .pick-panel .themeswitch,
 .pick-panel .typeswitch,
 .pick-panel .backswitch{
   background:none; border:0; padding:0;
   max-width:none; width:auto;
+  height:auto; min-height:0; max-height:none;
+  flex-wrap:wrap;
   justify-content:flex-start;
 }
 /* A hairline between the colours and the faces, so the four `Aa` read as a
@@ -1624,6 +1839,14 @@ h2{
 .pick-panel .themeswitch{ gap:4px }
 .pick-panel .swatch{ width:52px; height:52px }
 .pick-panel .swatch-dot{ width:28px; height:28px }
+
+/* THE COLLAPSED CONTROL IN THE TOOLBAR, and only that one. `> .swatch`
+   is the button sitting in the row; everything in `.pick-panel` is the
+   opened menu and keeps the 22px above. 38px inside a 40px button so it
+   fills it the way the crystal pill and the pet pill fill theirs. */
+.themeswitch > .swatch .swatch-dot{
+  width:38px; height:38px;
+}
 .pick-panel .typeswitch button{
   padding:13px 12px;         /* 14.4px line + 26 = 40.4px, a real target */
   font-size:.9rem;
@@ -1655,11 +1878,28 @@ h2{
 
 /* Wraps rather than shrinking: nine targets will not fit one phone
    row at a size a finger can hit, so they go to two rows instead. */
+/* EXACTLY 40px TALL, LIKE EVERY OTHER CONTROL IN THIS ROW.
+
+   This was the misalignment, and it survived several attempts to fix it
+   because the number was never on this rule. It had `padding:3px` and a
+   `1.5px` border wrapped around a 40px `.swatch`, and no height of its
+   own — so with `box-sizing:border-box` its computed height was
+   40 + 3 + 3 + 1.5 + 1.5 = 49px while the crystal pill, the pet pill and
+   the perch were all 40. A `min-height:40px` added here earlier did
+   nothing, because 49 already cleared it.
+
+   The padding and border are gone rather than the swatch being shrunk to
+   fit inside them: the coloured dot IS the control, and a frame around it
+   only made it read smaller than its neighbours. `height`, not
+   `min-height`, so nothing inside can push it out of line again. */
 .themeswitch{
-  display:flex;flex-wrap:wrap;justify-content:flex-end;
-  gap:2px;padding:3px;border-radius:var(--r-md);
-  background:rgb(var(--paper-rgb) / .8);
-  border:1.5px solid rgb(var(--mauve-rgb) / .45);
+  display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;
+  gap:2px;
+  height:40px;
+  padding:0;
+  border:0;
+  border-radius:999px;
+  background:transparent;
 }
 .swatch{
   width:40px;height:40px;               /* 40px tap target */
@@ -1667,8 +1907,24 @@ h2{
   cursor:pointer;display:grid;place-items:center;line-height:0;
   -webkit-tap-highlight-color:transparent;
 }
+/* THE DEFAULT IS 22px, AND THAT IS THE PANEL'S SIZE.
+
+   The open Appearance panel lives INSIDE `#themeswitch`, so a bare
+   `.swatch-dot` rule reaches its swatches too — sizing them to 38px made
+   the dots overlap the "Aa" type samples beside them. Measured from
+   Steven's screenshot, 09 Sep.
+
+   The toolbar's own swatch is enlarged separately below, where it can be
+   addressed without touching the panel.
+
+   1px of half-transparent white on every dot: several themes are close
+   enough to the page behind them that a plain circle dissolves into it,
+   which is the other half of what Steven reported. It reads as a rim on
+   a light theme and a highlight on a dark one, which is what a hairline
+   at 50% does on both. */
 .swatch-dot{
   display:block;width:22px;height:22px;border-radius:999px;
+  border:1px solid rgb(255 255 255 / .5);
   box-shadow:inset 0 0 0 1.5px rgb(var(--ink-rgb) / .30);
   transition:transform .15s ease;
 }
@@ -1939,7 +2195,8 @@ h2{
 .jumpbar{
   position:sticky;top:0;z-index:20;
   display:flex;flex-wrap:wrap;gap:6px;
-  padding:10px 0;margin:6px 0 4px;
+  /* 4px, not 10+6+4. See the note by `.filterwrap`. */
+  padding:4px 0;margin:4px 0 2px;
   background:linear-gradient(var(--page) 74%, rgb(var(--paper-rgb) / 0));
 }
 
@@ -1971,7 +2228,11 @@ h2{
 
 /* --- topic filter ------------------------------------------- */
 
-.filterwrap{margin:14px 0 2px}
+/* TIGHTER. Steven, 09 Sep: the filter row, the Table of Contents button
+   and the jumpbar between the pet card and the sections were "a huge
+   waste of space." Together they were carrying about 46px of vertical
+   margin and padding for three rows of controls. */
+.filterwrap{margin:6px 0 0}
 .filter-row{display:flex;flex-wrap:wrap;gap:8px}
 
 .filter-toggle{
@@ -2218,7 +2479,25 @@ body{
    has never had this problem. Left alone.
    ------------------------------------------------------------------ */
 .lb-overlay{
-  position:fixed;inset:0;z-index:200;
+  position:fixed;inset:0;z-index:780
+  /* 780 — the TOP of everything the user can open, and below the tour
+     bubble (900) only while a tour is running.
+
+     Steven, 09 Sep: "Lightbox is when you zoom into a picture, so that
+     should be at the top." Agreed, and 780 is above every other panel
+     here — the language picker (770), the how-to sheet (765), the pet
+     detail (758), the grammar overlay (755). Outside a tour there is no
+     scrim and no bubble, so this IS the top.
+
+     But it cannot be above the bubble, because the Full Tour opens it
+     ON PURPOSE: step 60 says "Tap a picture to see it full size" and
+     step 61 says "Close it when you have had a look" while pointing at
+     `.lb-close`. Above the bubble, step 61's instruction would be
+     invisible behind the very thing it is talking about.
+
+     It was 200, which put it under the scrim — so during those two
+     steps the lightbox was dimmed and `.lb-close` could not be lit,
+     because a child cannot escape its ancestor's stacking context. */;
   display:none;align-items:flex-start;justify-content:center;
   background:rgb(var(--scrim-rgb) / .88);
   padding:24px;
@@ -2702,7 +2981,11 @@ body{
 }
 
 .howto-overlay{
-  position:fixed;inset:0;z-index:200;
+  position:fixed;inset:0;z-index:765
+  /* 765, not 200 — above the tour scrim (700), below the
+     bubble (900). the how-to / game-guide panel; a tour step ends inside it. A panel below the scrim gets
+     dimmed during a tour and its contents cannot be lit, because a
+     child cannot escape its ancestor’s stacking context. */;
   display:none;align-items:flex-start;justify-content:center;
   padding:20px;background:rgb(var(--scrim-rgb) / .72);
   overflow-y:auto;
@@ -5193,6 +5476,24 @@ html[data-theme="pine"]{
   font:700 .92rem/1.15 var(--ff-ui);text-transform:uppercase;letter-spacing:.07em;
   color:var(--fg);
 }
+/* THE PRICE HAS TO BE READABLE IN EVERY THEME.
+
+   Steven, 10 Sep: "pet costs are invisible — I tested the top 2 rows of
+   colour schemes, only 1 was even slightly legible."
+
+   Two faults stacked:
+
+   `is-dear` multiplied the whole button by `opacity:.45`. Every one of
+   the sixteen pets is currently unaffordable — they are gated by activity
+   days, not crystals — so EVERY price on the page was at 45%.
+
+   The colour pairing is fine and was not the fault: `--ink` is redefined
+   in all twelve theme blocks and goes light on the dark ones. I changed
+   it first and put it back; the opacity was the whole problem.
+
+   Now an unaffordable price keeps full contrast and says so by other
+   means: a dashed border and the shortfall row underneath. Being unable
+   to afford something is information, not a reason to hide it. */
 .pt-buy,.pt-pick{
   width:100%;padding:13px 10px;border-radius:999px;cursor:pointer;
   font:700 1.12rem/1.1 var(--ff-ui);
@@ -5201,7 +5502,12 @@ html[data-theme="pine"]{
   -webkit-tap-highlight-color:transparent;
 }
 .pt-buy:hover:not(:disabled),.pt-pick:hover{background:var(--sand)}
-.pt-buy.is-dear{opacity:.45;cursor:default}
+.pt-buy.is-dear{
+  cursor:default;
+  opacity:1;
+  border-style:dashed;
+  border-color:rgb(var(--mauve-rgb) / .7);
+}
 .pt-buy.is-claim{background:var(--flame);color:var(--on-flame);border-color:var(--flame)}
 .pt-pick.is-on{background:var(--flame);color:var(--on-flame);border-color:var(--flame)}
 .pt-need{
@@ -5209,18 +5515,246 @@ html[data-theme="pine"]{
   padding:0 2px;
 }
 .pt-slot-buy{width:100%;margin-bottom:6px}
+/* ---------- THE PET SHE JUST BOUGHT ----------
+
+   Steven, 09 Sep: a window that opens on purchase, the pet greeting her,
+   a glow behind the animal, the message below it, and a cheerful button.
+
+   A WINDOW, NOT A STRIP. This was one line under the shelf. A pet costs
+   real crystals and is the one thing in the app she picks out and keeps.
+
+   VERTICAL, and the order is the point: the animal, then who it is, then
+   what it says. */
+.pt-got-wrap{
+  position:fixed; inset:0; z-index:820;
+  display:flex; align-items:center; justify-content:center;
+  padding:18px;
+  background:rgb(var(--scrim-rgb) / .68);
+}
+/* The box sits in this so the sparkles can reach outside it — the box
+   itself has `overflow:auto` and would clip them. See the note in
+   store.js. */
+.pt-got-frame{
+  position:relative;
+  width:100%; max-width:360px;
+}
+
 .pt-got{
-  padding:13px;margin-bottom:14px;border-radius:var(--r-md);
-  background:rgb(var(--yes-rgb) / .18);
-  border:1.5px solid var(--yes);
+  position:relative;
+  width:100%; max-width:360px;
+  max-height:88vh; overflow:auto;
+  padding:22px 20px 20px;
+  border-radius:var(--r-lg);
+  background:var(--paper);
+  border:1.5px solid var(--flame);
+  box-shadow:0 18px 48px rgb(var(--scrim-rgb) / .5);
   text-align:center;
 }
-.pt-got-name{
-  display:block;font-family:var(--ff-display);font-size:1.6rem;color:var(--fg);
+
+/* THE GLOW SITS UNDER THE PICTURE, in its own layer, so a missing file
+   changes nothing but the sparkle. Square and centred: the artwork is
+   centred in the stage, so a square glow needs no knowledge of the
+   window's width, which changes with the screen. */
+.pt-got-stage{
+  position:relative;
+  width:150px; height:150px;
+  margin:0 auto 6px;
+  display:grid; place-items:center;
 }
+.pt-got-glow{
+  position:absolute; inset:-18px;
+  width:calc(100% + 36px); height:calc(100% + 36px);
+  object-fit:contain;
+  pointer-events:none;
+  z-index:0;
+  /* The colour cast. `saturate` first so the rotation lands on a strong
+     hue rather than washing out — a desaturated source rotates to a
+     desaturated result, which reads as grey rather than as the tier. */
+  filter:saturate(1.15) hue-rotate(var(--got-spin));
+}
+/* THE ARTWORK IS AN OPAQUE SQUARE, rounded here rather than in the file.
+
+   Steven, 09 Sep: "they are square, no need for being transparent, you
+   can round off the corners in CSS."
+
+   `cover`, not `contain`: the source is square and the frame is square,
+   so cover fills it exactly and crops nothing — but it also means a
+   slightly off-square file fills the frame instead of letterboxing.
+
+   The glow behind therefore reads as a HALO around the tile rather than
+   light coming through the animal. That is the better look for an opaque
+   square, and it is why the burst is sized to reach past the picture. */
+.pt-got-pic{
+  position:relative; z-index:1;
+  /* 118 → 124 (3px per side) — Steven, 10 Sep: "enlarge the pet picture
+     by about 3px in all directions so there's not such a giant black
+     border between the pet and the glow." */
+  width:124px; height:124px;
+  object-fit:cover;
+  border-radius:var(--r-md);
+  box-shadow:0 4px 14px rgb(var(--scrim-rgb) / .45);
+}
+
 .pt-got-sub{
-  font:700 .88rem/1.15 var(--ff-ui);text-transform:uppercase;letter-spacing:.08em;
+  margin:0;
+  font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
+  text-transform:uppercase;
+  color:var(--fg-soft);
+}
+.pt-got-name{
+  margin:2px 0 0;
+  font-family:var(--ff-display);
+  font-size:clamp(1.3rem, 5vw, 1.6rem); line-height:1.15;
   color:var(--fg);
+}
+.pt-got-de{
+  margin:2px 0 0;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg-accent);
+}
+
+/* What it says. Tappable to hear again; German over her language. */
+.pt-got-say{
+  display:block; width:100%;
+  margin:14px 0 0; padding:12px 12px;
+  border-radius:var(--r-md);
+  background:rgb(var(--sand-rgb) / .16);
+  border:0; text-align:center; cursor:pointer;
+}
+.pt-got-de-line{
+  display:block;
+  font:var(--t-de); letter-spacing:var(--t-de-ls);
+  color:var(--fg);
+}
+.pt-got-tr{
+  display:block; margin-top:4px;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg-soft);
+}
+.pt-got-ok{
+  display:block; width:100%;
+  margin:16px 0 0;
+}
+
+/* The achievement window's second line — the "You got the achievement X"
+   announcement under the pet's own congratulation. Quieter than the pet
+   line above it so the pet's voice leads and this reads as the caption.
+   Added 10 Sep with awardWindow(). */
+.pt-got-told{
+  margin:10px 0 0;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg-soft);
+  text-align:center;
+}
+
+/* The crystal bonus, above Yes! — brighter and heavier than the
+   announcement line, since it is the payout. Added 10 Sep. */
+.pt-got-crystals{
+  margin:8px 0 0;
+  font:var(--t-de); letter-spacing:var(--t-de-ls);
+  color:var(--fg);
+  text-align:center;
+}
+
+/* ---------- RARITY IS FELT, NOT JUST SEEN ----------
+
+   Steven, 09 Sep: green common, blue rare, purple epic, amber legendary —
+   and "I really want to elevate the experience of buying pets."
+
+   So the tier drives four things, not one colour: the border, the burst
+   behind the animal, the sparkle colour, and HOW BIG the burst is. A
+   legendary opens wider and holds longer than a common. A legendary that
+   lands exactly like a common teaches her the tiers do not matter.
+
+   `--tier-*` are the shop's own tokens, already tuned for light and dark
+   themes. Reusing them means this window can never disagree with the
+   badge on the card she bought from. */
+/* ONE GLOW FILE, FOUR COLOURS.
+
+   Steven, 09 Sep: "you can take the same thing and just run a colour cast
+   on it." Right, and much better than four files — one animation to make,
+   one to load, one to change if the timing is wrong.
+
+   `--got-spin` is a hue rotation applied to the glow image. The numbers
+   are MEASURED from the tier tokens rather than guessed: the artwork is
+   blue, blue is 216 degrees, and each tier's own colour sits at
+
+       common     146     -70deg
+       rare       216      +0deg   (the file as drawn)
+       epic       274     +58deg
+       legendary   26    +170deg
+
+   So a tier is a colour token, a burst size and a rotation, and adding a
+   fifth tier is three numbers in one rule. */
+/* Declared on the FRAME, because the box and the sparkle layer are
+   siblings inside it and both read these. A default on `.pt-got` itself
+   would shadow the inherited value and every window would be green. */
+/* Declared on the FRAME: the box and the sparkle layer are siblings
+   inside it and both read these.
+
+   `--spark` scales the sparkles — bigger dots, thrown further — so a
+   legendary does not arrive with the same modest twinkle as a frog.
+   Steven, 10 Sep: "have the sparkles bigger for higher tier."
+
+   One number does both jobs because the layer is scaled as a whole: the
+   dots grow with it and they spread with it. */
+.pt-got-frame{
+  --got:var(--tier-common); --got-reach:1; --got-spin:-70deg; --spark:1;
+}
+/* THE STEPS HAVE TO BE VISIBLE, NOT JUST PRESENT.
+
+   Steven, 10 Sep: "the next tier up does nothing." He was right — rare
+   was a 25% size bump and nothing else, which nobody can see against a
+   common they watched thirty seconds earlier.
+
+   Each tier now changes something you can NAME, not just a percentage:
+
+     common     8 dots,  one ring
+     rare      16 dots,  two rings          <- the ring is the tell
+     epic      16 dots,  two rings, wider, and the burst behind grows
+     legendary 24 dots, three rings, widest, longest
+
+   Count and rings do the work; scale only amplifies it. A number going
+   up by a quarter is invisible. A second ring of light appearing is not. */
+.pt-got-common   { --got:var(--tier-common);    --got-reach:1;    --got-spin:-70deg; --spark:1 }
+.pt-got-rare     { --got:var(--tier-rare);      --got-reach:1.15; --got-spin:0deg;   --spark:1.35 }
+.pt-got-epic     { --got:var(--tier-epic);      --got-reach:1.35; --got-spin:58deg;  --spark:1.75 }
+.pt-got-legendary{ --got:var(--tier-legendary); --got-reach:1.6;  --got-spin:170deg; --spark:2.2 }
+
+.pt-got{ border-color:var(--got) }
+
+/* The coloured burst behind the animal. CSS, so the tier reads before any
+   glow file exists and keeps reading if one never does. Sits under both
+   the glow image and the picture. */
+.pt-got-burst{
+  /* Reaches well past the 118px tile so the colour shows AROUND it — an
+     opaque square hides anything directly behind it. */
+  position:absolute; inset:-30px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:0;
+  background:radial-gradient(circle at 50% 50%,
+    color-mix(in srgb, var(--got) 55%, transparent) 0%,
+    color-mix(in srgb, var(--got) 22%, transparent) 42%,
+    transparent 70%);
+  transform:scale(var(--got-reach));
+  animation:ptGotBurst 1.6s ease-out 1 both;
+}
+@keyframes ptGotBurst{
+  0%  { opacity:0; transform:scale(calc(var(--got-reach) * .55)) }
+  35% { opacity:1 }
+  100%{ opacity:.55; transform:scale(var(--got-reach)) }
+}
+
+
+
+
+
+
+
+@media (prefers-reduced-motion: reduce){
+  .pt-got-pop{ animation:none }
+  .pt-got-burst{ animation:none }
 }
 
 /* the pets cheering at the end of a round */
@@ -5293,6 +5827,31 @@ html[data-theme="pine"]{
 }
 
 /* a legendary's requirements, one per line with her progress on each */
+/* LOCKED, said plainly. See the note in store.js — the requirement line
+   alone read as a fault rather than a condition. */
+.pt-lockrow{
+  display:flex; align-items:center; gap:6px;
+  width:100%;
+  margin:8px 0 0;
+  padding:5px 8px;
+  border-radius:var(--r-sm);
+  background:rgb(var(--mauve-rgb) / .16);
+  border:1px solid rgb(var(--mauve-rgb) / .45);
+}
+/* The shortfall row: same shape as the locked one, flame rather than
+   mauve, because this is a target she is approaching rather than a
+   condition she has not met. */
+.pt-lockrow.is-dear{
+  background:rgb(var(--flame-rgb) / .14);
+  border-color:rgb(var(--flame-rgb) / .5);
+}
+.pt-lock-ico{ font-size:.95rem; line-height:1 }
+.pt-lock-word{
+  font:700 .8rem/1 var(--ff-ui);
+  text-transform:uppercase; letter-spacing:.09em;
+  color:var(--fg);
+}
+
 .pt-need{
   white-space:pre-line;
   text-align:left;
@@ -5389,6 +5948,339 @@ html[data-theme="pine"]{
   margin:0 0 14px;
   font:700 .96rem/1.4 var(--ff-ui);
   color:var(--fg-soft);
+}
+
+/* DIFFICULTY, NAMED RATHER THAN HIDDEN.
+
+   Rendered by js/activities/lessons.js when a step carries
+   `level:'harder'` or `level:'hardest'`. Steven, 09 Sep: nothing gets
+   withheld, the easy material is ordered first, and the harder rungs are
+   simply labelled so she can decide.
+
+   Deliberately quiet — an eyebrow, not a warning. A loud badge on a
+   harder step reads as "you will fail this", which is the opposite of
+   letting her choose. `--mauve` for harder, `--flame` for hardest, both
+   theme tokens so all twelve themes are covered without new colours. */
+.ls-level{
+  margin:0 0 10px;
+  font:700 .68rem/1 var(--ff-ui);
+  text-transform:uppercase; letter-spacing:.12em;
+  color:var(--mauve);
+}
+.ls-level.is-hardest{ color:var(--flame) }
+
+/* ---------- MARK: THE TAPPABLE SENTENCE ----------
+
+   Built by `paintMark()` in js/activities/lessons.js. She taps the words
+   where they stand rather than picking from a list underneath, which is
+   the whole point — three buttons, one of them obviously a verb, is a
+   much easier exercise than finding the role in place.
+
+   PERMANENT COLOUR SCHEME, Steven's: blue subject, orange verb, green
+   object. Once introduced these do not get reused for anything else.
+
+   `--role-verb` is a deep amber, NOT `--flame`. Flame is the app accent
+   in 132 rules — primary buttons, the tour highlight, the correct-answer
+   mark — so a flame-coloured verb would read as something to press. The
+   amber is unmistakably orange and unmistakably not a button.
+
+   Blue and green likewise avoid `--gen-m` and `--gen-n`, which already
+   mean masculine and neuter in the gender lessons. Three colours meaning
+   two different things is the trap this set exists to dodge. */
+/* THE STRIP IGNORES THE COLOUR SCHEME ON PURPOSE.
+
+   Steven, 09 Sep: off-white behind the sentence on the light schemes, a
+   dark background on the dark ones, and otherwise the strip does not
+   follow the theme — the rest of the interface still does.
+
+   The reason it is the right call: the three role colours have to stay
+   legible and stay *recognisable as the same three colours* on all
+   twelve themes. Against twelve different paper colours they would need
+   twelve tunings. Against exactly two known backgrounds they need two,
+   which is what `--role-*` already has. The scheme becomes a constant
+   rather than a variable.
+
+   Only midnight, ember and pine are dark, and they are the same three
+   blocks that already override the gender colours, so this cost nothing
+   extra. */
+/* ---------- A SPARKLE, ONCE, BEHIND WHAT HE IS POINTING AT ----------
+
+   Steven, 09 Sep. The ring alone marks the target but does not draw the
+   eye TO it; on a busy screen she can look straight past the one thing
+   the step is about.
+
+   Six dots drawn as radial-gradients in a single background, so it is one
+   pseudo-element and one paint rather than six positioned children. They
+   bloom out and fade over 1.5s — Steven, 09 Sep: "about 1.5 sec, not
+   longer, just highlighting it is enough." Long enough to be seen, short
+   enough that it is over before she has finished reading the step.
+
+   ONCE, NOT LOOPING. `animation-iteration-count:1` with `forwards`, so it
+   fires when the class lands and then leaves nothing behind. Each step
+   applies `.bt-lit` fresh, so every step gets its own single sparkle
+   without anything having to reset it.
+
+   BEHIND, NOT OVER: `z-index:-1` puts it under the element's own content,
+   and `pointer-events:none` keeps it out of the way of the tap the step
+   is waiting for.
+
+   ONE TARGET CANNOT SHOW IT. `.sg-audio` is a replaced element and
+   browsers do not reliably render pseudo-elements on those — checked
+   across all 68 tour targets, and it is the only one. It keeps the ring,
+   which is what actually marks it. */
+.bt-lit::after{
+  content:'';
+  position:absolute;
+  left:-14px; right:-14px; top:-14px; bottom:-14px;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(circle 3px at 12% 22%, var(--flame) 96%, transparent 100%),
+    radial-gradient(circle 2px at 86% 16%, var(--flame) 96%, transparent 100%),
+    radial-gradient(circle 3px at 92% 74%, var(--flame) 96%, transparent 100%),
+    radial-gradient(circle 2px at  8% 80%, var(--flame) 96%, transparent 100%),
+    radial-gradient(circle 2px at 48%  4%, var(--flame) 96%, transparent 100%),
+    radial-gradient(circle 3px at 56% 98%, var(--flame) 96%, transparent 100%);
+  background-repeat:no-repeat;
+  opacity:0;
+  animation:btSparkle 1.5s ease-out 1 forwards;
+}
+@keyframes btSparkle{
+  0%  { opacity:0;   transform:scale(.72) }
+  35% { opacity:1;   transform:scale(1.04) }
+  70% { opacity:.85; transform:scale(1.10) }
+  100%{ opacity:0;   transform:scale(1.16) }
+}
+
+/* The sparkle needs a positioned parent to sit against. `.bt-lit` itself
+   deliberately does NOT set `position` — that clobbered `.backlink`'s
+   `fixed` and dropped the back button out of its corner — so the ones
+   that are already static get it from `bt-lit-static`, and the rest are
+   positioned already. */
+@media (prefers-reduced-motion: reduce){
+  .bt-lit::after{ animation:none; opacity:0 }
+}
+
+.ls-mark{
+  display:flex; flex-wrap:wrap; align-items:baseline;
+  gap:6px 10px;
+  margin:0 0 14px;
+  /* Top padding leaves room for the speaker in the corner — see
+     `.is-mark-say` below. Without it the first line runs under the icon. */
+  padding:46px 14px 16px;
+  position:relative;
+  background:var(--strip-bg);
+  color:var(--strip-ink);
+  border:1.5px solid var(--strip-edge);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow-card);
+  font:var(--t-de); letter-spacing:var(--t-de-ls);
+  line-height:1.9;
+}
+.ls-part{
+  /* `inherit`, not `--fg`: inside the strip the text colour comes from
+     the strip, so an unroled word is legible on both backgrounds without
+     a second rule. */
+  font:inherit; color:inherit;
+  background:none; border:0; padding:0; margin:0;
+}
+/* Scenery — a chunk with no role. Rendered, never tappable. */
+.ls-part.is-plain{ opacity:.72 }
+
+/* A tappable part. Underlined rather than boxed: a box on every word
+   turns the sentence into a row of buttons and stops reading as a
+   sentence, which is what she is supposed to be reading. */
+/* A BOX AROUND THE WORDS, NOT COLOURED TEXT.
+
+   Steven, 09 Sep: "keep the sentence words the text color, just put a
+   round corner rectangle box around the word/words and with a slight
+   neon glow."
+
+   Which is the better call, and not only aesthetically: the text stays
+   at the strip's full ink contrast, so legibility never depends on the
+   role colour. That matters because orange on a light background is
+   hard — the value Grok proposed measured 3.17 against the off-white
+   strip and mine 3.53, both under the 4.5 AA needs for text. As a box
+   and a glow rather than as letterforms, the colour carries meaning
+   without carrying the reading. */
+.ls-part.is-role{
+  cursor:pointer;
+  padding:3px 8px;
+  border-radius:var(--r-sm);
+  /* Dashed and neutral until she has answered: it says tappable without
+     claiming a role colour it has not earned yet. */
+  border:1.5px dashed rgb(var(--shade-rgb) / .38);
+  transition:box-shadow .16s ease, border-color .16s ease;
+}
+.ls-part.is-role:hover{
+  border-color:rgb(var(--shade-rgb) / .6);
+  background:rgb(var(--shade-rgb) / .07);
+}
+.ls-part.is-role:focus-visible{
+  outline:2px solid var(--flame); outline-offset:2px;
+}
+
+/* Coloured — either because the step scaffolds, or because she has
+   answered and all three are being shown at once. */
+/* TWO SEPARATE PALETTES, AND THEY NEVER SHARE A SCREEN.
+
+   Sentence parts — Steven's permanent scheme:
+       subject    blue      a participant
+       object     green     the other participant
+       verb       orange    the action between them, so a warm contrast
+       adjective  violet    attaches to the blue/green nouns, so a hue
+                            next to blue
+       adverb     teal      attaches to the orange verb, so its cool
+                            complement
+   The palette encodes WHAT MODIFIES WHAT, not just five arbitrary
+   colours: cool for the noun side, warm for the verb, and each modifier
+   sits beside what it modifies.
+
+   Negation and agreement — Steven, 09 Sep: "We can have negation and
+   agreement be a separate lesson, green, red. Not related to sentence
+   parts." So they are their own lesson with their own two colours, red
+   for negation and green for agreement, and green meaning two things is
+   not a clash because the two lessons never appear together. Same call
+   as Max the Scorpion and Alina's brother Max.
+
+   Red is #B3243C, a crimson, deliberately NOT `--no` (#FF8B7B, the
+   wrong-answer colour, 36 uses) and not `--flame` (the accent, 133).
+   A negated word has to read as a stop, not as a mistake she made. */
+/* THE ROLE IS THE BOX AND THE GLOW. Text colour is untouched.
+
+   `--role-*` draws the border, `--role-*-rgb` the glow and the faint
+   inner wash. Two shadows: a tight one that reads as a rim and a wider
+   soft one that reads as neon. Kept restrained — a sentence with three
+   glowing boxes should look labelled, not lit up like a fairground. */
+.ls-part.is-role[class*=" is-"]{ border-style:solid }
+
+.ls-part.is-subj{
+  border-color:var(--role-subj);
+  background:rgb(var(--role-subj-rgb) / .10);
+  box-shadow:0 0 0 1px rgb(var(--role-subj-rgb) / .35),
+             0 0 9px rgb(var(--role-subj-rgb) / .45);
+}
+.ls-part.is-verb{
+  border-color:var(--role-verb);
+  background:rgb(var(--role-verb-rgb) / .10);
+  box-shadow:0 0 0 1px rgb(var(--role-verb-rgb) / .35),
+             0 0 9px rgb(var(--role-verb-rgb) / .45);
+}
+.ls-part.is-obj{
+  border-color:var(--role-obj);
+  background:rgb(var(--role-obj-rgb) / .10);
+  box-shadow:0 0 0 1px rgb(var(--role-obj-rgb) / .35),
+             0 0 9px rgb(var(--role-obj-rgb) / .45);
+}
+.ls-part.is-adj{
+  border-color:var(--role-adj);
+  background:rgb(var(--role-adj-rgb) / .10);
+  box-shadow:0 0 0 1px rgb(var(--role-adj-rgb) / .35),
+             0 0 9px rgb(var(--role-adj-rgb) / .45);
+}
+.ls-part.is-adv{
+  border-color:var(--role-adv);
+  background:rgb(var(--role-adv-rgb) / .10);
+  box-shadow:0 0 0 1px rgb(var(--role-adv-rgb) / .35),
+             0 0 9px rgb(var(--role-adv-rgb) / .45);
+}
+.ls-part.is-neg{
+  border-color:var(--mark-neg);
+  background:rgb(var(--mark-neg-rgb) / .10);
+  box-shadow:0 0 0 1px rgb(var(--mark-neg-rgb) / .35),
+             0 0 9px rgb(var(--mark-neg-rgb) / .45);
+}
+.ls-part.is-agree{
+  border-color:var(--mark-agree);
+  background:rgb(var(--mark-agree-rgb) / .10);
+  box-shadow:0 0 0 1px rgb(var(--mark-agree-rgb) / .35),
+             0 0 9px rgb(var(--mark-agree-rgb) / .45);
+}
+
+/* The role name under the word takes the colour, since it is a label
+   rather than the sentence and has nothing to stay legible for. */
+.ls-part.is-subj .ls-part-tag{ color:var(--role-subj) }
+.ls-part.is-verb .ls-part-tag{ color:var(--role-verb) }
+.ls-part.is-obj  .ls-part-tag{ color:var(--role-obj) }
+.ls-part.is-adj  .ls-part-tag{ color:var(--role-adj) }
+.ls-part.is-adv  .ls-part-tag{ color:var(--role-adv) }
+.ls-part.is-neg  .ls-part-tag{ color:var(--mark-neg) }
+.ls-part.is-agree .ls-part-tag{ color:var(--mark-agree) }
+
+/* The glow, once the roles are revealed. Same technique as the tour
+   highlight, so it is a pattern already proven on all twelve themes. */
+/* No bolding: the box and glow already mark the word, and bolding
+   inside a sentence changes its rhythm as well as its colour. */
+.ls-part.is-chosen{ background:rgb(var(--shade-rgb) / .14) }
+
+/* THE ONE SHE IS BEING ASKED FOR, on a scaffolded step only.
+
+   Every part is already boxed and coloured; this one glows harder and
+   lifts slightly, so the eye lands on it without the colour having to
+   carry that job alone. It is a pointer, not a hint to decode —
+   level one is a demonstration and this is what makes it one.
+
+   The wider spread is deliberately built from the part's OWN role colour
+   via `currentColor`, so one rule covers all seven roles instead of
+   seven near-identical ones. */
+.ls-part.is-asked{
+  box-shadow:0 0 0 2px currentColor,
+             0 0 16px 2px currentColor;
+  transform:translateY(-1px);
+}
+/* `currentColor` inside the glow needs the role colour on the text, and
+   the text is deliberately strip-ink. So the colour is restated here
+   for the glow only, and immediately overridden for the letterforms. */
+.ls-part.is-asked.is-subj{  color:var(--role-subj) }
+.ls-part.is-asked.is-verb{  color:var(--role-verb) }
+.ls-part.is-asked.is-obj{   color:var(--role-obj) }
+.ls-part.is-asked.is-adj{   color:var(--role-adj) }
+.ls-part.is-asked.is-adv{   color:var(--role-adv) }
+.ls-part.is-asked.is-neg{   color:var(--mark-neg) }
+.ls-part.is-asked.is-agree{ color:var(--mark-agree) }
+
+@media (prefers-reduced-motion: reduce){
+  .ls-part.is-asked{ transform:none }
+}
+
+/* The role name, printed under the word once answered. */
+.ls-part-tag{
+  display:block;
+  font:700 .6rem/1.2 var(--ff-ui);
+  text-transform:uppercase; letter-spacing:.1em;
+  opacity:.85;
+}
+
+/* The speaker, in the strip's top left corner. Icon only and small: a
+   full pill in there competes with the sentence, which is the thing she
+   is supposed to be reading. Colours come from the strip rather than the
+   theme, like everything else inside it. */
+.is-mark-say{
+  position:absolute; top:8px; left:10px;
+  gap:0;
+  padding:6px 10px;
+  background:rgb(var(--shade-rgb) / .08);
+  border:1.5px solid rgb(var(--shade-rgb) / .22);
+  color:var(--strip-ink);
+  font-size:.8rem;
+}
+.is-mark-say:hover{ background:rgb(var(--shade-rgb) / .16) }
+.is-mark-say.is-speaking{
+  background:rgb(var(--shade-rgb) / .22);
+  border-color:rgb(var(--shade-rgb) / .45);
+  color:var(--strip-ink);
+}
+
+.ls-mark-find{
+  margin:0 0 12px;
+  font:700 .9rem/1.4 var(--ff-ui);
+  color:var(--fg-accent);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .ls-part.is-role{ transition:none }
+  /* The glow is decoration; the border still carries the role. */
+  .ls-part[class*="is-"]{ box-shadow:none }
 }
 .ls-card{
   padding:22px 16px;margin-bottom:16px;
@@ -5674,8 +6566,32 @@ html[data-theme="pine"]{
 }
 .cm-card-meta{ font-size:0.85rem; color:var(--fg-soft) }
 
+/* ROOM FOR THE BACK BUTTON, WHICH IS NOT IN THE FLOW.
+
+   Steven, 09 Sep: "the title for Unit 1 is under the BACK button, put
+   some space above the title so the back button doesn't overlap."
+
+   `.backlink` is `position:fixed` in the top-left corner, so it takes no
+   space in the bar it is a child of — the title therefore starts at the
+   left edge and lands underneath it. `comic.js` passes a `cm-back` class
+   for exactly this and NO RULE FOR IT EVER EXISTED, so the class did
+   nothing.
+
+   Padding on the title rather than a margin on the button: the button is
+   fixed and a margin on it would move the button, not make room. The
+   index page's own `.cm-bar{ padding-top:52px }` further up the file
+   handles the vertical case; this handles the horizontal one, which is
+   what actually overlapped. */
 .cm-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px }
-.cm-bar-t{ font:700 1rem/1 var(--ff-ui); color:var(--fg) }
+/* THE COMIC'S OWN COPY OF THE `.practice-title` OFFSET. The comic builds
+   `.cm-bar` rather than using `.practice-head`, so the global rule does
+   not reach it. Same 52px, for the same measured reason — see the note
+   by `.practice-title`. If the comic bar is ever rebuilt on the standard
+   header, delete this. */
+.cm-bar-t{
+  font:700 1rem/1 var(--ff-ui); color:var(--fg);
+  padding-left:52px;
+}
 .cm-swap{
   margin-left:auto; padding:7px 12px; border-radius:999px; cursor:pointer;
   font:700 0.88rem/1 var(--ff-ui);
@@ -5683,6 +6599,30 @@ html[data-theme="pine"]{
   -webkit-tap-highlight-color:transparent;
 }
 .cm-swap:hover{ background:rgb(var(--sand-rgb) / .2) }
+
+/* TAP THE PAGE TO SEE IT FULL SIZE.
+
+   Steven, 09 Sep: "the comic has no lightbox to zoom into the comic, you
+   can only see it on the tiny size."
+
+   A comic page is lettering as well as drawing, and lettering at tile
+   size is not readable. `GH.lightbox.openPic()` already existed and is
+   already what the word list and the end screen use, so this is a
+   wire-up rather than a new viewer.
+
+   `cursor:zoom-in` and the corner hint say it is tappable — a picture
+   that silently happens to be a button is a feature nobody finds. */
+.cm-page{ cursor:zoom-in; position:relative }
+.cm-zoom-hint{
+  position:absolute; bottom:8px; right:8px;
+  padding:4px 9px; border-radius:999px;
+  background:rgb(var(--shade-rgb) / .62); color:#fff;
+  font:700 .68rem/1 var(--ff-ui);
+  text-transform:uppercase; letter-spacing:.09em;
+  pointer-events:none;
+}
+.cm-page.is-gone{ cursor:default }
+.cm-page.is-gone .cm-zoom-hint{ display:none }
 
 .cm-page{
   max-width:900px; margin:0 auto 14px;
@@ -5739,8 +6679,47 @@ html[data-theme="pine"]{
    sheets in two columns on a 380px screen is unreadable, and the point of
    the box is that they belong together — which the box says whether they
    sit beside each other or above each other. */
+/* The heading above each language's group in the song list. Drawn only
+   when more than one language is showing — see the note in songbook.js.
+   Styled as a section eyebrow rather than a page title, because it
+   divides a list rather than naming the screen. */
+/* Steven, 09 Sep: "put a thin darker colored bar under it so it stands
+   out a little bit more, not just a tiny blob of text that is easy to
+   miss" — and bump the size by 4px.
+
+   SIZE IS SET HERE, NOT THROUGH `--t-eyebrow`. That token is the app's
+   eyebrow size and is used in dozens of places; raising it would move
+   every one of them. 1.07rem is .82rem plus about 4px at a 16px root.
+
+   THE BAR IS A SOLID DARKER RULE, not the faint hairline this had. It
+   uses `--shade-rgb`, which is the token that darkens against the page
+   on every theme — a fixed dark colour would vanish on the three dark
+   themes. 3px, full width of the list, so the heading reads as a
+   section divider rather than a caption. */
+.sg-lang-head{
+  margin:26px 0 12px;
+  font:700 1.07rem/1.25 var(--ff-ui);
+  letter-spacing:var(--t-eyebrow-ls);
+  text-transform:uppercase;
+  color:var(--fg);
+  padding-bottom:9px;
+  border-bottom:3px solid rgb(var(--shade-rgb) / .55);
+}
+.sg-lang-head:first-child{ margin-top:4px }
+
+/* A FULL ROW OF THE TILE GRID, not a cell in it.
+
+   `grid-column:1/-1` is what lets the box live inside `.tiles` at its
+   own position in the list. Without it the box takes one cell and the
+   two songs inside are squeezed to half width — which is why it used to
+   sit outside the grid, at the cost of cutting the grid in two and
+   leaving a part-filled row above it. See the note in songbook.js.
+
+   `margin` is 0 now: the grid's own 14px gap spaces it, and a margin on
+   a grid item adds to that rather than replacing it. */
 .sg-pair{
-  margin:14px 0;
+  grid-column:1 / -1;
+  margin:0;
   padding:14px;
   border-radius:var(--r-lg);
   background:rgb(var(--shade-rgb) / .30);
@@ -6894,7 +7873,11 @@ html[data-theme="pine"]{
    store, which from mid-round cost her the round for what is only a
    question: what is this one, and can I have it. */
 .ptd-wrap{
-  position:fixed; inset:0; z-index:80;
+  position:fixed; inset:0; z-index:758
+  /* 758, not 80 — above the tour scrim (700), below the
+     bubble (900). the pet detail panel. A panel below the scrim gets
+     dimmed during a tour and its contents cannot be lit, because a
+     child cannot escape its ancestor’s stacking context. */;
   display:flex; align-items:center; justify-content:center;
   padding:18px; background:rgb(0 0 0 / .6); overflow-y:auto;
 }
@@ -6951,7 +7934,11 @@ html[data-theme="pine"]{
    The alternative — rendering the topic into the activity's own container —
    is what used to throw the round away. */
 .gr-overlay{
-  position:fixed; inset:0; z-index:70;
+  position:fixed; inset:0; z-index:755
+  /* 755, not 70 — above the tour scrim (700), below the
+     bubble (900). the grammar rule overlay, openable mid-round. A panel below the scrim gets
+     dimmed during a tour and its contents cannot be lit, because a
+     child cannot escape its ancestor’s stacking context. */;
   display:none; overflow-y:auto;
   background:rgb(0 0 0 / .55);
   padding:16px;
@@ -7092,7 +8079,12 @@ html[data-theme="pine"]{
    Fixed rather than in the flow: the picture is meant to fill the window,
    and one tap anywhere on it is the whole control surface. */
 .wm-stage{
-  position:fixed; inset:0; z-index:60;
+  /* 750, not 60. The tour points at `.wm-board` and `.wm-go`, which live
+     inside here. A child's z-index is relative to its stacking context,
+     so `.bt-lit` at 810 inside a z-60 fixed parent still painted at 60 —
+     under the tour's dim at 700, which meant the highlighted thing was
+     the one thing being greyed out. Above the scrim, below the bubble. */
+  position:fixed; inset:0; z-index:750;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:18px; padding:24px;
   background:var(--paper); cursor:pointer;
@@ -8391,10 +9383,14 @@ html[data-theme="pine"]{
    because reading about a game and starting it should not be two
    screens.
    ============================================================== */
-/* The two section guides share one rule: `gd-open` under Games,
-   `rg-open` under Reference. Same job, same place in the layout, so they
-   must not drift apart visually. */
-.gd-open, .rg-open{ width:100%; margin:0 0 12px }
+/* The three section guides — `gd-open` under Games, `rg-open` under
+   Reference, `rl-open` under Read and listen — moved into `.hub-head`
+   on 10 Sep to match the Lesson Guide: title left, guide link right.
+   The flex header does the placement, so the old full-width rule is
+   gone; only the classes remain, kept because the Full Tour points at
+   `.gd-open`. Long labels may wrap under the title on narrow phones,
+   which is what the Lesson Guide's own label already does. */
+.gd-open, .rg-open, .rl-open{ flex-shrink:1; text-align:right }
 .gd-sec{
   margin:20px 0 0;
   font:var(--t-section); letter-spacing:var(--t-section-ls);
@@ -8721,7 +9717,56 @@ html[data-theme="pine"]{
    invisible too. `.pt-strip-say` and `.ptg-cell` were already there. */
 .jb-btn, .jb-song,
 .wm-cell,
-.pt-strip-say, .ptg-cell{
+.pt-strip-say, /* Said only when a tap is refused because every carrier is occupied —
+   see the note in petstrip.js. Empty otherwise, so it takes no space. */
+/* What a tap in the grid does, said once at the top. Without it the grid
+   is sixteen pictures with no stated affordance — see the note in
+   petstrip.js. */
+.ptg-how{
+  margin:0 2px 12px;
+  text-align:center;
+  font:var(--t-sub); letter-spacing:var(--t-sub-ls);
+  color:var(--fg-soft);
+}
+
+/* To the Store, at the foot of the grid. `go()` existed from the start
+   and nothing called it, so there was no route from here to the place
+   that sells the locked half of what this screen displays.
+
+   A real button, wide enough to be an obvious target on a phone rather
+   than a line of text under a wall of pictures. Capped so it does not
+   stretch the full width of a tablet. */
+.ptg-shop{
+  display:block;
+  width:min(280px, 100%);
+  margin:16px auto 4px;
+}
+
+.ptg-note{
+  margin:12px 2px 0;
+  min-height:1.2em;
+  text-align:center;
+  font:700 .86rem/1.3 var(--ff-ui);
+  color:var(--flame);
+}
+
+/* The refused cell, for a moment. A refusal that looks identical to a
+   no-op is the dead-grid bug this whole change replaces, so the tap has
+   to land visibly even when nothing is saved. */
+.ptg-cell.is-full{
+  border-color:var(--flame);
+  box-shadow:0 0 0 2px rgb(var(--flame-rgb) / .45);
+}
+@media (prefers-reduced-motion: no-preference){
+  .ptg-cell.is-full{ animation:ptg-nudge .3s ease }
+}
+@keyframes ptg-nudge{
+  0%,100%{ transform:translateX(0) }
+  30%    { transform:translateX(-3px) }
+  70%    { transform:translateX(3px) }
+}
+
+.ptg-cell{
   --fg:       var(--ink);
   --fg-soft:  var(--ink-soft);
   --fg-accent:var(--ink);
@@ -8771,8 +9816,19 @@ html[data-theme="pine"]{
    The 26px face in the header is a control. A card holding a sentence of
    speech needs a portrait, or it reads as a caption with a bullet point
    rather than an animal talking. */
+/* NOT A FLEX ROW. Steven, 10 Sep: "text is squished into a narrow
+   column — the dragon should be an image wrap so text can flow below
+   her."
+
+   Flex put the picture and the words in two fixed columns, so on a phone
+   the words got whatever was left of 380px minus a 64px face and a gap:
+   a ravine of two or three words per line.
+
+   A FLOAT instead. The face sits in the top-left corner and the text runs
+   beside it for three lines, then reclaims the full width underneath —
+   which is what "wrap" means and what flex cannot do. */
 .pt-strip-say{
-  display:flex; flex-direction:row; align-items:flex-start; gap:12px;
+  display:block;
   width:100%; text-align:left;
   padding:12px 14px;
   border:0; border-radius:var(--r-md);
@@ -8784,14 +9840,19 @@ html[data-theme="pine"]{
 /* 64px, and it does not shrink: flex would happily squash it to nothing
    next to a long German sentence. */
 .pt-strip-face{
-  flex:0 0 auto;
+  float:left;
+  margin:0 12px 6px 0;
   width:64px; height:64px;
   border-radius:16px;
   object-fit:cover;
   background:var(--paper);
   box-shadow:0 0 0 1.5px var(--sand-deep);
 }
+/* `display:inline` so the lines flow around the floated face rather
+   than forming a block beside it. */
 .pt-strip-words{
+  display:block; overflow:visible;
+
   flex:1 1 auto; min-width:0;
   display:flex; flex-direction:column; gap:2px;
 }
@@ -8800,6 +9861,63 @@ html[data-theme="pine"]{
   color:var(--fg-soft); text-transform:uppercase;
 }
 .pt-strip-de{ font:var(--t-de); letter-spacing:var(--t-de-ls) }
+/* What is due, said by the pet rather than by a panel beside it. Sits
+   under the translation, quieter than the German but readable — it is
+   information, not an aside. */
+/* The buttons, inside the pet's card and below what it says. Wrapping,
+   so two on a narrow phone stack instead of squeezing. Outside the
+   speaking element — see the note in app.js. */
+/* The buttons sit under everything, clear of the floated face — without
+   `clear:both` a short greeting would leave them beside her. */
+.pt-strip-acts{
+  clear:both;
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin:12px 0 0;
+}
+/* THE TWO SUGGESTIONS, AS BUTTONS THAT STAND OFF THE CARD.
+
+   Steven, 09 Sep: "have 'start spot the wrong form' in a rounded
+   rectangle and maybe a slightly different color from the pet window so
+   it stands out."
+
+   The card is `--sand-wash`, so a button sharing that background
+   disappears into it. Rounded rectangle rather than the pill the rest of
+   the app uses — it reads as a panel inside a panel, which is what it is.
+
+   Crystals stays flame because it is the paying action and the one that
+   expires tonight. The activity button takes `--paper`, a step off the
+   card without competing with it. */
+.pt-strip-go{
+  flex:1 1 auto;
+  min-width:44%;
+  border-radius:var(--r-md);
+  padding:11px 14px;
+  font-weight:700;
+}
+.pt-strip-go.btn-ghost{
+  background:var(--paper);
+  color:var(--fg);
+  border:1.5px solid rgb(var(--sand-rgb) / .55);
+}
+.pt-strip-go.btn-ghost:hover{
+  border-color:var(--sand-deep);
+}
+
+/* What the pet has to tell her, one line each. Only the FIRST carries
+   the rule above it — three lines with three dividers would read as three
+   separate cards inside one card. */
+.pt-strip-due{
+  display:block;
+  margin-top:4px;
+  font:600 .88rem/1.4 var(--ff-ui);
+  color:var(--fg-accent);
+}
+.pt-strip-due:first-of-type{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid rgb(var(--sand-rgb) / .28);
+}
+
 .pt-strip-tr{
   font:var(--t-sub); letter-spacing:var(--t-sub-ls); color:var(--fg-soft);
 }
@@ -8827,9 +9945,60 @@ html[data-theme="pine"]{
   --fg-soft:  var(--ink-soft);
   --fg-accent:var(--ink);
 }
+/* THE THEME CONTROL IS A 40px BOX AROUND A 22px DOT, so it read as the
+   smallest thing in the row even though its tap target already matched.
+   Giving it the same border and wash as the others makes the four boxes
+   the same size to the eye, not just to the layout. */
+.themeswitch{
+  min-height:40px;
+  border-radius:999px;
+}
+
+/* ONE HEIGHT ACROSS THE TOOLBAR ROW.
+
+   Steven, 09 Sep: "the pet pill is misaligned from the color circle and
+   the crystal — make all of them same vertical size."
+
+   Measured, they were three different heights: the purse about 30px
+   (6px padding, 1.5px border, ~15px of text), the pet pill 36px (4px
+   padding, 1px border, a 26px face), and the theme swatch an explicit
+   40px. Nothing lined up because nothing agreed on a height.
+
+   40px is the right common value: the swatch already uses it, and it is
+   the usual minimum tap target. `min-height` rather than `height`, so a
+   control whose contents ever grow pushes past it instead of clipping. */
 .petstrip-btn{
-  display:flex; align-items:center; gap:-6px;
-  padding:4px 6px;
+  /* CENTRED, NOT TOP-ALIGNED. Steven, 09 Sep: "the 3 pets should be
+     vertically centered in their pill, they are at the top."
+
+     `align-items:center` was already here and was not enough: the row
+     rule pins the button to 40px, and with `padding:4px 6px` the content
+     box is 32px inside it — so a 26px face centres within THAT rather
+     than within the pill. `justify-content` and a zero vertical padding
+     put the faces in the middle of the 40, which is what lines them up
+     with the crystal and the theme dot beside them. */
+  /* `gap:-6px` was here and is INVALID — negative gap is not allowed, so
+     the browser dropped the whole declaration. The overlap it was meant
+     to create actually comes from `.petstrip-mini + .petstrip-mini`'s
+     negative margin further down, which does work. Removed rather than
+     left as a line that reads like it does something. */
+  /* MEASURED, 10 Sep. Steven's console: pill 40px, face 26px, gap above
+     1.01px, gap below 13px — the face pinned to the top of the content
+     box while `align-items` computed to `center`.
+
+     That is the signature of a WRAPPING flex container. With
+     `flex-wrap:wrap` the item is centred within its LINE, the line is
+     only as tall as the item, and `align-content` (default `flex-start`)
+     then parks that line at the top. Centring inside a 26px line inside a
+     38px box moves nothing.
+
+     `nowrap` because three faces on one row is the whole design, and
+     `align-content:center` so a line — however it is formed — sits in the
+     middle. Both, because either alone leaves the other failure open. */
+  display:flex; align-items:center; justify-content:center;
+  flex-wrap:nowrap;
+  align-content:center;
+  padding:0 6px;
   border:1px solid rgb(var(--sand-rgb) / .45);
   border-radius:999px;
   background:var(--sand-wash);
@@ -8838,8 +10007,24 @@ html[data-theme="pine"]{
 }
 /* Overlapped, so three faces take the space of about two. A header has
    no room to spare and the pile reads as "a group" rather than a list. */
+/* CENTRED ON THE FACES THEMSELVES, not left to the parent.
+
+   Steven, 10 Sep: "the pets need to be centered, they are at the top of
+   the container." The pill already said `align-items:center`, which
+   should have been enough — so stating it on the item as well is belt and
+   braces against anything that sets `align-self` further up, and against
+   `.pet-img`'s `height:auto`, which applies to these same images and
+   would let one grow past 26px if the cascade ever reordered.
+
+   `display:block` because an <img> is inline by default and an inline
+   image sits on the text baseline, which leaves a few pixels of descender
+   space under it — enough to read as "not quite centred" even when the
+   box is. */
 .petstrip-mini{
   width:26px; height:26px;
+  min-height:26px; max-height:26px;
+  align-self:center;
+  display:block;
   border-radius:999px;
   object-fit:cover;
   background:var(--paper);
@@ -8910,10 +10095,48 @@ html[data-theme="pine"]{
 }
 /* Not hers yet. Greyed and still legible — a row of blanks is nothing to
    want, and the shelf is meant to be a reason to come back. */
+/* So the tick above can sit in the corner. */
+.ptg-cell{ position:relative }
+/* The requirement, on the cell. Small and wrapped — it has to fit under a
+   96px picture without pushing the grid apart. See the note in
+   petstrip.js. */
+.ptg-need{
+  display:block;
+  margin-top:3px;
+  padding:0 2px;
+  font:600 .62rem/1.25 var(--ff-ui);
+  color:var(--fg-soft);
+  text-align:center;
+}
 .ptg-cell.is-locked .ptg-img{ filter:grayscale(1); opacity:.42 }
 .ptg-cell.is-locked .ptg-name{ opacity:.65 }
 .ptg-cell.is-own{ border-color:rgb(var(--yes-rgb) / .5) }
-.ptg-cell.is-picked{ border-color:var(--flame); border-width:2px }
+/* WHICH PETS ARE ALREADY OUT.
+
+   This WAS a 2px flame border and nothing else — invisible beside the
+   greyscale locked cells, so the grid could say a carrier was full but
+   not which three were in it. That makes "put one away first" an
+   instruction she cannot act on: she does not know what to tap. Steven,
+   09 Sep.
+
+   A filled ring, a wash, and a tick in the corner. The tick matters more
+   than the colour: the locked cells are already greyscaled, so a
+   colour-only signal is the one thing that cannot be relied on here. */
+.ptg-cell.is-picked{
+  border-color:var(--flame);
+  border-width:2px;
+  box-shadow:0 0 0 2px rgb(var(--flame-rgb) / .40);
+  background:rgb(var(--flame-rgb) / .10);
+}
+.ptg-cell.is-picked::after{
+  content:'\2713';
+  position:absolute; top:6px; right:6px;
+  width:20px; height:20px;
+  display:grid; place-items:center;
+  border-radius:999px;
+  background:var(--flame); color:var(--on-flame);
+  font:700 .74rem/1 var(--ff-ui);
+}
 
 /* The word a vocab round just confirmed, and what it means.
 
@@ -9345,19 +10568,54 @@ html[data-theme="pine"]{
 .fb-mode-why{
   display:flex; align-items:center; justify-content:center;
   gap:8px; margin:8px 0 2px;
+  /* Room on the right so a long mode name cannot run under the ? in the
+     corner. Mirrored on the left so the name stays optically centred. */
+  padding:0 30px;
 }
 .fb-mode-name{
   font:var(--t-eyebrow); letter-spacing:var(--t-eyebrow-ls);
   text-transform:uppercase; color:var(--fg);
 }
+/* Top right of the card, not in the mode row. See the note in
+   fill-blank.js. Absolute rather than floated so it never reflows the
+   toolbar, and slightly larger than before because a corner target with
+   nothing beside it needs to be tappable on its own. */
 .fb-mode-q{
-  width:19px; height:19px; flex:0 0 auto;
+  position:absolute; top:10px; right:10px; z-index:2;
+  width:26px; height:26px; flex:0 0 auto;
   display:flex; align-items:center; justify-content:center;
   border-radius:50%;
   border:1.5px solid rgb(var(--mauve-rgb) / .5);
-  background:transparent; color:var(--fg-soft);
-  font:700 .72rem/1 var(--ff-ui);
+  background:rgb(var(--sand-rgb) / .10); color:var(--fg-soft);
+  font:700 .82rem/1 var(--ff-ui);
   cursor:pointer;
+}
+.fb-mode-q:hover{
+  background:rgb(var(--sand-rgb) / .22);
+  border-color:rgb(var(--mauve-rgb) / .8);
+  color:var(--fg);
+}
+
+/* GLOWING UNTIL SHE FINDS IT. Set by fill-blank.js once the legend has
+   been seen but the ? has never been used — see the note by
+   `legendSeen` there. A pointer, not an alert: it pulses slowly and it
+   stops for good the first time she taps it.
+
+   `--flame` here rather than a role colour, because this is the app's
+   own "look at this" accent and that is exactly what it is doing. */
+.fb-mode-q.is-new{
+  border-color:var(--flame);
+  color:var(--flame);
+  background:rgb(var(--flame-rgb) / .14);
+  animation:fbq-glow 2.4s ease-in-out infinite;
+}
+@keyframes fbq-glow{
+  0%,100%{ box-shadow:0 0 0 0 rgb(var(--flame-rgb) / .55) }
+  50%    { box-shadow:0 0 10px 3px rgb(var(--flame-rgb) / .30) }
+}
+@media (prefers-reduced-motion: reduce){
+  /* The colour still marks it; only the pulse goes. */
+  .fb-mode-q.is-new{ animation:none; box-shadow:0 0 8px 2px rgb(var(--flame-rgb) / .35) }
 }
 .fb-mode-help{
   margin:0 0 10px; text-align:center;
@@ -9440,6 +10698,10 @@ html[data-theme="pine"]{
   margin:6px 0 12px;
 }
 .purse-pop-go{ display:block; width:100% }
+/* The second way out — see the note in purse.js. Sits under the primary
+   with a little air, full width so the two read as a pair rather than as
+   a button and an afterthought. */
+.purse-pop-shop{ display:block; width:100%; margin-top:8px }
 .purse-pop-note{
   font:var(--t-sub); letter-spacing:var(--t-sub-ls);
   color:var(--fg-soft); margin:10px 0 0;
@@ -9485,30 +10747,76 @@ html[data-theme="pine"]{
    `is-blocking` is for the moments that really are a stop: the first offer,
    the handover. Those darken the page. A tour step never does. */
 .bt-overlay{ display:none }
-/* Full-screen now, not just a bottom strip, so a tour step can dim the
-   whole page a little rather than none of it. `pointer-events:none` on
-   the overlay itself is what keeps the page underneath usable — the dim
-   is paint only, nothing here blocks a tap.
 
-   `.bt-lit` (below) sits above this overlay's z-index, so whatever he is
-   pointing at keeps its normal brightness while everything else recedes —
-   that contrast is the whole point of dimming at all. */
-.bt-overlay.is-open{
-  display:flex; /* `safe flex-end` — the bubble sits at the bottom by design, but a
-     tall one pushed its own TOP off the screen, which is the same bug
-     as centring and just at the other end. `safe` start-aligns it
-     instead when it would not fit. */
-  align-items:flex-start; align-items:safe flex-end; justify-content:center;
-  position:fixed; inset:0; z-index:70;
+/* ---------- THE SCRIM: THE DIM, AND NOTHING ELSE ----------
+
+   The dim used to be `.bt-overlay`'s own background, which made the scrim
+   and the bubble one element and therefore one stacking context at z-index
+   70. `.bt-lit` is 81, so ANY highlighted element painted over the bubble,
+   and a tall one buried it: highlighting the Games section put the whole
+   games grid on top of Waddles.
+
+   No value of `.bt-lit` could fix that — above 70 covers the bubble, below
+   70 gets dimmed, which defeats the highlight. So the dim is its own
+   element underneath:
+
+       .bt-scrim    700   the dim, paint only
+       .wm-stage    750   full-screen panels a tour step runs INSIDE,
+       .gr-overlay  755   raised so their contents are not dimmed and
+       .ptd-wrap    758   can still be lit — a child cannot escape its
+       .howto       765   ancestor's stacking context
+       .lg-wrap     770
+       .lb-overlay  780   the zoomed picture: the top of everything the
+                          user can open, and under the bubble ONLY while
+                          a tour is running — the Full Tour opens it on
+                          purpose at steps 60 and 61
+       .bt-lit      810   the thing he is pointing at
+       .bt-overlay  900   him and his bubble, always on top
+       .bt-gift     950   the crystal hand-over
+
+   RAISED FROM 70/81/90 ON 09 Sep. At 90 the bubble still sat under the
+   lightbox and the how-to panel (both 200) and the language picker
+   (120), so "Waddles is behind" was reachable from several steps.
+   Steven: "pull him to the top everywhere across the board." He is now
+   above every z-index in this file except nothing.
+
+   The one deliberate exception is `.wc-overlay` at 90 — the welcome
+   screen, which is only ever on screen before any tour exists.
+
+   `butler.js`'s `ensure()` creates the scrim first and appends it first,
+   and `show()` toggles both together. */
+.bt-scrim{ display:none }
+.bt-scrim.is-open{
+  display:block;
+  position:fixed; inset:0; z-index:700;
   pointer-events:none;
   background:rgb(var(--scrim-rgb) / .3);
 }
+.bt-scrim.is-blocking{ background:rgb(var(--scrim-rgb) / .55) }
+
+/* `pointer-events:none` on the overlay itself is what keeps the page
+   underneath usable — nothing here blocks a tap. The dim lives in
+   `.bt-scrim` above; this layer carries no background of its own. */
+.bt-overlay.is-open{
+  display:flex;
+  /* TOP LEFT, NOT BOTTOM CENTRE. He sat at the bottom middle, which put
+     his bubble across the widest part of whatever he was pointing at — on
+     the Games step it covered three game tiles. Top left is the one corner
+     of the content area that is never the subject of a step.
+     96px clears the sticky jumpbar (two rows on a phone) and the back
+     button, both of which he would otherwise cover now that he is at 90. */
+  align-items:flex-start; justify-content:flex-start;
+  position:fixed; inset:0; z-index:900;
+  pointer-events:none;
+}
 .bt-overlay.is-blocking{
-  background:rgb(var(--scrim-rgb) / .55);
-  /* `safe center`, not `center` — this selector is more specific than
-     the global overlay rule above, so it would otherwise win and keep
-     the clipping bug for the one panel she cannot dismiss. */
-  align-items:flex-start; align-items:safe center; justify-content:center;
+  /* The hello/handover screen is a real stop and still owns the middle of
+     the screen. This selector is more specific than the rule above, so
+     both axes have to be restated or the top-left alignment leaks in.
+     `safe center`, not `center` — a tall panel would otherwise push its
+     own top off the screen, and this is the one panel she cannot dismiss. */
+  align-items:flex-start; align-items:safe center;
+  justify-content:center;
   overflow-y:auto;
   pointer-events:auto;
 }
@@ -9519,15 +10827,37 @@ html[data-theme="pine"]{
    point at his hat rather than his face. */
 .bt-stage{
   pointer-events:auto;
-  display:flex; align-items:flex-end;
+  /* `flex-start`, not `flex-end`. Bottom-aligned was right when the stage
+     sat on the bottom edge; at the top of the screen his head and the
+     bubble's tail have to line up from the top instead. */
+  display:flex; align-items:flex-start;
   gap:0;
-  margin:0 12px 12px;
-  max-width:min(460px, calc(100vw - 24px));
+  /* 96px down, hard against the left. See the alignment note on
+     `.bt-overlay.is-open` for why 96. */
+  margin:96px 12px 12px;
+  /* NARROWER THAN IT WAS (460px). A narrow, taller bubble reaches across
+     less of whatever he is pointing at, which is the whole reason he moved
+     up here. Roughly four lines of body text instead of three wide ones. */
+  max-width:min(340px, calc(100vw - 24px));
 }
 /* The hello/offer screen (blocking) keeps him beside the bubble too, same
    as every other step — just with more room to work with since it owns
    the whole screen, so the bubble is allowed to grow into it instead of
    staying content-width. */
+/* HE STANDS AT THE BOTTOM WHEN HIS TARGET IS AT THE TOP.
+
+   Set by `highlight()` in butler.js whenever the lit element's top edge
+   is in the upper quarter of the screen — see the note there. The
+   crystals popup and the Appearance panel both open downward out of the
+   toolbar, and the bubble's usual 96px perch is exactly where they land.
+
+   `margin-top:auto` rather than a fixed bottom offset, so the stage keeps
+   its own height and simply sits at the far end of the flex column. */
+.bt-overlay.is-low .bt-stage{
+  margin-top:auto;
+  margin-bottom:16px;
+}
+
 .bt-overlay.is-blocking .bt-stage{
   /* auto, not 0 — centres when it fits, top-aligns when it does not. */
   margin:auto;
@@ -9647,6 +10977,60 @@ html[data-theme="pine"]{
   color:var(--fg-soft);
 }
 
+/* ---------- THE GIFT, FRONT OF SCREEN ----------
+
+   Built by `giftPop()` in js/butler.js when a tour step carries `gift`.
+
+   z-index 95: above the bubble (90), because for two seconds this IS the
+   thing being said. `pointer-events:none` on everything here — the same
+   step asks her to tap the crystal icon in the header, and a panel that
+   swallowed that tap would be worse than no panel.
+
+   The crystal is sized by HEIGHT against `.bt-face` (118px in a tour step)
+   and deliberately larger: 200px, so it reads as the subject rather than
+   an illustration beside him. */
+.bt-gift{
+  position:fixed; inset:0; z-index:950;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:10px;
+  pointer-events:none;
+  animation:bt-gift-in .28s ease-out both;
+}
+.bt-gift-n{
+  margin:0;
+  font-family:var(--ff-display, var(--ff-ui));
+  font-weight:800;
+  font-size:clamp(2rem, 9vw, 3.4rem);
+  line-height:1;
+  color:var(--flame);
+  text-shadow:0 3px 18px rgb(var(--scrim-rgb) / .55);
+  white-space:nowrap;
+}
+.bt-gift-img{
+  height:200px; width:auto;
+  object-fit:contain;
+  filter:drop-shadow(0 10px 30px rgb(var(--scrim-rgb) / .5));
+}
+/* The character fallback when the file is missing. A glyph has no
+   intrinsic height, so it needs a font-size instead. */
+.bt-gift-img.is-char{
+  height:auto;
+  font-size:200px; line-height:1;
+  color:var(--flame);
+}
+@media (max-width:400px){
+  .bt-gift-img{ height:150px }
+  .bt-gift-img.is-char{ font-size:150px }
+}
+@keyframes bt-gift-in{
+  from{ opacity:0; transform:scale(.7) }
+  to{ opacity:1; transform:scale(1) }
+}
+@media (prefers-reduced-motion: reduce){
+  .bt-gift{ animation:none }
+}
+
 /* Where he goes when dismissed. Dismissing him is never permanent from her
    side — the perch stays, and he says he is there. */
 /* HIM, SMALL, IN THE HEADER.
@@ -9661,17 +11045,46 @@ html[data-theme="pine"]{
    No circle and no background: he is a cut-out figure and a disc behind
    him would put him in a badge. The border only appears while he is
    glowing, which is the one moment he needs an outline. */
+/* A ROUND 40px BUTTON, LIKE EVERYTHING ELSE IN THE ROW.
+
+   Steven, 09 Sep: "Waddles should also be in a round circle to match."
+
+   It was 30x40 with an 8px radius and no background — a tall thin
+   rounded rectangle sitting between three pill-shaped controls, which is
+   why it read as the odd one out even before you noticed the heights.
+
+   Now the same 40px box the crystal, the theme swatch and the pet pill
+   use, fully round, with the same faint border and wash the pet pill
+   carries so the four read as one set. */
+/* 38px, THE SAME AS THE THEME COLOUR CIRCLE.
+
+   Steven, 09 Sep: "I have no problem with Waddles being clipped inside
+   his circle, I just want that circle the exact same size as the theme
+   color circle."
+
+   The theme control is a 40px button holding a 38px dot, so the CIRCLE
+   she sees there is 38 — and the perch was a 40px circle, one step
+   bigger than the thing next to it. Deliberately left out of the 40px
+   group above for this reason; `align-self:center` from the row still
+   centres it, so 38 in a 40 row sits with 1px either side.
+
+   `overflow:hidden` and a filling image: he is clipped by the circle
+   rather than shrunk to fit inside it. */
 .bt-perch{
-  width:30px; height:40px;
+  width:38px; height:38px;
+  align-self:center;
+  flex:none;
+  display:grid; place-items:center;
+  overflow:hidden;
   padding:0;
-  border:1.5px solid transparent;
-  border-radius:8px;
-  background:none;
-  font-size:.95rem; line-height:1;
+  border:1px solid rgb(var(--sand-rgb) / .45);
+  border-radius:999px;
+  background:var(--sand-wash);
+  font-size:1.05rem; line-height:1;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
 }
-.bt-perch:hover{ border-color:rgb(var(--sand-rgb) / .5) }
+.bt-perch:hover{ border-color:rgb(var(--sand-rgb) / .8) }
 /* WHERE HE WENT.
 
    Scale alone was too quiet against a busy header, so it glows as well.
@@ -9692,20 +11105,93 @@ html[data-theme="pine"]{
 /* His face on the perch, not a bell. `contain` so a tall figure is never
    cropped, and `bottom` so he stands on the row rather than floating with
    his feet cut off. */
-.bt-perch-face{
+/* ANY image in the perch, not just one carrying the class. The button is
+   40px and the artwork is a full-body portrait several times that, so an
+   unconstrained img is the difference between a face on a button and a
+   penguin standing over the toolbar. */
+/* THE SAME SIZE AS THE PET FACES, AND CENTRED.
+
+   Steven, 09 Sep: "Waddles bubble is too big, it does not line up with
+   the rest of the bar."
+
+   It was `height:100%` with `object-position:bottom` — a full-body
+   portrait stretched to the full 40px and stood on the floor of its box,
+   so he read as half again the size of the 26px faces next to him and
+   his feet sat on the bottom edge rather than on the row's centre line.
+
+   26px to match `.petstrip-mini` exactly, centred in the 40px button the
+   way every other control centres its contents. */
+/* ZOOMED ONTO HIS FACE, AND CLIPPED BY THE CIRCLE.
+
+   Steven, 09 Sep: "I liked Waddles face — zoom back in on him, just have
+   his circle the same size as the theme circle. I never asked you to
+   shrink him to an ant."
+
+   The reason cropping alone never showed a face: `perchFace` in
+   data/butler-script.js is EMPTY, so this falls back to `portrait`, which
+   is the full standing figure — hat, tailcoat, feet. Cropping that to a
+   38px circle gives shoulders and a body at best.
+
+   So it scales up and takes the head. `transform-origin` at 22% down is
+   roughly where his face sits in the standing portrait; `scale(2.4)`
+   fills the circle with it. `overflow:hidden` on `.bt-perch` does the
+   clipping.
+
+   THE PROPER FIX IS A PICTURE, NOT CSS: set `perchFace` to a tight
+   face-crop file and the scale below can go back to 1. The comment in
+   butler-script.js says as much and has since it was written. Until then
+   these two numbers are the dial — raise the scale to come closer, move
+   the origin down to look lower on the figure. */
+.bt-perch-face,
+.bt-perch img{
   width:100%; height:100%;
-  object-fit:contain; object-position:bottom;
+  /* PULLED BACK. Steven, 10 Sep: he was super-zoomed in. At 1.6 the
+     circle held his head alone. At 1.0 the crop does the work — `cover`
+     on a standing portrait in a square frame keeps a vertical band, and
+     `object-position` chooses which. 22% down lands on his face rather
+     than the top edge of the canvas.
+
+     Two numbers to nudge: raise the scale to come closer, raise the
+     percentage to look further down the figure. */
+  object-fit:cover; object-position:center 22%;
+  /* 1.6, not 2.4. At 2.4 the circle held one eye. The head needs to fit
+     INSIDE the frame, not fill it — so enough zoom to get past the
+     tailcoat and the feet, and no more.
+
+     The two numbers are the dial: raise the scale to come closer, move
+     the origin percentage down to look lower on the figure. */
+  /* 3px right. Steven, 10 Sep: "he's the right size but too far left."
+
+     A TRANSFORM, NOT `object-position`. With `cover` on a portrait that
+     is taller than it is wide, the image is scaled to fill the width — so
+     there is no horizontal overflow to slide, and changing the X
+     percentage does nothing at all. Moving the element is the only thing
+     that moves him. */
+  transform:translateX(3px) scale(1);
+  transform-origin:center 22%;
   display:block;
 }
 
 /* What a step is pointing at. Above the scrim, so the thing he names is
-   the one bright object on the page. */
+   the one bright object on the page.
+
+   THE RING AND THE LIFT ARE TWO CLASSES, and that is not tidiness.
+   `z-index` needs a positioned element, but setting `position` on an
+   element that is ALREADY positioned overwrites it: `.backlink` is
+   `position:fixed`, this rule comes later in the file, and so
+   highlighting the back button used to drop it out of its fixed corner
+   into the document flow. Eighteen tour steps point at `.backlink`.
+
+   So `butler.js` adds `bt-lit-static` only when the computed position is
+   `static` — an element with nothing to lose. Everything else keeps its
+   own positioning and just gets the ring. */
 .bt-lit{
-  position:relative; z-index:81;
+  z-index:810;
   outline:3px solid var(--flame);
   outline-offset:3px;
   border-radius:var(--r-sm);
 }
+.bt-lit-static{ position:relative }
 @media (prefers-reduced-motion: reduce){
   .bt-perch.is-new{ animation:none }
 }
